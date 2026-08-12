@@ -10,6 +10,7 @@
     } from '@sveltestrap/sveltestrap';
     import type { Snippet } from 'svelte';
     import AppHead from '../AppHead.svelte';
+    import { Toaster } from 'svelte-sonner';
 
     let { children }: { children?: Snippet } = $props();
 
@@ -19,7 +20,7 @@
 </script>
 
 <AppHead />
-
+<Toaster/>
 <Navbar
     color="primary"
     dark

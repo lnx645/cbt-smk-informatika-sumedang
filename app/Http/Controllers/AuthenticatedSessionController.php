@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Toast;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,7 +41,6 @@ class AuthenticatedSessionController extends Controller
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             app(RateLimiter::class)->hit($this->throttleKey($request));
-
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
             ]);

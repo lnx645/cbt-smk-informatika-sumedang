@@ -2,6 +2,7 @@
     import { Link, usePage } from '@inertiajs/svelte';
     import type { Snippet } from 'svelte';
     import AppHead from '../AppHead.svelte';
+    import { Toaster } from 'svelte-sonner';
 
     let { children }: { children?: Snippet } = $props();
 
@@ -25,6 +26,7 @@
     ];
 </script>
 
+<Toaster/>
 <AppHead />
 
 <div class="d-flex min-vh-100 bg-light-subtle">
