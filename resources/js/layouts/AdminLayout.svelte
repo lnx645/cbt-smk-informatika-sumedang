@@ -20,9 +20,15 @@
 
     const navItems: AppShellNavItem[] = [
         { href: '/manage', label: 'Dashboard', icon: 'bi-grid-1x2-fill' },
-        { href: '/manage/users', label: 'Pengguna', icon: 'bi-people-fill' },
-        { href: '/manage/modul', label: 'Modul', icon: 'bi-journal-richtext' },
-        { href: '/manage/ujian', label: 'Ujian', icon: 'bi-file-earmark-text-fill' },
+        {
+            label: 'Manajemen',
+            icon: 'bi-kanban-fill',
+            children: [
+                { href: '/manage/users', label: 'Pengguna', icon: 'bi-people-fill' },
+                { href: '/manage/modul', label: 'Modul', icon: 'bi-journal-richtext' },
+                { href: '/manage/ujian', label: 'Ujian', icon: 'bi-file-earmark-text-fill' },
+            ],
+        },
         { href: '/manage/settings', label: 'Pengaturan', icon: 'bi-gear-fill' },
     ];
 </script>

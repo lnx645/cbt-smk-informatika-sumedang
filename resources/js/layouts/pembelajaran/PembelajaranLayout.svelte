@@ -21,14 +21,16 @@
     const navItems: AppShellNavItem[] = [
         { href: '/dashboard', label: 'Dashboard', icon: 'bi-grid-1x2-fill' },
         {
-            href: '/matpel',
-            label: 'Mata Pelajaran',
+            label: 'Akademik',
             icon: 'bi-journal-richtext',
-        },
-        {
-            href: '/tugas',
-            label: 'Tugas Saya',
-            icon: 'bi-file-earmark-text-fill',
+            children: [
+                { href: '/matpel', label: 'Mata Pelajaran', icon: 'bi-journal-bookmark' },
+                {
+                    href: '/tugas',
+                    label: 'Tugas Saya',
+                    icon: 'bi-file-earmark-text-fill',
+                },
+            ],
         },
     ];
 </script>

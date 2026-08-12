@@ -12545,6 +12545,18 @@ textarea.form-control-lg {
   --inv-shadow-none: none;
   --inv-focus-ring: 0 0 0 3px rgba(0, 145, 212, 0.25);
   --inv-focus-ring-tab: 0 0 0 3px rgba(0, 145, 212, 0.25);
+  --app-shell-primary: #0091d4;
+  --app-shell-primary-dark: #006fa5;
+  --app-shell-accent: #fdd406;
+  --app-shell-accent-soft: rgba(253, 212, 6, 0.16);
+  --app-shell-app-bg: #f6f8fb;
+  --app-shell-surface: #ffffff;
+  --app-shell-border: #cbd5e1;
+  --app-shell-text: #334155;
+  --app-shell-text-muted: #64748b;
+  --app-shell-primary-soft: #e6f4fb;
+  --app-shell-danger: #d97a70;
+  --app-shell-danger-soft: rgba(194, 92, 82, 0.1);
 }
 
 .btn {

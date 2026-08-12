@@ -115,4 +115,18 @@
     // ── Focus Ring ────────────────────────────────
     --inv-focus-ring: #{$focus-ring};
     --inv-focus-ring-tab: #{$focus-ring-tab};
+
+    // ── App Shell Theme Tokens (Sumber: design tokens di atas) ──
+    --app-shell-primary: #{$primary};
+    --app-shell-primary-dark: #{$primary-700};
+    --app-shell-accent: #{$tutwuri-gold};
+    --app-shell-accent-soft: rgba(253, 212, 6, 0.16);
+    --app-shell-app-bg: #{$light};
+    --app-shell-surface: #{$white};
+    --app-shell-border: #{$gray-300};
+    --app-shell-text: #{$slate-700};
+    --app-shell-text-muted: #{$slate-500};
+    --app-shell-primary-soft: #{$primary-50};
+    --app-shell-danger: #{$danger};
+    --app-shell-danger-soft: rgba(194, 92, 82, 0.1);
 }

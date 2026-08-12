@@ -1,6 +1,7 @@
 <script lang="ts">
     import {
         Container,
+        Collapse,
         Dropdown,
         DropdownToggle,
         DropdownMenu,
@@ -11,9 +12,10 @@
     import { page, router } from '@inertiajs/svelte';
 
     export type AppShellNavItem = {
-        href: string;
+        href?: string;
         label: string;
-        icon: string;
+        icon?: string;
+        children?: AppShellNavItem[];
     };
 
     export type AppShellUser = {
@@ -54,6 +56,26 @@
         return page.url.startsWith(href);
     }
 
+    function groupHasActiveChild(item: AppShellNavItem): boolean {
+        return (item.children ?? []).some(
+            (child) => child.href != null && isActive(child.href),
+        );
+    }
+
+    let openGroups = $state<Record<string, boolean>>({});
+
+    $effect(() => {
+        for (const item of navItems) {
+            if (item.children?.length && groupHasActiveChild(item)) {
+                openGroups[item.label] = true;
+            }
+        }
+    });
+
+    function toggleGroup(label: string) {
+        openGroups[label] = !openGroups[label];
+    }
+
     function logout() {
         router.post(
             '/logout',
@@ -80,7 +102,7 @@
 
 <Toaster richColors position="top-right" />
 
-<div class="app-shell">
+    <div class="app-shell">
     <!-- Sidebar -->
     <aside class="app-shell__sidebar {sidebarOpen ? 'open' : ''}">
         <div class="app-shell__brand">
@@ -94,16 +116,59 @@
         </div>
 
         <nav class="app-shell__nav">
-            <div class="app-shell__nav-category">Navigasi Utama</div>
-            {#each navItems as item (item.href)}
-                <a
-                    href={item.href}
-                    class="app-shell__nav-item {isActive(item.href) ? 'active' : ''}"
-                    aria-current={isActive(item.href) ? 'page' : undefined}
-                >
-                    <i class="bi {item.icon}"></i>
-                    <span>{item.label}</span>
-                </a>
+            {#each navItems as item (item.href ?? item.label)}
+                {#if item.children?.length}
+                    <button
+                        type="button"
+                        class="app-shell__nav-item app-shell__nav-group {openGroups[
+                            item.label
+                        ]
+                            ? 'is-open'
+                            : ''}"
+                        onclick={() => toggleGroup(item.label)}
+                        aria-expanded={openGroups[item.label]}
+                    >
+                        <i class="bi {item.icon}"></i>
+                        <span class="app-shell__nav-group-label">{item.label}</span>
+                        <i
+                            class="bi bi-chevron-down app-shell__nav-group-caret"
+                        ></i>
+                    </button>
+                    <Collapse
+                        isOpen={openGroups[item.label]}
+                        class="app-shell__nav-group-collapse"
+                    >
+                        {#each item.children as child (child.href)}
+                            <a
+                                href={child.href}
+                                class="app-shell__nav-item app-shell__nav-subitem {isActive(
+                                    child.href ?? '',
+                                )
+                                    ? 'active'
+                                    : ''}"
+                                aria-current={isActive(child.href ?? '')
+                                    ? 'page'
+                                    : undefined}
+                            >
+                                <i class="bi {child.icon}"></i>
+                                <span>{child.label}</span>
+                            </a>
+                        {/each}
+                    </Collapse>
+                {:else}
+                    <a
+                        href={item.href}
+                        class="app-shell__nav-item {isActive(item.href ?? '')
+                            ? 'active'
+                            : ''}"
+                        aria-current={isActive(item.href ?? '')
+                            ? 'page'
+                            : undefined}
+                    >
+                        <i class="bi {item.icon}"></i>
+                        <span>{item.label}</span>
+                    </a>
+                {/if}
             {/each}
         </nav>
 
@@ -229,20 +294,20 @@
 
 <style>
     .app-shell {
-        --tw-blue: #0091d4;
-        --tw-blue-dark: #006fa5;
-        --tw-gold: #fdd406;
-        --tw-gold-soft: rgba(253, 212, 6, 0.16);
+        --tw-blue: var(--app-shell-primary);
+        --tw-blue-dark: var(--app-shell-primary-dark);
+        --tw-gold: var(--app-shell-accent);
+        --tw-gold-soft: var(--app-shell-accent-soft);
 
-        --app-bg: #f6f8fb;
-        --surface: #ffffff;
-        --border: #e2e8f0;
-        --text: #334155;
-        --text-muted: #64748b;
+        --app-bg: var(--app-shell-app-bg);
+        --surface: var(--app-shell-surface);
+        --border: var(--app-shell-border);
+        --text: var(--app-shell-text);
+        --text-muted: var(--app-shell-text-muted);
 
-        --primary-soft: #e6f4fb;
-        --danger: #c25c52;
-        --danger-soft: rgba(194, 92, 82, 0.1);
+        --primary-soft: var(--app-shell-primary-soft);
+        --danger: var(--app-shell-danger);
+        --danger-soft: var(--app-shell-danger-soft);
 
         --brand-gradient: linear-gradient(
             135deg,
@@ -303,7 +368,7 @@
         align-items: center;
         justify-content: center;
         color: #ffffff;
-        font-size: 1.15rem;
+        font-size: 1rem;
         box-shadow: 0 0 14px rgba(253, 212, 6, 0.25);
     }
 
@@ -313,7 +378,7 @@
     }
 
     .app-shell__brand-title {
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 700;
         letter-spacing: 0.5px;
         margin: 0;
@@ -344,6 +409,44 @@
         font-weight: 600;
     }
 
+    .app-shell__nav-group {
+        justify-content: space-between;
+        cursor: pointer;
+    }
+
+    .app-shell__nav-group-label {
+        flex: 1;
+        text-align: left;
+    }
+
+    .app-shell__nav-group-caret {
+        font-size: 0.75rem;
+        transition: transform 0.2s ease;
+    }
+
+    .app-shell__nav-group.is-open .app-shell__nav-group-caret {
+        transform: rotate(180deg);
+    }
+
+    .app-shell__nav-group-collapse {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        padding-left: 0.5rem;
+        margin: 0.1rem 0 0.3rem;
+        border-left: 1px solid var(--border);
+        margin-left: 1.4rem;
+    }
+
+    .app-shell__nav-subitem {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .app-shell__nav-subitem i {
+        font-size: 0.9rem;
+    }
+
     .app-shell__nav-item {
         display: flex;
         align-items: center;
@@ -356,7 +459,7 @@
         border-radius: 8px;
         font: inherit;
         font-weight: 500;
-        font-size: 0.9rem;
+        font-size: 0.825rem;
         border-left: 3px solid transparent;
         cursor: pointer;
         text-align: left;
@@ -365,7 +468,7 @@
     }
 
     .app-shell__nav-item i {
-        font-size: 1.1rem;
+        font-size: 1rem;
         flex-shrink: 0;
     }
 
@@ -455,7 +558,7 @@
     }
 
     .app-shell__header-title {
-        font-size: 1.15rem;
+        font-size: 1rem;
         font-weight: 600;
         margin: 0;
         color: var(--text);
@@ -496,7 +599,7 @@
     }
 
     .app-shell__user-toggle:focus-visible {
-        outline: 3px solid rgba(0, 145, 212, 0.35);
+        outline: 3px solid color-mix(in srgb, var(--tw-blue) 35%, transparent);
         outline-offset: 2px;
     }
 
@@ -552,7 +655,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1rem;
+        font-size: 0.9rem;
         font-weight: 700;
         letter-spacing: 0.5px;
         flex-shrink: 0;
@@ -563,7 +666,7 @@
     }
 
     .app-shell__menu-profile-name {
-        font-size: 1.02rem;
+        font-size: 0.95rem;
         font-weight: 700;
         margin-bottom: 0.1rem;
         white-space: nowrap;
@@ -572,7 +675,7 @@
     }
 
     .app-shell__menu-profile-email {
-        font-size: 0.82rem;
+        font-size: 0.78rem;
         opacity: 0.9;
         word-break: break-all;
     }
@@ -597,7 +700,7 @@
         color: var(--text);
         text-decoration: none;
         border-radius: 9px;
-        font-size: 0.9rem;
+        font-size: 0.825rem;
         font-weight: 500;
         background: transparent;
         border: none;
@@ -606,7 +709,7 @@
     }
 
     .app-shell__custom-dropdown-item i {
-        font-size: 1.05rem;
+        font-size: 1rem;
         color: var(--text-muted);
         flex-shrink: 0;
         transition: color 0.15s ease;
@@ -652,7 +755,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.82rem;
+        font-size: 0.75rem;
         font-weight: 700;
         letter-spacing: 0.5px;
         flex-shrink: 0;
