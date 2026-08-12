@@ -232,7 +232,7 @@
                         ></i>
                     </DropdownToggle>
                     
-                    <DropdownMenu end class="app-shell__user-menu p-0 overflow-hidden">
+                    <DropdownMenu end class="app-shell__user-menu p-0 overflow-hidden" style="width: 250px;">
                         <!-- Bagian Header Dropdown (Biru) -->
                         <div class="app-shell__menu-profile-header">
                             <span class="app-shell__menu-profile-avatar"
@@ -688,7 +688,7 @@
     }
 
     .app-shell__menu-links {
-        padding: 0.4rem 0.6rem;
+        padding: 0.4rem 0.4rem;
     }
 
     .app-shell__custom-dropdown-item {
