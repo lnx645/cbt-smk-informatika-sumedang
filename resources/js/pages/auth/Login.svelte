@@ -1,4 +1,6 @@
 <script lang="ts">
+    import AuthenticatedSessionController from '@/actions/App/Http/Controllers/AuthenticatedSessionController';
+    import SocialiteController from '@/actions/App/Http/Controllers/SocialiteController';
     import { useForm } from '@inertiajs/svelte';
     import {
         Button,
@@ -23,7 +25,7 @@
     });
     function submit(e: any) {
         e.preventDefault();
-        form.post('/login', {
+        form.submit(AuthenticatedSessionController.store(), {
             onError(e) {
                 toast.error(e.email || e.password);
             },
@@ -37,7 +39,6 @@
         style="max-width: 940px; border: none;"
     >
         <Row class="g-0">
-            <!-- Bagian Kiri (Biru) -->
             <Col
                 lg={5}
                 class="login-brand d-none d-lg-flex flex-column justify-content-between p-5 text-white"
@@ -53,7 +54,7 @@
                             <span class="lh-1 fw-bold fs-5">{appName}</span>
                         </div>
                         <div class="brand-title fs-6 fw-normal opacity-75">
-                            CBT Ujian Berbasis Komputer
+                            Account Gate Smk Informatika Sumedang
                         </div>
                     </div>
                 </div>
@@ -133,7 +134,7 @@
                                 <button
                                     type="button"
                                     class="btn border bg-transparent d-flex align-items-center pe-3"
-                                    style="color: #64748b; border-color: #dee2e6;"
+                                    style="color: #64748b; border-color: #cbd5e1;"
                                     onclick={() =>
                                         (passwordVisible = !passwordVisible)}
                                     aria-label={passwordVisible
@@ -196,7 +197,7 @@
                     </div>
 
                     <a
-                        href="/auth/google/redirect"
+                        href={SocialiteController.redirect().url}
                         class="google-btn btn w-100 d-flex align-items-center justify-content-center gap-2 py-2"
                     >
                         <i
@@ -237,7 +238,7 @@
 
     :global(.login-brand) {
         position: relative;
-        background: linear-gradient(160deg, #2b7bc4 0%, #005a85 100%);
+        background: linear-gradient(160deg, #0091d4 0%, #006fa5 100%);
     }
 
     .login-logo {

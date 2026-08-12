@@ -3,6 +3,7 @@ import DashboardLayout from '@/layouts/DashboardLayout.svelte';
 import MainLayout from '@/layouts/MainLayout.svelte';
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { initializeFlashToast } from './lib/flash-toast.svelte';
+import UjianLayout from './layouts/ujian/UjianLayout.svelte';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
@@ -11,6 +12,8 @@ createInertiaApp({
         let url = page.url;
         if (url.startsWith('/manage')) {
             return DashboardLayout;
+        }else if(url.startsWith("/m/ujian")){
+            return UjianLayout;
         }
         return MainLayout;
     },
