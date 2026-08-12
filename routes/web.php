@@ -14,11 +14,8 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
-    //masuk dulu ke gate/gerbang
     Route::get("/gate",GateController::class)->name("app.gate");
-   
     Route::prefix("m/ujian")->group(base_path("routes/cbt.php"))->name("app.gate.ujian.");
-    Route::prefix("m/ruang-belajar")->group(base_path("routes/classroom.php"))->name("app.gate.classroom.");
-    
+    Route::prefix("m/pembelajaran")->group(base_path("routes/classroom.php"))->name("app.gate.classroom.");
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });

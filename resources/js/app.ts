@@ -3,7 +3,9 @@ import DashboardLayout from '@/layouts/DashboardLayout.svelte';
 import MainLayout from '@/layouts/MainLayout.svelte';
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { initializeFlashToast } from './lib/flash-toast.svelte';
-import UjianLayout from './layouts/ujian/UjianLayout.svelte';
+import PembelajaranLayout from './layouts/pembelajaran/PembelajaranLayout.svelte';
+import AdminLayout from './layouts/AdminLayout.svelte';
+import QuizLayout from './layouts/QuizLayout.svelte';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
@@ -11,9 +13,11 @@ createInertiaApp({
     layout(name, page) {
         let url = page.url;
         if (url.startsWith('/manage')) {
-            return DashboardLayout;
-        }else if(url.startsWith("/m/ujian")){
-            return UjianLayout;
+            return AdminLayout;
+        } else if (url.startsWith('/m/ujian')) {
+            return QuizLayout;
+        } else if (url.startsWith('/m/pembelajaran')) {
+            return PembelajaranLayout;
         }
         return MainLayout;
     },

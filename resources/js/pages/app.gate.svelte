@@ -1,4 +1,5 @@
 <script lang="ts">
+    import LearningModuleController from '@/actions/App/Http/Controllers/Module/Learning/LearningModuleController';
     import ModulUjianController from '@/actions/App/Http/Controllers/Module/Ujian/ModulUjianController';
     import { Link, router, usePage, WhenVisible } from '@inertiajs/svelte';
     import {
@@ -55,7 +56,7 @@
             theme: 'success',
             bg: 'bg-success',
             text: 'text-white',
-            link: '/m/ruang-belajar',
+            link: LearningModuleController().url,
             isActive: true,
         },
         {
