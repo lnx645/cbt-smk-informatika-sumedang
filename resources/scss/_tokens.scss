@@ -1,0 +1,362 @@
+// ==========================================
+// IFSU CBT DESIGN SYSTEM - DESIGN TOKENS
+// Tut Wuri Handayani — Kemendikbud Official Palette
+// Single Source of Truth — Zero Redundancy
+// ==========================================
+//
+// Warna mengacu pada spesifikasi resmi Lambang Tut Wuri Handayani
+// (Kepmendikbud No. 0398/M/1977):
+//   - Biru Muda #0091D4 = bidang segi lima (primary)
+//   - Kuning Emas #FDD406 = nyala api (accent)
+//   - Putih #FEFEFE = ekor & sayap garuda, buku
+// Slate/Green/Amber/Rose/Teal tetap dipakai untuk teks & status semantik.
+
+// ── 2a. Raw Color Scales (Atomic Tokens) ───────────
+$white: #ffffff;
+
+// Blue (Primary) — Tut Wuri Biru Muda (official Kemendikbud)
+$blue-50: #e6f4fb; // Tint sangat muda
+$blue-100: #c9e8f7; // Tint muda
+$blue-400: #2fa5dc; // Aksen lebih terang
+$blue-500: #0091d4; // PRIMARY — Biru Muda Tut Wuri
+$blue-700: #006fa5; // Bayangan lebih gelap utk hover/teks
+
+// Slate (Cool Neutral — Teks & Permukaan)
+$slate-50: #f8fafc;
+$slate-100: #f1f5f9; // App background netral sejuk
+$slate-400: #94a3b8;
+$slate-500: #64748b; // Secondary text & Subheaders
+$slate-700: #334155; // Primary Body / Heading Text
+
+// Sky (Accent — aksen biru muda)
+$sky-50: #f0f9ff;
+$sky-100: #e0f2fe;
+$sky-400: #38bdf8;
+$sky-500: #0ea5e9;
+$sky-700: #0369a1;
+
+// Green (Success / Status Aktif)
+$green-50: #eaf6ee;
+$green-100: #d2ecda;
+$green-300: #5db980;
+$green-400: #3fae66;
+$green-500: #3a9d5c;
+$green-700: #2c7a47;
+$green-800: #1f5c35;
+
+// Amber (Warning / Menunggu Review)
+$amber-50: #fdf5e3;
+$amber-100: #faeac3;
+$amber-400: #e8b93e;
+$amber-500: #d19c2a;
+$amber-700: #9a7020;
+
+// Rose (Danger / Alert)
+$rose-50: #fbeded;
+$rose-100: #f6dcda;
+$rose-400: #d97a70;
+$rose-500: #c25c52;
+$rose-700: #9c453d;
+
+// Teal (Info / Bantuan — tenang & terpercaya)
+$teal-50: #eaf3f2;
+$teal-100: #d3e7e5;
+$teal-400: #5aa49e;
+$teal-500: #3e8a84;
+$teal-700: #2c645f;
+
+// Gray (Border & Struktur — sejuk)
+$gray-100: #f1f5f9;
+$gray-200: #e2e8f0;
+$gray-300: #cbd5e1; // Standard Card / Panel Border
+$gray-400: #94a3b8;
+$gray-500: #64748b;
+$gray-600: #475569;
+$gray-700: #334155;
+$gray-800: #1e293b;
+$gray-900: #0f172a;
+
+$light-bg: #f6f8fb; // Latar aplikasi biru muda sangat lembut
+
+// ── 2b. Semantic Colors ───────────────────────────
+$primary: $blue-500;
+$secondary: $slate-500;
+$success: $green-400;
+$info: $teal-400;
+$warning: $amber-400;
+$danger: $rose-400;
+
+$primary-50: $blue-50;
+$primary-100: $blue-100;
+$primary-400: $blue-400;
+$primary-500: $blue-500;
+$primary-700: $blue-700;
+
+$secondary-50: $slate-50;
+$secondary-100: $slate-100;
+$secondary-400: $slate-400;
+$secondary-500: $slate-500;
+$secondary-700: $slate-700;
+
+$success-50: $green-50;
+$success-100: $green-100;
+$success-400: $green-400;
+$success-500: $green-500;
+$success-700: $green-700;
+
+$info-50: $teal-50;
+$info-100: $teal-100;
+$info-400: $teal-400;
+$info-500: $teal-500;
+$info-700: $teal-700;
+
+$warning-50: $amber-50;
+$warning-100: $amber-100;
+$warning-400: $amber-400;
+$warning-500: $amber-500;
+$warning-700: $amber-700;
+
+$danger-50: $rose-50;
+$danger-100: $rose-100;
+$danger-400: $rose-400;
+$danger-500: $rose-500;
+$danger-700: $rose-700;
+
+$light: $light-bg;
+$dark: $gray-800;
+
+// ── 2c. Brand Colors (Tut Wuri Handayani) ────────
+$tutwuri-blue: #0091d4; // Biru Muda
+$tutwuri-gold: #fdd406; // Kuning Emas
+$tutwuri-white: #fefefe; // Putih
+$brand-chat: $sky-500;
+$brand-sign: $blue-500;
+$brand-flex: #9c6242;
+$brand-capital: #33665e;
+$brand-expense: #4a3f7a;
+$brand-university: $tutwuri-blue;
+
+// ── 2e. Overlay & Alpha ────────────────────────────
+$overlay-bg: rgba(15, 23, 42, 0.6);
+$overlay-fill: #0f172a;
+$white-alpha-50: rgba(255, 255, 255, 0.04);
+$white-alpha-100: rgba(255, 255, 255, 0.06);
+$white-alpha-200: rgba(255, 255, 255, 0.08);
+$white-alpha-300: rgba(255, 255, 255, 0.16);
+$white-alpha-400: rgba(255, 255, 255, 0.24);
+$white-alpha-500: rgba(255, 255, 255, 0.36);
+$white-alpha-600: rgba(255, 255, 255, 0.48);
+$white-alpha-700: rgba(255, 255, 255, 0.64);
+$white-alpha-800: rgba(255, 255, 255, 0.8);
+$white-alpha-900: rgba(255, 255, 255, 0.92);
+$black-alpha-50: rgba(0, 0, 0, 0.04);
+$black-alpha-100: rgba(0, 0, 0, 0.06);
+$black-alpha-200: rgba(0, 0, 0, 0.08);
+$black-alpha-300: rgba(0, 0, 0, 0.16);
+$black-alpha-400: rgba(0, 0, 0, 0.24);
+$black-alpha-500: rgba(0, 0, 0, 0.36);
+$black-alpha-600: rgba(0, 0, 0, 0.48);
+$black-alpha-700: rgba(0, 0, 0, 0.64);
+$black-alpha-800: rgba(0, 0, 0, 0.8);
+$black-alpha-900: rgba(0, 0, 0, 0.92);
+
+// ── 2f. Gradients ──────────────────────────────────
+$gradient-gray: linear-gradient(180deg, #{$light-bg} 0%, #ffffff 100%);
+$gradient-light-primary: radial-gradient(
+    108.28% 139.29% at 0% 0%,
+    #{$primary-50} 0%,
+    #ffffff 100%
+);
+$gradient-pale-secondary: linear-gradient(
+    90deg,
+    #{$primary-50} 0%,
+    #{$secondary-100} 100%
+);
+$gradient-celebration: linear-gradient(
+    98deg,
+    #ffffff 0%,
+    #{$sky-100} 50.01%,
+    #{$sky-500} 100%
+);
+$gradient-royal-primary: linear-gradient(
+    96deg,
+    #{$primary-500} 0%,
+    #{$primary-700} 100%
+);
+
+// ── 2g. Typography ─────────────────────────────────
+$body-bg: $light;
+$body-color: $slate-700;
+$font-family-sans-serif:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+$font-family-base: $font-family-sans-serif;
+$font-family-monospace:
+    'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+$font-size-base: 0.875rem;
+$font-size-sm: 0.75rem;
+$font-size-lg: 1rem;
+$headings-font-weight: 600;
+$font-weight-normal: 400;
+$headings-color: $slate-700;
+$text-muted: $slate-500;
+$h1-font-size: 1.5rem;
+$h2-font-size: 1.25rem;
+$h3-font-size: 1.125rem;
+$h4-font-size: 1rem;
+$h5-font-size: 0.875rem;
+$h6-font-size: 0.75rem;
+$line-height-base: 1.42857;
+$headings-line-height: 1.25;
+
+// ── 2h. Border & Radius ────────────────────────────
+$border-color: $gray-300;
+$border-radius: 8px;
+$border-radius-sm: 6px;
+$border-radius-lg: 12px;
+$border-radius-xl: 16px;
+
+// ── 2i. Shadows (Layered Elevation) ────────────────
+$box-shadow-sm:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 2px 6px rgba(0, 0, 0, 0.04);
+$box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 8px 24px rgba(0, 0, 0, 0.06);
+$box-shadow-lg:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 16px 40px rgba(0, 0, 0, 0.1);
+$box-shadow-xl:
+    0 8px 20px rgba(0, 0, 0, 0.1),
+    0 24px 56px rgba(0, 0, 0, 0.12);
+$box-shadow-2xl:
+    0 12px 28px rgba(0, 0, 0, 0.12),
+    0 32px 72px rgba(0, 0, 0, 0.16);
+$box-shadow-inner: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+$box-shadow-outline: 0 0 0 3px rgba($primary, 0.25);
+$box-shadow-outline-tab: 0 0 0 3px rgba($primary, 0.25);
+$box-shadow-outer: 0 0 0 2px rgba(203, 213, 225, 1);
+
+// ── 2j. Focus Ring ─────────────────────────────────
+$focus-ring: 0 0 0 3px rgba($primary, 0.25);
+$focus-ring-tab: 0 0 0 3px rgba($primary, 0.25);
+
+// ── 2k-2q. Components ──────────────────────────────
+$input-bg: $white;
+$input-color: $slate-700;
+$input-border-color: $gray-300;
+$input-focus-border-color: $primary-500;
+$input-focus-box-shadow: $focus-ring;
+$input-font-size: $font-size-base;
+$input-font-weight: $font-weight-normal;
+$input-border-radius: $border-radius;
+$input-border-radius-sm: $border-radius-sm;
+$input-border-radius-lg: $border-radius-lg;
+$input-placeholder-color: $slate-400;
+$input-transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out,
+    background-color 0.15s ease-in-out;
+
+$btn-border-radius: $border-radius;
+$btn-padding-y: 0.45rem;
+$btn-padding-x: 0.85rem;
+$btn-font-weight: 600;
+$btn-font-size: $font-size-base;
+$btn-font-size-lg: $font-size-lg;
+$btn-font-size-sm: $font-size-sm;
+$btn-transition: all 0.15s ease;
+$btn-focus-box-shadow: $focus-ring;
+
+$card-bg: $white;
+$card-border-color: $gray-300;
+$card-border-radius: $border-radius-lg;
+$card-box-shadow: $box-shadow-sm;
+
+$modal-content-border-radius: 12px;
+$modal-content-inner-border-radius: 12px;
+$modal-header-padding-y: 1rem;
+$modal-header-padding-x: 1.25rem;
+$modal-header-border-color: $gray-300;
+$modal-header-border-width: 1;
+$modal-content-border-width: 1;
+$modal-content-bg: $white;
+$modal-backdrop-bg: rgba(15, 23, 42, 0.6);
+$modal-backdrop-opacity: 1;
+$modal-content-box-shadow-xs: $box-shadow-lg;
+$modal-content-box-shadow-sm-up: $box-shadow-lg;
+
+$dropdown-border-radius: $border-radius;
+$dropdown-padding-x: 0.5rem;
+$dropdown-font-size: $font-size-base;
+$dropdown-border-width: 1px;
+$dropdown-border-color: $gray-300;
+$dropdown-link-color: $slate-700;
+$dropdown-link-hover-color: $slate-700;
+$dropdown-link-hover-bg: $gray-100;
+$dropdown-bg: $white;
+$dropdown-box-shadow: $box-shadow-lg;
+
+$navbar-light-color: $slate-500;
+$navbar-light-hover-color: $primary;
+$navbar-light-active-color: $slate-700;
+$link-color: $blue-700; // Teks link harus ≥4.5:1 di atas putih; #0091D4 hanya 3.5:1
+$link-hover-color: $primary;
+
+$progress-border-radius: $border-radius-sm;
+$badge-border-radius: $border-radius-sm;
+$accordion-border-radius: $border-radius;
+$accordion-icon-color: $gray-600;
+$accordion-icon-active-color: $primary;
+
+$list-group-border-color: $gray-300;
+$list-group-color: $slate-700;
+$table-cell-padding-y: 0.65rem;
+$table-cell-padding-x: 0.85rem;
+$table-th-font-weight: 600;
+$table-border-color: $gray-300;
+$form-label-font-size: 0.875rem;
+$form-label-font-weight: 600;
+$form-label-color: $slate-700;
+$form-label-margin-bottom: 0.25em;
+$alert-link-font-weight: 600;
+$alert-padding-x: 1rem;
+$alert-padding-y: 0.75rem;
+$alert-border-radius: $border-radius;
+
+// ── 2r. Derived Convenience Tokens ─────────────────
+$table-header-bg: $gray-100;
+$table-row-hover-bg: $blue-50;
+$table-separator: $gray-300;
+$dropdown-item-hover-bg: $gray-100;
+$dropdown-item-active-bg: $blue-50;
+$nav-pill-bg: $gray-100;
+$nav-pill-active-shadow: $box-shadow-sm;
+$modal-footer-border: $gray-300;
+$modal-title-color: $slate-700;
+$modal-header-bg: $white;
+
+// ── 2s. Theme Colors Map ───────────────────────────
+$theme-colors: (
+    'primary': $primary,
+    'secondary': $secondary,
+    'success': $success,
+    'info': $info,
+    'warning': $warning,
+    'danger': $danger,
+    'light': $light,
+    'dark': $dark,
+);
+
+// ── 2t. Feature Toggles ────────────────────────────
+$enable-cssgrid: true;
+$enable-shadows: true;
+$enable-gradients: false;
+$enable-rounded: true;
+
+$focus-ring-primary: 0 0 0 3px rgba($primary, 0.25);
+$focus-ring-success: 0 0 0 3px rgba($success, 0.25);
+$focus-ring-danger: 0 0 0 3px rgba($danger, 0.25);
+$focus-ring-warning: 0 0 0 3px rgba($warning, 0.25);
+$focus-ring-info: 0 0 0 3px rgba($info, 0.25);
+$focus-ring-dark: 0 0 0 3px rgba($dark, 0.25);

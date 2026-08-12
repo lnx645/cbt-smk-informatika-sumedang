@@ -1,0 +1,135 @@
+// â”€â”€ 7.4. Form Controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+.form-control,
+.form-select {
+    background-color: $white;
+    border: 1px solid $gray-300;
+    border-radius: $border-radius;
+    color: $slate-700;
+    padding: $input-padding-y $input-padding-x;
+    transition: $input-transition;
+    &:focus {
+        background-color: $white;
+        border-color: $primary;
+        box-shadow: $focus-ring;
+    }
+    &:focus-visible {
+        outline: none;
+        border-color: $primary;
+        box-shadow: $focus-ring;
+    }
+    &::placeholder {
+        color: $slate-400;
+        font-weight: $font-weight-normal;
+    }
+}
+
+.form-control-sm,
+.form-select-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: $font-size-sm;
+    border-radius: $border-radius-sm;
+    line-height: 1.5;
+    &::placeholder {
+        font-size: $font-size-sm;
+    }
+}
+
+.form-control-lg,
+.form-select-lg {
+    padding: 0.6rem 1rem;
+    font-size: $font-size-lg;
+    border-radius: $border-radius-lg;
+    line-height: 1.5;
+    &::placeholder {
+        font-size: $font-size-lg;
+    }
+}
+
+.form-control-success,
+.form-select-success {
+    &:focus {
+        border-color: $success;
+        box-shadow: $focus-ring-success;
+    }
+    &:focus-visible {
+        border-color: $success;
+        box-shadow: $focus-ring-success;
+    }
+}
+
+.form-control-danger,
+.form-select-danger {
+    &:focus {
+        border-color: $danger;
+        box-shadow: $focus-ring-danger;
+    }
+    &:focus-visible {
+        border-color: $danger;
+        box-shadow: $focus-ring-danger;
+    }
+}
+
+.form-control-warning,
+.form-select-warning {
+    &:focus {
+        border-color: $warning;
+        box-shadow: $focus-ring-warning;
+    }
+    &:focus-visible {
+        border-color: $warning;
+        box-shadow: $focus-ring-warning;
+    }
+}
+
+.form-control-info,
+.form-select-info {
+    &:focus {
+        border-color: $info;
+        box-shadow: $focus-ring-info;
+    }
+    &:focus-visible {
+        border-color: $info;
+        box-shadow: $focus-ring-info;
+    }
+}
+
+.form-check-input {
+    border-color: $gray-300;
+    &:focus {
+        border-color: $primary;
+        box-shadow: $focus-ring;
+    }
+    &:focus-visible {
+        outline: none;
+        border-color: $primary;
+        box-shadow: $focus-ring;
+    }
+    &:checked {
+        background-color: $primary;
+        border-color: $primary;
+    }
+}
+
+.form-check-input-sm {
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-top: 0.35em;
+}
+
+.form-switch .form-check-input.form-check-input-sm {
+    width: 1.5rem;
+    height: 0.8rem;
+    margin-top: 0.3em;
+    background-position: left center;
+    border-radius: 0.8rem;
+
+    &:checked {
+        background-position: right center;
+    }
+}
+
+.form-check-input-lg {
+    width: 1.4rem;
+    height: 1.4rem;
+    margin-top: 0.15em;
+}

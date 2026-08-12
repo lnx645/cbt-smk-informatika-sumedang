@@ -1,0 +1,147 @@
+[data-sonner-toaster] {
+    font-family:
+        -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+        sans-serif !important;
+
+    [data-sonner-toast] {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important; // Border netral
+        border-radius: 8px !important; // Radius card 8px
+        box-shadow:
+            0 4px 16px rgba(0, 0, 0, 0.12),
+            0 1px 2px rgba(0, 0, 0, 0.05) !important;
+        padding: 0.85rem 1rem !important;
+        color: #334155 !important;
+        gap: 10px !important;
+        transition: all 0.2s cubic-bezier(0.08, 0.52, 0.52, 1) !important;
+
+        // ── Content Layout ─────────────────────────────
+        [data-content] {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        // Title / Header Toast
+        [data-title] {
+            color: #334155 !important;
+            font-weight: 600 !important;
+            font-size: 0.875rem !important; // 14px
+            line-height: 1.35 !important;
+        }
+
+        // Description Text
+        [data-description] {
+            color: #64748b !important; // Secondary label color
+            font-size: 0.8125rem !important; // 13px
+            line-height: 1.4 !important;
+            font-weight: 400 !important;
+        }
+
+        // ── Status Variant Icons & Badges ──────────────
+
+        // Info (Teal)
+        &[data-type='info'] {
+            border-left: 4px solid #3e8a84 !important;
+            [data-icon] {
+                color: #3e8a84 !important;
+            }
+        }
+
+        // Success (Green)
+        &[data-type='success'] {
+            border-left: 4px solid #3fae66 !important;
+            [data-icon] {
+                color: #3fae66 !important;
+            }
+        }
+
+        // Error / Danger (Rose)
+        &[data-type='error'] {
+            border-left: 4px solid #c25c52 !important;
+            [data-icon] {
+                color: #c25c52 !important;
+            }
+        }
+
+        // Warning (Amber)
+        &[data-type='warning'] {
+            border-left: 4px solid #d19c2a !important;
+            [data-icon] {
+                color: #d19c2a !important;
+            }
+        }
+
+        // ── Action Buttons inside Toast ───────────────
+        [data-button] {
+            background-color: $primary !important;
+            color: $white !important;
+            font-weight: 600 !important;
+            font-size: 0.8125rem !important;
+            border-radius: 6px !important;
+            padding: 0.35rem 0.75rem !important;
+            border: none !important;
+            cursor: pointer !important;
+            transition: background-color 0.15s ease !important;
+
+            &:hover {
+                background-color: $primary-700 !important;
+            }
+
+            &:focus {
+                box-shadow: inset 0 0 0 1px #ffffff !important;
+                outline: none !important;
+            }
+        }
+
+        [data-cancel] {
+            background-color: #f1f5f9 !important;
+            color: #334155 !important;
+            border: 1px solid #cbd5e1 !important;
+            font-weight: 600 !important;
+            font-size: 0.8125rem !important;
+            border-radius: 6px !important;
+            padding: 0.35rem 0.75rem !important;
+            cursor: pointer !important;
+
+            &:hover {
+                background-color: #e2e8f0 !important;
+                border-color: #94a3b8 !important;
+            }
+        }
+
+        // ── Close Button (Circle Pill Meta Style) ──────
+        [data-close-button] {
+            top: 10px !important;
+            right: 10px !important;
+            left: auto !important;
+            width: 24px !important;
+            height: 24px !important;
+            background-color: #f1f5f9 !important;
+            border: none !important;
+            border-radius: 50% !important;
+            color: #334155 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition:
+                background-color 0.15s ease,
+                transform 0.1s ease !important;
+            opacity: 1 !important;
+
+            &:hover {
+                background-color: #e2e8f0 !important;
+            }
+
+            &:active {
+                transform: scale(0.92) !important;
+                background-color: #cbd5e1 !important;
+            }
+
+            svg {
+                width: 12px !important;
+                height: 12px !important;
+            }
+        }
+    }
+}
