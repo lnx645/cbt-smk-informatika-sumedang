@@ -3,6 +3,7 @@
     import { usePage } from '@inertiajs/svelte';
     import AppShellLayout, {
         type AppShellNavItem,
+        type AppShellNavSection,
         type AppShellUser,
     } from '@/layouts/AppShellLayout.svelte';
     import BrandIcon from './BrandIcon.svelte';
@@ -19,30 +20,52 @@
         homeHref: '/manage',
     });
 
-    const navItems: AppShellNavItem[] = [
+    const navItems: Array<AppShellNavItem | AppShellNavSection> = [
         { href: '/manage', label: 'Dashboard', icon: 'bi-grid-1x2-fill' },
         {
-            label: 'Manajemen',
-            icon: 'bi-kanban-fill',
-            children: [
+            section: 'Data Master',
+            items: [
                 {
                     href: '/manage/users',
                     label: 'Pengguna',
                     icon: 'bi-people-fill',
+                    badge: '482',
                 },
                 {
                     href: '/manage/modul',
                     label: 'Modul',
                     icon: 'bi-journal-richtext',
+                    badge: '24',
                 },
                 {
                     href: '/manage/ujian',
                     label: 'Ujian',
                     icon: 'bi-file-earmark-text-fill',
+                    badge: '3',
+                },
+                {
+                    href: '/manage/bank-soal',
+                    label: 'Bank Soal',
+                    icon: 'bi-clipboard-data',
+                    badge: '120',
                 },
             ],
         },
-        { href: '/manage/settings', label: 'Pengaturan', icon: 'bi-gear-fill' },
+        {
+            section: 'Account',
+            items: [
+                {
+                    href: '/manage/profile',
+                    label: 'Profil',
+                    icon: 'bi-person-circle',
+                },
+                {
+                    href: '/manage/settings',
+                    label: 'Pengaturan',
+                    icon: 'bi-gear-fill',
+                },
+            ],
+        },
     ];
 </script>
 

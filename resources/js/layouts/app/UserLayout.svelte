@@ -2,6 +2,7 @@
     import type { Snippet } from 'svelte';
     import { usePage } from '@inertiajs/svelte';
     import AppShellLayout, {
+        AppShellNavSection,
         type AppShellNavItem,
         type AppShellUser,
     } from '@/layouts/AppShellLayout.svelte';
@@ -27,7 +28,7 @@
                 {
                     href: '',
                     label: 'Dashboard',
-                    icon: 'bi-grid-1x2-fill',
+                    icon: 'bi-grid-1x2',
                 },
             ];
         }
@@ -41,28 +42,36 @@
         ];
 
         if (authUser?.guru || authUser?.role === 'guru') {
-            items.push(
-                {
-                    href: MataPelajaranGuruController.index().url,
-                    label: 'Mata Pelajaran',
-                    icon: 'bi-journal-bookmark-fill',
-                },
-                {
-                    href: '/guru/materi',
-                    label: 'Materi',
-                    icon: 'bi-journal-plus',
-                },
-                {
-                    href: '/guru/tugas-siswa',
-                    label: 'Tugas',
-                    icon: 'bi-clipboard-check-fill',
-                },
-                {
-                    href: '/guru/tugas-ujian',
-                    label: 'Soal Ujian',
-                    icon: 'bi-question-octagon-fill',
-                },
-            );
+            items.push({
+                section: 'app',
+                items: [
+                    {
+                        href: MataPelajaranGuruController.index().url,
+                        label: 'Diskusi',
+                        icon: 'bi-chat-dots',
+                    },
+                    {
+                        href: '/guru/materi',
+                        label: 'Materi',
+                        icon: 'bi-journal-plus',
+                    },
+                    {
+                        href: '/guru/tugas-siswa',
+                        label: 'Tugas',
+                        icon: 'bi-clipboard-check',
+                    },
+                    {
+                        href: '/guru/tugas-ujian',
+                        label: 'Soal Ujian',
+                        icon: 'bi-journal-text',
+                    },
+                    {
+                        href: '/nilai',
+                        label: 'Nilai Siswa',
+                        icon: 'bi-award',
+                    },
+                ],
+            } satisfies AppShellNavSection as any);
         }
 
         if (authUser?.siswa || authUser?.role === 'siswa') {
@@ -70,11 +79,11 @@
                 {
                     href: MataPelajaranGuruController.index().url,
                     label: 'Mata Pelajaran',
-                    icon: 'bi-journal-bookmark-fill',
+                    icon: 'bi-journal-bookmark',
                 },
                 {
                     label: 'Akademik Siswa',
-                    icon: 'bi-mortarboard-fill',
+                    icon: 'bi-mortarboard',
                     children: [
                         {
                             href: '/materi',
@@ -84,7 +93,7 @@
                         {
                             href: '/tugas',
                             label: 'Kerjakan Tugas',
-                            icon: 'bi-file-earmark-text-fill',
+                            icon: 'bi-file-earmark-text',
                         },
                         {
                             href: '/ujian',

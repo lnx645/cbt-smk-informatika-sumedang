@@ -22,6 +22,12 @@
         children?: AppShellNavItem[];
     };
 
+    export type AppShellNavSection = {
+        section: string;
+        icon?: string;
+        items: AppShellNavItem[];
+    };
+
     export type AppShellUser = {
         name: string;
         email?: string;
@@ -46,7 +52,7 @@
         brandSubtitle?: string;
         brandIcon?: string;
         brandIconNode?: Snippet;
-        navItems?: AppShellNavItem[];
+        navItems?: Array<AppShellNavItem | AppShellNavSection>;
         user?: AppShellUser;
         title?: string;
         description?: string;
@@ -78,6 +84,12 @@
             }
         };
         for (const item of navItems) {
+            if ('section' in item) {
+                for (const child of item.items ?? []) {
+                    consider(child.href);
+                }
+                continue;
+            }
             consider(item.href);
             for (const child of item.children ?? []) {
                 consider(child.href);
@@ -90,7 +102,10 @@
         return activeHref === href;
     }
 
-    function groupHasActiveChild(item: AppShellNavItem): boolean {
+    function groupHasActiveChild(item: AppShellNavItem | AppShellNavSection): boolean {
+        if ('section' in item) {
+            return false;
+        }
         return (item.children ?? []).some(
             (child) => child.href != null && isActive(child.href),
         );
@@ -100,7 +115,7 @@
 
     $effect(() => {
         for (const item of navItems) {
-            if (item.children?.length && groupHasActiveChild(item)) {
+            if (!('section' in item) && groupHasActiveChild(item)) {
                 openGroups[item.label] = true;
             }
         }
@@ -154,9 +169,31 @@
             </div>
         </div>
 
+        {#snippet navLink(entry: AppShellNavItem, subitem: boolean)}
+            <a
+                use:inertia={{ prefetch: true }}
+                href={entry.href}
+                class={`app-shell__nav-item ${subitem ? 'app-shell__nav-subitem' : ''} ${isActive(entry.href ?? '') ? 'active' : ''}`}
+                aria-current={isActive(entry.href ?? '')
+                    ? 'page'
+                    : undefined}
+            >
+                <i class="bi {entry.icon}"></i>
+                <span>{entry.label}</span>
+                {#if entry.badge}
+                    <span class="app-shell__nav-badge">{entry.badge}</span>
+                {/if}
+            </a>
+        {/snippet}
+
         <nav class="app-shell__nav">
-            {#each navItems as item (item.href ?? item.label)}
-                {#if item.children?.length}
+            {#each navItems as item ('section' in item ? item.section : (item.href ?? item.label))}
+                {#if 'section' in item}
+                    <div class="app-shell__nav-category">{item.section}</div>
+                    {#each item.items as child (child.href ?? child.label)}
+                        {@render navLink(child, true)}
+                    {/each}
+                {:else if item.children?.length}
                     <button
                         type="button"
                         class={`app-shell__nav-item app-shell__nav-group ${openGroups[item.label] ? 'is-open' : ''}`}
@@ -181,41 +218,11 @@
                         class="app-shell__nav-group-collapse"
                     >
                         {#each item.children as child (child.href)}
-                            <a
-                                use:inertia={{ prefetch: true }}
-                                href={child.href}
-                                class={`app-shell__nav-item app-shell__nav-subitem ${isActive(child.href ?? '') ? 'active' : ''}`}
-                                aria-current={isActive(child.href ?? '')
-                                    ? 'page'
-                                    : undefined}
-                            >
-                                <i class="bi {child.icon}"></i>
-                                <span>{child.label}</span>
-                                {#if child.badge}
-                                    <span class="app-shell__nav-badge"
-                                        >{child.badge}</span
-                                    >
-                                {/if}
-                            </a>
+                            {@render navLink(child, true)}
                         {/each}
                     </Collapse>
                 {:else}
-                    <a
-                        use:inertia={{ prefetch: true }}
-                        href={item.href}
-                        class={`app-shell__nav-item ${isActive(item.href ?? '') ? 'active' : ''}`}
-                        aria-current={isActive(item.href ?? '')
-                            ? 'page'
-                            : undefined}
-                    >
-                        <i class="bi {item.icon}"></i>
-                        <span>{item.label}</span>
-                        {#if item.badge}
-                            <span class="app-shell__nav-badge"
-                                >{item.badge}</span
-                            >
-                        {/if}
-                    </a>
+                    {@render navLink(item, false)}
                 {/if}
             {/each}
         </nav>

@@ -107,7 +107,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: 2px;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
@@ -137,7 +137,7 @@
     letter-spacing: 1px;
     color: var(--text-muted);
     padding: 0 0.75rem;
-    margin: 0.25rem 0 0.6rem;
+    margin: 0.75rem 0 0.5rem;
     font-weight: 600;
 }
 
