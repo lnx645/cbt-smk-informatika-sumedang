@@ -4,8 +4,10 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -26,6 +28,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable(['name', 'email', 'password', 'google_id', 'nisn'])]
 #[Hidden(['password', 'remember_token'])]
+#[Appends('gate_access',"role")]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -51,4 +54,38 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Siswa::class, 'nisn', 'nisn');
     }
+
+    public function guru(): BelongsTo
+    {
+        return $this->belongsTo(Guru::class, 'guru_id');
+    }
+
+    protected function gateAccess(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value, $attributes) => (($this->siswa !== null) || ($this->guru !== null)) || ($this->role === 'admin')
+        );
+    }
+
+    protected function role(): Attribute
+{
+    return Attribute::make(
+        get: function ($value, $attributes) {
+            if ($this->guru !== null) {
+                return 'guru';
+            }
+            
+            if ($this->siswa !== null) {
+                return 'siswa';
+            }
+            
+            if (($attributes['role'] ?? null) === 'admin') {
+                return 'admin';
+            }
+            
+            return false;
+        }
+    );
+}
+
 }

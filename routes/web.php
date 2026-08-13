@@ -1,12 +1,16 @@
 <?php
 
 use App\Http\Controllers\AuthenticatedSessionController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GateController;
+use App\Http\Controllers\LinkExternalController;
 use App\Http\Controllers\SocialiteController;
 use Illuminate\Support\Facades\Route;
 
+
+Route::get("link/external",[LinkExternalController::class,"link"])->name("link.external");
+
 Route::middleware('guest')->group(function (): void {
+    Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('index');
     Route::get('/gate/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/gate/login', [AuthenticatedSessionController::class, 'store'])->name('login');
     Route::get('/auth/google/redirect', [SocialiteController::class, 'redirect'])->name('google.redirect');

@@ -5,6 +5,7 @@
     import AppShellLayout, {
         type AppShellUser,
     } from '@/layouts/AppShellLayout.svelte';
+    import '@/styles/modules/app-gate.scss';
 
     type Siswa = {
         nisn?: string;
@@ -138,7 +139,9 @@
 
         <div class="welcome__grid">
             <!-- Kartu Profil Siswa -->
-            <section class="welcome__card welcome__card--profile">
+            <section
+                class={`welcome__card welcome__card--profile`}
+            >
                 <header class="welcome__card-head">
                     <i class="bi bi-person-badge-fill"></i>
                     <h2>Profil Siswa</h2>
@@ -147,7 +150,7 @@
                     {#each profileRows as row (row.label)}
                         <div class="welcome__profile-row">
                             <dt>
-                                <i class="bi {row.icon}"></i>
+                                <i class={`bi ${row.icon}`}></i>
                                 <span>{row.label}</span>
                             </dt>
                             <dd>{row.value}</dd>
@@ -157,16 +160,22 @@
             </section>
 
             <!-- Akses Cepat -->
-            <section class="welcome__card welcome__card--quick">
+            <section
+                class={`welcome__card welcome__card--quick`}
+            >
                 <header class="welcome__card-head">
                     <i class="bi bi-lightning-charge-fill"></i>
                     <h2>Akses Cepat</h2>
                 </header>
                 <div class="welcome__quick-list">
                     {#each quickLinks as link (link.label)}
-                        <a class="welcome__quick" href={link.href} use:inertia>
+                        <a
+                            class="welcome__quick"
+                            href={link.href}
+                            use:inertia
+                        >
                             <span class="welcome__quick-icon">
-                                <i class="bi {link.icon}"></i>
+                                <i class={`bi ${link.icon}`}></i>
                             </span>
                             <span class="welcome__quick-body">
                                 <span class="welcome__quick-label"
@@ -176,7 +185,8 @@
                                     >{link.desc}</span
                                 >
                             </span>
-                            <i class="bi bi-chevron-right welcome__quick-arrow"
+                            <i
+                                class={`bi bi-chevron-right welcome__quick-arrow`}
                             ></i>
                         </a>
                     {/each}
@@ -185,263 +195,3 @@
         </div>
     </div>
 </AppShellLayout>
-
-<style>
-    .welcome {
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 0.75rem;
-    }
-
-    /* Hero */
-    .welcome__hero {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1.5rem;
-        padding: 1.75rem 2rem;
-        border-radius: 18px;
-        background: linear-gradient(
-            135deg,
-            var(--tw-blue) 0%,
-            var(--tw-blue-dark) 100%
-        );
-
-        color: #fff;
-        position: relative;
-        overflow: hidden;
-        box-shadow:
-            rgba(0, 0, 0, 0.4) 0px 2px 4px,
-            rgba(0, 0, 0, 0.3) 0px 7px 13px -3px,
-            rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-    }
-
-    .welcome__hero::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 260px;
-        height: 260px;
-        background: radial-gradient(
-            circle,
-            var(--tw-gold-soft) 0%,
-            transparent 70%
-        );
-        pointer-events: none;
-    }
-
-    .welcome__eyebrow {
-        display: inline-block;
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        padding: 0.25rem 0.7rem;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.18);
-        border: 1px solid rgba(255, 255, 255, 0.35);
-        margin-bottom: 0.75rem;
-    }
-
-    .welcome__title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin: 0;
-    }
-
-    .welcome__subtitle {
-        margin: 0.5rem 0 0;
-        font-size: 0.9rem;
-        opacity: 0.92;
-    }
-
-    .welcome__hero-badge {
-        flex-shrink: 0;
-        width: 72px;
-        height: 72px;
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(255, 255, 255, 0.16);
-        border: 1px solid rgba(255, 255, 255, 0.35);
-        font-size: 2rem;
-    }
-
-    /* Grid */
-    .welcome__grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.25rem;
-    }
-
-    @media (max-width: 768px) {
-        .welcome__grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .welcome__card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow:
-            rgba(0, 0, 0, 0.4) 0px 2px 4px,
-            rgba(0, 0, 0, 0.3) 0px 7px 13px -3px,
-            rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-    }
-
-    .welcome__card-head {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        margin-bottom: 1.1rem;
-    }
-
-    .welcome__card-head i {
-        font-size: 1.1rem;
-        color: var(--tw-blue);
-    }
-
-    .welcome__card-head h2 {
-        font-size: 1rem;
-        font-weight: 700;
-        margin: 0;
-        color: var(--text);
-    }
-
-    /* Profil */
-    .welcome__profile {
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 0.1rem;
-    }
-
-    .welcome__profile-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        padding: 0.65rem 0;
-        border-bottom: 1px dashed var(--border);
-    }
-
-    .welcome__profile-row:last-child {
-        border-bottom: none;
-    }
-
-    .welcome__profile-row dt {
-        display: flex;
-        align-items: center;
-        gap: 0.55rem;
-        font-size: 0.82rem;
-        color: var(--text-muted);
-        font-weight: 500;
-    }
-
-    .welcome__profile-row dt i {
-        color: var(--tw-blue);
-        font-size: 0.95rem;
-    }
-
-    .welcome__profile-row dd {
-        margin: 0;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--text);
-        text-align: right;
-    }
-
-    /* Quick */
-    .welcome__quick-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .welcome__quick {
-        display: flex;
-        align-items: center;
-        gap: 0.9rem;
-        padding: 0.9rem 1rem;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        text-decoration: none;
-        background: var(--primary-soft);
-        color: var(--text);
-        transition:
-            transform 0.15s ease,
-            border-color 0.15s ease,
-            box-shadow 0.15s ease;
-    }
-
-    .welcome__quick:hover {
-        transform: translateY(-2px);
-        border-color: var(--tw-blue);
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-    }
-
-    .welcome__quick-icon {
-        width: 42px;
-        height: 42px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--brand-gradient);
-        color: #fff;
-        font-size: 1.1rem;
-        flex-shrink: 0;
-    }
-
-    .welcome__quick-body {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        min-width: 0;
-    }
-
-    .welcome__quick-label {
-        font-size: 0.9rem;
-        font-weight: 700;
-    }
-
-    .welcome__quick-desc {
-        font-size: 0.76rem;
-        color: var(--text-muted);
-    }
-
-    .welcome__quick-arrow {
-        color: var(--text-muted);
-        font-size: 1rem;
-    }
-
-    /* Note */
-    .welcome__card--note {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.85rem;
-        background: var(--primary-soft);
-        border-color: color-mix(in srgb, var(--tw-blue) 25%, var(--border));
-    }
-
-    .welcome__note-icon {
-        color: var(--tw-blue);
-        font-size: 1.2rem;
-        margin-top: 0.15rem;
-        flex-shrink: 0;
-    }
-
-    .welcome__card--note p {
-        margin: 0;
-        font-size: 0.85rem;
-        color: var(--text);
-        line-height: 1.55;
-    }
-</style>

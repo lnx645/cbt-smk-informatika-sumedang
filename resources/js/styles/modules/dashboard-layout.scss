@@ -1,0 +1,18 @@
+.sidebar-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-link-active {
+    background-color: rgba(255, 255, 255, 0.18);
+    box-shadow: inset 3px 0 0 #fdd406;
+}
+
+.sidebar-label {
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+}
+
+.dashboard-sidebar-badge {
+    background-color: #fdd406;
+    color: #006fa5;
+}

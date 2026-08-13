@@ -1,7 +1,7 @@
 import { createInertiaApp } from '@inertiajs/svelte';
 import DashboardLayout from '@/layouts/DashboardLayout.svelte';
 import MainLayout from '@/layouts/MainLayout.svelte';
-import "bootstrap-icons/font/bootstrap-icons.css";
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import { initializeFlashToast } from './lib/flash-toast.svelte';
 import PembelajaranLayout from './layouts/pembelajaran/PembelajaranLayout.svelte';
 import AdminLayout from './layouts/admin/AdminLayout.svelte';
@@ -26,4 +26,4 @@ createInertiaApp({
     },
 });
 
-initializeFlashToast()
+initializeFlashToast();

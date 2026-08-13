@@ -7,7 +7,6 @@
         Card,
         CardBody,
         Col,
-        FormFeedback,
         FormGroup,
         Input,
         InputGroup,
@@ -15,7 +14,7 @@
         Label,
         Row,
     } from '@sveltestrap/sveltestrap';
-    import { toast } from 'svelte-sonner';
+    import '@/styles/modules/login.scss';
     const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
     let passwordVisible = $state(false);
     const form = useForm({
@@ -25,23 +24,21 @@
     });
     function submit(e: any) {
         e.preventDefault();
-        form.submit(AuthenticatedSessionController.store(), {
-            onError(e) {
-                toast.error(e.email || e.password);
-            },
-        });
+        form.submit(AuthenticatedSessionController.store());
     }
 </script>
 
-<div class="login-page min-vh-100 d-flex align-items-center">
+<div
+    class={`login-page min-vh-100 d-flex align-items-center login-page`}
+>
     <Card
-        class="login-card w-100 m-auto"
+        class={`login-card w-100 m-auto login-card`}
         style="max-width: 940px; border: none;"
     >
         <Row class="g-0">
             <Col
                 lg={5}
-                class="login-brand d-none d-lg-flex flex-column justify-content-between p-5 text-white"
+                class={`login-brand d-none d-lg-flex flex-column justify-content-between p-5 text-white login-brand`}
             >
                 <div class="d-flex align-items-center gap-3">
                     <img
@@ -68,7 +65,9 @@
                         class="img-fluid user-select-none rounded-circle mb-4 border border-4 border-warning shadow"
                         style="width: 140px; height: 140px; object-fit: cover;pointer-events:none;"
                     />
-                    <p class="quote-text mb-0 fw-medium">
+                    <p
+                        class={`quote-text mb-0 fw-medium quote-text`}
+                    >
                         "Ing Ngarso Sung Tulodo,<br />Ing Madya Mangun Karso,<br
                         />Tut Wuri Handayani"
                     </p>
@@ -81,7 +80,7 @@
                 <CardBody class="p-4 p-sm-5">
                     <div class="d-lg-none mb-4">
                         <h2 class="h4 mb-0">{appName}</h2>
-                        <span class="brand-kicker text-uppercase"
+                        <span class={`text-uppercase brand-kicker`}
                             >Ujian Berbasis Komputer</span
                         >
                     </div>
@@ -101,7 +100,7 @@
                             <InputGroup>
                                 <InputGroupText>
                                     <i
-                                        class="bi bi-person login-icon text-muted"
+                                        class={`bi bi-person login-icon text-muted login-icon`}
                                     ></i>
                                 </InputGroupText>
                                 <Input
@@ -121,7 +120,8 @@
                             >
                             <InputGroup>
                                 <InputGroupText>
-                                    <i class="bi bi-lock login-icon text-muted"
+                                    <i
+                                        class={`bi bi-lock login-icon text-muted login-icon`}
                                     ></i>
                                 </InputGroupText>
                                 <Input
@@ -142,10 +142,13 @@
                                         : 'Tampilkan kata sandi'}
                                 >
                                     {#if passwordVisible}
-                                        <i class="bi bi-eye-slash login-icon"
+                                        <i
+                                            class={`bi bi-eye-slash login-icon login-icon`}
                                         ></i>
                                     {:else}
-                                        <i class="bi bi-eye login-icon"></i>
+                                        <i
+                                            class={`bi bi-eye login-icon login-icon`}
+                                        ></i>
                                     {/if}
                                 </button>
                             </InputGroup>
@@ -154,7 +157,7 @@
                         <Row class="align-items-center mb-4 mt-2">
                             <Col xs={7}>
                                 <div
-                                    class="remember-check ms-1 form-check form-switch mb-0"
+                                    class={`remember-check ms-1 form-check form-switch mb-0 remember-check`}
                                 >
                                     <input
                                         id="remember"
@@ -186,7 +189,9 @@
                             onclick={submit}
                         >
                             <span class="fs-6">Masuk</span>
-                            <i class="bi bi-arrow-right login-icon"></i>
+                            <i
+                                class={`bi bi-arrow-right login-icon login-icon`}
+                            ></i>
                         </Button>
                     </form>
 
@@ -198,10 +203,10 @@
 
                     <a
                         href={SocialiteController.redirect().url}
-                        class="google-btn btn w-100 d-flex align-items-center justify-content-center gap-2 py-2"
+                        class={`google-btn btn w-100 d-flex align-items-center justify-content-center gap-2 py-2 google-btn`}
                     >
                         <i
-                            class="bi bi-google google-icon"
+                            class={`bi bi-google google-icon google-icon`}
                             style="color: #EA4335;"
                         ></i>
                         <span class="small fw-semibold"
@@ -217,88 +222,3 @@
         </Row>
     </Card>
 </div>
-
-<style>
-    /* CSS BACKGROUND SEKOLAH */
-    .login-page {
-        /* Silakan ganti URL ini dengan foto lingkungan sekolah Anda */
-        background-image: url('https://smkifsu.sch.id/assets/img/foto1.jpg');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        /* Lapisan gelap/overlay agar card tetap terbaca jelas */
-        box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.4);
-    }
-
-    :global(.login-card) {
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    }
-
-    :global(.login-brand) {
-        position: relative;
-        background: linear-gradient(160deg, #0091d4 0%, #006fa5 100%);
-    }
-
-    .login-logo {
-        width: 48px;
-        height: 48px;
-        object-fit: contain;
-        border-radius: 50%;
-    }
-
-    .brand-kicker {
-        display: inline-block;
-        background-color: #fdd406;
-        color: #006fa5;
-        font-size: 0.625rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        padding: 0.2rem 0.55rem;
-        border-radius: 999px;
-    }
-
-    .quote-text {
-        font-size: 1rem;
-        line-height: 1.6;
-    }
-
-    .login-icon {
-        font-size: 1.1rem;
-    }
-
-    .remember-check .form-check-input {
-        width: 2.2em;
-        height: 1.15em;
-        cursor: pointer;
-    }
-
-    .remember-check .form-check-input:checked {
-        background-color: #0091d4;
-        border-color: #0091d4;
-    }
-
-    .divider-line {
-        flex: 1;
-        height: 1px;
-        background-color: #e2e8f0;
-    }
-
-    .google-btn {
-        background-color: #ffffff;
-        border: 1px solid #cbd5e1;
-        color: #334155;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }
-
-    .google-btn:hover {
-        background-color: #f8fafc;
-        border-color: #94a3b8;
-    }
-
-    .google-icon {
-        font-size: 1.1rem;
-    }
-</style>

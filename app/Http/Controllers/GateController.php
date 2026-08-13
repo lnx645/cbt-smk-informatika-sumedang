@@ -11,8 +11,6 @@ class GateController extends Controller
      */
     public function __invoke(Request $request)
     {
-        // $user = auth()->user()->siswa;
-        // dd($user);
-        return inertia("app.gate");
+        return inertia('GatePage');
     }
 }

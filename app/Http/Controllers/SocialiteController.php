@@ -28,7 +28,6 @@ class SocialiteController extends Controller
         // cek dulu by email
 
         $email = $googleUser->getEmail();
-
         if (User::whereEmail($email)->doesntExist()) {
             Toast::error('Akun google tidak terdaftar! Atau belum aktif Silahkan hubungi operator sekolah');
 
@@ -36,15 +35,16 @@ class SocialiteController extends Controller
         }
 
         $user = User::updateOrCreate(
-            ['google_id' => $googleUser->getId()],
+            ['email' => $googleUser->getEmail()],
             [
+                'google_id' => $googleUser->getId(),
                 'name' => $googleUser->getName() ?? $googleUser->getNickname() ?? $googleUser->getEmail(),
-                'email' => $googleUser->getEmail(),
                 'password' => Str::password(),
             ],
         );
 
         Auth::login($user);
+        Toast::success('Berhasil login mengunakan akun google!');
 
         return redirect()->intended(route('app.gate'));
     }
