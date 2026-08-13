@@ -19,9 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
         ]);
         $middleware->redirectTo(function ($e) {
-            return 'gate/login';
+            return 'auth.login';
         }, function ($e) {
-            return "gate";
+            return 'app.dashboard';
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {

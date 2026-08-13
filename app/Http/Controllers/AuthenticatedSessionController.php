@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\Toast;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,7 +49,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route("app.index"));
+        return redirect()->intended(route('app.dashboard'));
     }
 
     /**
@@ -63,7 +62,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect(route('login'));
+        return redirect(route('auth.login'));
     }
 
     /**

@@ -31,7 +31,7 @@ class SocialiteController extends Controller
         if (User::whereEmail($email)->doesntExist()) {
             Toast::error('Akun google tidak terdaftar! Atau belum aktif Silahkan hubungi operator sekolah');
 
-            return redirect()->route('login');
+            return redirect()->route('auth.login');
         }
 
         $user = User::updateOrCreate(
@@ -46,6 +46,6 @@ class SocialiteController extends Controller
         Auth::login($user);
         Toast::success('Berhasil login mengunakan akun google!');
 
-        return redirect()->intended(route('app.index'));
+        return redirect()->intended(route('app.dashboard'));
     }
 }
