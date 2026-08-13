@@ -5,6 +5,7 @@
         type AppShellNavItem,
         type AppShellUser,
     } from '@/layouts/AppShellLayout.svelte';
+    import BrandIcon from './BrandIcon.svelte';
 
     let { children }: { children: Snippet } = $props();
 
@@ -24,21 +25,30 @@
             label: 'Belajar',
             icon: 'bi-journal-richtext',
             children: [
-                { href: '/modul', label: 'Modul Belajar', icon: 'bi-journal-text' },
+                {
+                    href: '/modul',
+                    label: 'Modul Belajar',
+                    icon: 'bi-journal-text',
+                },
                 {
                     href: '/ujian',
                     label: 'Ujian & Kuis',
                     icon: 'bi-file-earmark-text-fill',
+                    badge: 'Baru',
                 },
             ],
         },
     ];
 </script>
 
+{#snippet brandIconNode()}
+    <BrandIcon />
+{/snippet}
+
 <AppShellLayout
     brandTitle="GATEWAY"
     brandSubtitle="Portal Ujian"
-    brandIcon="bi-shield-lock-fill"
+    brandIconNode={brandIconNode}
     title="Ujian & Kuis"
     description="Ikuti ujian dan kerjakan soal"
     {navItems}

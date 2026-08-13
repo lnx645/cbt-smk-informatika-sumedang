@@ -5,6 +5,7 @@
         type AppShellNavItem,
         type AppShellUser,
     } from '@/layouts/AppShellLayout.svelte';
+    import BrandIcon from './BrandIcon.svelte';
 
     let { children }: { children: Snippet } = $props();
 
@@ -24,19 +25,35 @@
             label: 'Manajemen',
             icon: 'bi-kanban-fill',
             children: [
-                { href: '/manage/users', label: 'Pengguna', icon: 'bi-people-fill' },
-                { href: '/manage/modul', label: 'Modul', icon: 'bi-journal-richtext' },
-                { href: '/manage/ujian', label: 'Ujian', icon: 'bi-file-earmark-text-fill' },
+                {
+                    href: '/manage/users',
+                    label: 'Pengguna',
+                    icon: 'bi-people-fill',
+                },
+                {
+                    href: '/manage/modul',
+                    label: 'Modul',
+                    icon: 'bi-journal-richtext',
+                },
+                {
+                    href: '/manage/ujian',
+                    label: 'Ujian',
+                    icon: 'bi-file-earmark-text-fill',
+                },
             ],
         },
         { href: '/manage/settings', label: 'Pengaturan', icon: 'bi-gear-fill' },
     ];
 </script>
 
+{#snippet brandIconNode()}
+    <BrandIcon />
+{/snippet}
+
 <AppShellLayout
     brandTitle="ADMIN"
     brandSubtitle="Panel Manajemen"
-    brandIcon="bi-sliders"
+    brandIconNode={brandIconNode}
     title="Panel Administrasi"
     description="Kelola sistem ujian dan pembelajaran"
     {navItems}

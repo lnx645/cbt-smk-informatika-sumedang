@@ -9,12 +9,13 @@
     } from '@sveltestrap/sveltestrap';
     import type { Snippet } from 'svelte';
     import { Toaster } from 'svelte-sonner';
-    import { page, router } from '@inertiajs/svelte';
+    import { inertia, page, router } from '@inertiajs/svelte';
 
     export type AppShellNavItem = {
         href?: string;
         label: string;
         icon?: string;
+        badge?: string;
         children?: AppShellNavItem[];
     };
 
@@ -31,6 +32,7 @@
         brandTitle = 'GATEWAY',
         brandSubtitle = 'Portal Modul',
         brandIcon = 'bi-shield-lock-fill',
+        brandIconNode,
         navItems = [],
         user = { name: 'Pengguna', email: '', id: '', role: '' },
         title = 'Dashboard',
@@ -40,6 +42,7 @@
         brandTitle?: string;
         brandSubtitle?: string;
         brandIcon?: string;
+        brandIconNode?: Snippet;
         navItems?: AppShellNavItem[];
         user?: AppShellUser;
         title?: string;
@@ -102,12 +105,16 @@
 
 <Toaster richColors position="top-right" />
 
-    <div class="app-shell">
+<div class="app-shell">
     <!-- Sidebar -->
     <aside class="app-shell__sidebar {sidebarOpen ? 'open' : ''}">
         <div class="app-shell__brand">
             <div class="app-shell__brand-badge">
-                <i class="bi {brandIcon}"></i>
+                {#if brandIconNode}
+                    {@render brandIconNode()}
+                {:else}
+                    <i class="bi {brandIcon}"></i>
+                {/if}
             </div>
             <div class="app-shell__brand-text">
                 <h5 class="app-shell__brand-title">{brandTitle}</h5>
@@ -129,9 +136,13 @@
                         aria-expanded={openGroups[item.label]}
                     >
                         <i class="bi {item.icon}"></i>
-                        <span class="app-shell__nav-group-label">{item.label}</span>
-                        <i
-                            class="bi bi-chevron-down app-shell__nav-group-caret"
+                        <span class="app-shell__nav-group-label"
+                            >{item.label}</span
+                        >
+                        {#if item.badge}
+                            <span class="app-shell__nav-badge">{item.badge}</span>
+                        {/if}
+                        <i class="bi bi-chevron-down app-shell__nav-group-caret"
                         ></i>
                     </button>
                     <Collapse
@@ -140,6 +151,7 @@
                     >
                         {#each item.children as child (child.href)}
                             <a
+                                use:inertia={{ prefetch: true }}
                                 href={child.href}
                                 class="app-shell__nav-item app-shell__nav-subitem {isActive(
                                     child.href ?? '',
@@ -152,11 +164,17 @@
                             >
                                 <i class="bi {child.icon}"></i>
                                 <span>{child.label}</span>
+                                {#if child.badge}
+                                    <span class="app-shell__nav-badge"
+                                        >{child.badge}</span
+                                    >
+                                {/if}
                             </a>
                         {/each}
                     </Collapse>
                 {:else}
                     <a
+                        use:inertia={{ prefetch: true }}
                         href={item.href}
                         class="app-shell__nav-item {isActive(item.href ?? '')
                             ? 'active'
@@ -167,6 +185,9 @@
                     >
                         <i class="bi {item.icon}"></i>
                         <span>{item.label}</span>
+                        {#if item.badge}
+                            <span class="app-shell__nav-badge">{item.badge}</span>
+                        {/if}
                     </a>
                 {/if}
             {/each}
@@ -224,15 +245,21 @@
                             : ''}"
                         aria-label="Menu pengguna"
                     >
-                        <span class="app-shell__user-avatar">{userInitials}</span>
+                        <span class="app-shell__user-avatar"
+                            >{userInitials}</span
+                        >
                         <i
                             class="bi bi-chevron-down app-shell__user-caret {userMenuOpen
                                 ? 'app-shell__user-caret--open'
                                 : ''}"
                         ></i>
                     </DropdownToggle>
-                    
-                    <DropdownMenu end class="app-shell__user-menu p-0 overflow-hidden" style="width: 250px;">
+
+                    <DropdownMenu
+                        end
+                        class="app-shell__user-menu p-0 overflow-hidden"
+                        style="width: 250px;"
+                    >
                         <!-- Bagian Header Dropdown (Biru) -->
                         <div class="app-shell__menu-profile-header">
                             <span class="app-shell__menu-profile-avatar"
@@ -353,7 +380,11 @@
         right: -25%;
         width: 180px;
         height: 180px;
-        background: radial-gradient(circle, var(--tw-gold-soft) 0%, transparent 70%);
+        background: radial-gradient(
+            circle,
+            var(--tw-gold-soft) 0%,
+            transparent 70%
+        );
         pointer-events: none;
     }
 
@@ -447,6 +478,20 @@
         font-size: 0.9rem;
     }
 
+    .app-shell__nav-badge {
+        margin-left: auto;
+        font-size: 0.62rem;
+        font-weight: 700;
+        line-height: 1;
+        padding: 0.2rem 0.45rem;
+        border-radius: 999px;
+        background: var(--primary-soft);
+        color: var(--tw-blue-dark);
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
     .app-shell__nav-item {
         display: flex;
         align-items: center;
@@ -464,7 +509,10 @@
         cursor: pointer;
         text-align: left;
         width: 100%;
-        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        transition:
+            background-color 0.2s ease,
+            color 0.2s ease,
+            border-color 0.2s ease;
     }
 
     .app-shell__nav-item i {
@@ -518,7 +566,9 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        box-shadow: 0 1px 0 0 var(--border), 0 6px 18px rgba(15, 23, 42, 0.03);
+        box-shadow:
+            0 1px 0 0 var(--border),
+            0 6px 18px rgba(15, 23, 42, 0.03);
     }
 
     .app-shell__header::before {
@@ -548,7 +598,10 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            color 0.2s ease;
     }
 
     .app-shell__menu-toggle:hover {
@@ -586,7 +639,9 @@
         font: inherit;
         color: inherit;
         cursor: pointer;
-        transition: background-color 0.2s ease, border-color 0.2s ease;
+        transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease;
     }
 
     .app-shell__user-toggle:hover {
@@ -705,7 +760,9 @@
         background: transparent;
         border: none;
         cursor: pointer;
-        transition: background-color 0.15s ease, color 0.15s ease;
+        transition:
+            background-color 0.15s ease,
+            color 0.15s ease;
     }
 
     .app-shell__custom-dropdown-item i {
@@ -762,7 +819,7 @@
     }
 
     .app-shell__content {
-        padding: 2rem;
+        padding: 0.5rem;
         flex: 1;
     }
 

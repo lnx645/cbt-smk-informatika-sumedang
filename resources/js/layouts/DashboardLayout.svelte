@@ -8,7 +8,8 @@
         children: Snippet;
     } = $props();
 </script>
-<Toaster/>
+
+<Toaster />
 <div>
     {@render children?.()}
 </div>

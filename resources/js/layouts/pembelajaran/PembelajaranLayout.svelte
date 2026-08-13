@@ -5,6 +5,7 @@
         type AppShellNavItem,
         type AppShellUser,
     } from '@/layouts/AppShellLayout.svelte';
+    import BrandIcon from './BrandIcon.svelte';
 
     let { children }: { children: Snippet } = $props();
 
@@ -35,10 +36,14 @@
     ];
 </script>
 
+{#snippet brandIconNode()}
+    <BrandIcon />
+{/snippet}
+
 <AppShellLayout
     brandTitle="Pembelajaran"
     brandSubtitle="Modul Pembelajaran Siswa"
-    brandIcon="bi-shield-lock-fill"
+    brandIconNode={brandIconNode}
     title="Modul Pembelajaran"
     description="Sistem Ujian dan Materi Interaktif"
     {navItems}

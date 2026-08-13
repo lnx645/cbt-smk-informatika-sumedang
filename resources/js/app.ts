@@ -4,8 +4,8 @@ import MainLayout from '@/layouts/MainLayout.svelte';
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { initializeFlashToast } from './lib/flash-toast.svelte';
 import PembelajaranLayout from './layouts/pembelajaran/PembelajaranLayout.svelte';
-import AdminLayout from './layouts/AdminLayout.svelte';
-import QuizLayout from './layouts/QuizLayout.svelte';
+import AdminLayout from './layouts/admin/AdminLayout.svelte';
+import QuizLayout from './layouts/quiz/QuizLayout.svelte';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
