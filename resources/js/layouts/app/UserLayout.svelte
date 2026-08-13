@@ -19,7 +19,7 @@
             : authUser?.siswa
               ? `Siswa ${authUser.siswa.kelas ?? ''}`
               : 'Pengguna Aktif',
-        homeHref: "/",
+        homeHref: '/',
     });
     const navItems = $derived.by<AppShellNavItem[]>(() => {
         if (!authUser?.gate_access) {
@@ -48,20 +48,19 @@
                     icon: 'bi-journal-bookmark-fill',
                 },
                 {
-                    label: 'Pembelajaran',
-                    icon: 'bi-journal-richtext',
-                    children: [
-                        {
-                            href: '/guru/materi',
-                            label: 'Kelola Materi',
-                            icon: 'bi-journal-plus',
-                        },
-                        {
-                            href: '/guru/tugas-siswa',
-                            label: 'Tugas Siswa',
-                            icon: 'bi-clipboard-check-fill', // Ikon checklist tugas untuk guru
-                        },
-                    ],
+                    href: '/guru/materi',
+                    label: 'Materi',
+                    icon: 'bi-journal-plus',
+                },
+                {
+                    href: '/guru/tugas-siswa',
+                    label: 'Tugas',
+                    icon: 'bi-clipboard-check-fill',
+                },
+                {
+                    href: '/guru/tugas-ujian',
+                    label: 'Soal Ujian',
+                    icon: 'bi-question-octagon-fill',
                 },
             );
         }

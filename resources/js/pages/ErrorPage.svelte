@@ -100,7 +100,7 @@
                 <div class="d-flex gap-2 justify-content-center flex-wrap">
                     <a
                         class="btn btn-primary px-3"
-                        href="/"
+                        href="/app"
                         use:inertia={{
                             prefetch: true,
                         }}

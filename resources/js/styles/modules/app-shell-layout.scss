@@ -109,6 +109,26 @@
     flex-direction: column;
     gap: 0.3rem;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+
+    &::-webkit-scrollbar {
+        width: 7px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--border);
+        border-radius: 999px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background-color: var(--text-muted);
+    }
 }
 
 .app-shell__nav-category {
@@ -216,7 +236,7 @@
 }
 
 .app-shell__sidebar-footer {
-    padding: 1rem;
+    padding: 0.5rem;
     border-top: 1px solid var(--border);
 }
 
