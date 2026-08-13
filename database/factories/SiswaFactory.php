@@ -18,7 +18,20 @@ class SiswaFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'nisn' => fake()->unique()->numerify('##########'),
+            'nis' => fake()->unique()->numerify('##########'),
+            'nama_lengkap' => fake()->name(),
+            'kelas' => fake()->randomElement(['X', 'XI', 'XII']).' '.fake()->randomElement(['A', 'B', 'C']),
+            'jurusan' => fake()->randomElement(['RPL', 'TKJ', 'TKR']),
+            'tempat_lahir' => fake()->city(),
+            'tanggal_lahir' => fake()->dateTimeBetween('-19 years', '-15 years')->format('Y-m-d'),
+            'jenis_kelamin' => fake()->randomElement(['L', 'P']),
+            'alamat' => fake()->address(),
+            'foto_profil' => null,
+            'is_aktif' => true,
+            'guru_id' => null,
+            'kelas_id' => null,
+            'jurusan_id' => null,
         ];
     }
 }

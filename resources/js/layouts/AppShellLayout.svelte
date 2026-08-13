@@ -325,8 +325,6 @@
                         </div>
 
                         <DropdownItem divider class="app-shell__menu-divider" />
-
-                        <!-- Tombol Keluar -->
                         <div class="app-shell__menu-footer">
                             <button
                                 type="button"

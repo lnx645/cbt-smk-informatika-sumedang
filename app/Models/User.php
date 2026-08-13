@@ -26,9 +26,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password', 'google_id', 'nisn'])]
+#[Fillable(['name', 'email', 'password', 'google_id', 'role', 'nisn', 'guru_id'])]
 #[Hidden(['password', 'remember_token'])]
-#[Appends('gate_access',"role")]
+#[Appends('gate_access', 'role')]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -63,29 +63,35 @@ class User extends Authenticatable
     protected function gateAccess(): Attribute
     {
         return Attribute::make(
-            get: fn($value, $attributes) => (($this->siswa !== null) || ($this->guru !== null)) || ($this->role === 'admin')
+            get: fn ($value, $attributes) => (($this->siswa !== null) || ($this->guru !== null)) || ($this->role === 'admin')
+        );
+    }
+    protected function role(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value, $attributes) {
+                if ($this->guru !== null) {
+                    return 'guru';
+                }
+
+                if ($this->siswa !== null) {
+                    return 'siswa';
+                }
+
+                if (($attributes['role'] ?? null) === 'admin') {
+                    return 'admin';
+                }
+
+                return false;
+            }
         );
     }
 
-    protected function role(): Attribute
-{
-    return Attribute::make(
-        get: function ($value, $attributes) {
-            if ($this->guru !== null) {
-                return 'guru';
-            }
-            
-            if ($this->siswa !== null) {
-                return 'siswa';
-            }
-            
-            if (($attributes['role'] ?? null) === 'admin') {
-                return 'admin';
-            }
-            
-            return false;
-        }
-    );
-}
-
+    /**
+     * Determine whether the user has the given role.
+     */
+    public function isRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
 }

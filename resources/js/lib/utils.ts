@@ -2,9 +2,17 @@ import LinkExternalController from '@/actions/App/Http/Controllers/LinkExternalC
 import { clsx } from 'clsx';
 import type { ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { User } from '@/types/auth';
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
+}
+
+/**
+ * Determine whether the given user has the provided role.
+ */
+export function isRole(user: Pick<User, 'role'> | null | undefined, role: User['role']): boolean {
+    return user?.role === role;
 }
 
 

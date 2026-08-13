@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kelas;
+use App\Models\Siswa;
+use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
 

@@ -2,7 +2,7 @@
     import type { Snippet } from 'svelte';
     import { usePage } from '@inertiajs/svelte';
     import AppShellLayout, {
-        AppShellNavSection,
+        type AppShellNavSection,
         type AppShellNavItem,
         type AppShellUser,
     } from '@/layouts/AppShellLayout.svelte';
@@ -18,7 +18,7 @@
         role: authUser?.guru
             ? 'Guru Pengajar'
             : authUser?.siswa
-              ? `Siswa ${authUser.siswa.kelas ?? ''}`
+              ? `Siswa ${authUser.siswa.kelas?.nama ?? ''}`
               : 'Pengguna Aktif',
         homeHref: '/',
     });
@@ -50,6 +50,11 @@
                         label: 'Diskusi',
                         icon: 'bi-chat-dots',
                     },
+                ],
+            } satisfies AppShellNavSection as any);
+            items.push({
+                section: 'Akademik',
+                items: [
                     {
                         href: '/guru/materi',
                         label: 'Materi',
@@ -88,7 +93,7 @@
                         {
                             href: '/materi',
                             label: 'Lihat Materi',
-                            icon: 'bi-book-half', // Ikon buku membaca materi
+                            icon: 'bi-book-half',
                         },
                         {
                             href: '/tugas',
@@ -98,7 +103,7 @@
                         {
                             href: '/ujian',
                             label: 'Ikuti Ujian',
-                            icon: 'bi-ui-checks-grid', // Ikon lembar ujian / CBT
+                            icon: 'bi-ui-checks-grid',
                         },
                     ],
                 },
