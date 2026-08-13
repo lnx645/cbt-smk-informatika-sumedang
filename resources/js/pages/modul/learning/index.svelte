@@ -1,7 +1,12 @@
 <script lang="ts">
+    import DashboardGuru from './components/DashboardGuru.svelte';
+    import DashboardSiswa from './components/DashboardSiswa.svelte';
 
-let {auth} = $props()
-
+    let { auth } = $props();
 </script>
 
-{JSON.stringify(auth)}
+{#if auth?.user?.role == 'guru'}
+    <DashboardGuru />
+{:else}
+    <DashboardSiswa />
+{/if}

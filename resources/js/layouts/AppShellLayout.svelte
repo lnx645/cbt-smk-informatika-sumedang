@@ -58,8 +58,36 @@
         sidebarOpen = !sidebarOpen;
     }
 
+    function normalizeUrl(url: string): string {
+        return url.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+    }
+
+    // Only ONE item should be highlighted. Pick the most specific (longest)
+    // matching href so a parent path (e.g. /m/pembelajaran) does not also
+    // light up when a child (e.g. /m/pembelajaran/mata-pelajaran) is active.
+    let activeHref = $derived.by<string | null>(() => {
+        const current = normalizeUrl(page.url);
+        let best: string | null = null;
+        const consider = (href?: string) => {
+            if (!href) return;
+            const target = normalizeUrl(href);
+            if (current === target || current.startsWith(target + '/')) {
+                if (best === null || target.length > normalizeUrl(best).length) {
+                    best = href;
+                }
+            }
+        };
+        for (const item of navItems) {
+            consider(item.href);
+            for (const child of item.children ?? []) {
+                consider(child.href);
+            }
+        }
+        return best;
+    });
+
     function isActive(href: string) {
-        return page.url.startsWith(href);
+        return activeHref === href;
     }
 
     function groupHasActiveChild(item: AppShellNavItem): boolean {
