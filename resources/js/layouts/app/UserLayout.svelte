@@ -6,8 +6,8 @@
         type AppShellUser,
     } from '@/layouts/AppShellLayout.svelte';
     import BrandIcon from './BrandIcon.svelte';
-    import MataPelajaranController from '@/actions/App/Http/Controllers/Module/Learning/MataPelajaranController';
-    import LearningModuleController from '@/actions/App/Http/Controllers/Module/Learning/LearningModuleController';
+    import MataPelajaranGuruController from '@/actions/App/Http/Controllers/MataPelajaranGuruController';
+    import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
     let { children }: { children: Snippet } = $props();
     const authUser = $derived((usePage().props.auth as any)?.user ?? null);
     const user = $derived<AppShellUser>({
@@ -19,13 +19,13 @@
             : authUser?.siswa
               ? `Siswa ${authUser.siswa.kelas ?? ''}`
               : 'Pengguna Aktif',
-        homeHref: LearningModuleController().url,
+        homeHref: "/",
     });
     const navItems = $derived.by<AppShellNavItem[]>(() => {
         if (!authUser?.gate_access) {
             return [
                 {
-                    href: LearningModuleController().url,
+                    href: '',
                     label: 'Dashboard',
                     icon: 'bi-grid-1x2-fill',
                 },
@@ -34,7 +34,7 @@
 
         const items: AppShellNavItem[] = [
             {
-                href: LearningModuleController().url,
+                href: DashboardController().url,
                 label: 'Dashboard',
                 icon: 'bi-speedometer2',
             },
@@ -43,7 +43,7 @@
         if (authUser?.guru || authUser?.role === 'guru') {
             items.push(
                 {
-                    href: MataPelajaranController().url,
+                    href: MataPelajaranGuruController.index().url,
                     label: 'Mata Pelajaran',
                     icon: 'bi-journal-bookmark-fill',
                 },
@@ -69,7 +69,7 @@
         if (authUser?.siswa || authUser?.role === 'siswa') {
             items.push(
                 {
-                    href: MataPelajaranController().url,
+                    href: MataPelajaranGuruController.index().url,
                     label: 'Mata Pelajaran',
                     icon: 'bi-journal-bookmark-fill',
                 },

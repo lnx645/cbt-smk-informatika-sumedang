@@ -46,6 +46,6 @@ class SocialiteController extends Controller
         Auth::login($user);
         Toast::success('Berhasil login mengunakan akun google!');
 
-        return redirect()->intended(route('app.gate'));
+        return redirect()->intended(route('app.index'));
     }
 }

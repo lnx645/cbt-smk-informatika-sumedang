@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class GateController extends Controller
+class MataPelajaranGuruController extends Controller
 {
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Request $request)
+    public function index(Request $request)
     {
-        return inertia('GatePage');
+        return inertia("guru/Matpel");
     }
 }

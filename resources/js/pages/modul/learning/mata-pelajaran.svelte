@@ -1,1 +1,0 @@
-<h2>Mata Pelajaran</h2>

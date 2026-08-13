@@ -50,7 +50,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route("app.gate"));
+        return redirect()->intended(route("app.index"));
     }
 
     /**
