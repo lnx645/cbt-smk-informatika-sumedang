@@ -87,25 +87,15 @@
                     icon: 'bi-journal-bookmark',
                 },
                 {
-                    label: 'Akademik Siswa',
-                    icon: 'bi-mortarboard',
-                    children: [
-                        {
-                            href: '/materi',
-                            label: 'Lihat Materi',
-                            icon: 'bi-book-half',
-                        },
-                        {
-                            href: '/tugas',
-                            label: 'Kerjakan Tugas',
-                            icon: 'bi-file-earmark-text',
-                        },
-                        {
-                            href: '/ujian',
-                            label: 'Ikuti Ujian',
-                            icon: 'bi-ui-checks-grid',
-                        },
-                    ],
+                    href: '/materi',
+                    label: 'Lihat Materi',
+                    icon: 'bi-book-half',
+                },
+                
+                {
+                    href: '/ujian',
+                    label: 'Tugas',
+                    icon: 'bi-ui-checks-grid',
                 },
             );
         }
@@ -122,8 +112,8 @@
     brandTitle="Pembelajaran"
     brandSubtitle="Modul Pembelajaran"
     {brandIconNode}
-    title="Modul Pembelajaran"
-    description="Sistem Ujian dan Materi Interaktif"
+    title="GURU"
+    description="Manajemen Guru"
     {navItems}
     {user}
 >

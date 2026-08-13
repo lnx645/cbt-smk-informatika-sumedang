@@ -78,7 +78,10 @@
             if (!href) return;
             const target = normalizeUrl(href);
             if (current === target || current.startsWith(target + '/')) {
-                if (best === null || target.length > normalizeUrl(best).length) {
+                if (
+                    best === null ||
+                    target.length > normalizeUrl(best).length
+                ) {
                     best = href;
                 }
             }
@@ -102,7 +105,9 @@
         return activeHref === href;
     }
 
-    function groupHasActiveChild(item: AppShellNavItem | AppShellNavSection): boolean {
+    function groupHasActiveChild(
+        item: AppShellNavItem | AppShellNavSection,
+    ): boolean {
         if ('section' in item) {
             return false;
         }
@@ -147,9 +152,9 @@
     );
 
     let userMenuOpen = $state(false);
-  
 </script>
-<CookieConsent/>
+
+<CookieConsent />
 <Toaster richColors position="top-right" />
 
 <div class="app-shell">
@@ -174,9 +179,7 @@
                 use:inertia={{ prefetch: true }}
                 href={entry.href}
                 class={`app-shell__nav-item ${subitem ? 'app-shell__nav-subitem' : ''} ${isActive(entry.href ?? '') ? 'active' : ''}`}
-                aria-current={isActive(entry.href ?? '')
-                    ? 'page'
-                    : undefined}
+                aria-current={isActive(entry.href ?? '') ? 'page' : undefined}
             >
                 <i class="bi {entry.icon}"></i>
                 <span>{entry.label}</span>
@@ -282,6 +285,16 @@
                         <span class="app-shell__user-avatar"
                             >{userInitials}</span
                         >
+                        <span class="app-shell__user-meta">
+                            <span class="app-shell__user-name">{user.name}</span
+                            >
+                            {#if user.role}
+                                <span
+                                    class={`app-shell__user-role app-shell__user-role--${user.role}`}
+                                    >{user.role}</span
+                                >
+                            {/if}
+                        </span>
                         <i
                             class={`bi bi-chevron-down app-shell__user-caret ${userMenuOpen ? 'app-shell__user-caret--open' : ''}`}
                         ></i>
@@ -290,21 +303,19 @@
                     <DropdownMenu
                         end
                         class={`app-shell__user-menu p-0 overflow-hidden`}
-                        style="width: 250px;"
+                        style="width: 264px;"
                     >
                         <!-- Bagian Header Dropdown (Biru) -->
                         <div class="app-shell__menu-profile-header">
-                            <span class="app-shell__menu-profile-avatar"
-                                >{userInitials}</span
-                            >
+                            
                             <div class="app-shell__menu-profile-text">
                                 <div class="app-shell__menu-profile-name">
                                     {user.name}
                                 </div>
                                 {#if user.role}
-                                    <div class="app-shell__menu-profile-role">
-                                        {user.role}
-                                    </div>
+                                    <span class="app-shell__role-badge"
+                                        >{user.role}</span
+                                    >
                                 {/if}
                                 {#if user.email}
                                     <div class="app-shell__menu-profile-email">
@@ -316,8 +327,10 @@
 
                         <div class="app-shell__menu-links">
                             <a
+                                use:inertia
                                 href={user.homeHref ?? '/'}
                                 class="app-shell__custom-dropdown-item"
+                                onclick={() => (userMenuOpen = false)}
                             >
                                 <i class="bi bi-house-door"></i>
                                 <span>Beranda</span>
@@ -325,6 +338,8 @@
                         </div>
 
                         <DropdownItem divider class="app-shell__menu-divider" />
+
+                        <!-- Tombol Keluar -->
                         <div class="app-shell__menu-footer">
                             <button
                                 type="button"
