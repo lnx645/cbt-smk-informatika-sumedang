@@ -140,7 +140,9 @@
                             >{item.label}</span
                         >
                         {#if item.badge}
-                            <span class="app-shell__nav-badge">{item.badge}</span>
+                            <span class="app-shell__nav-badge"
+                                >{item.badge}</span
+                            >
                         {/if}
                         <i class="bi bi-chevron-down app-shell__nav-group-caret"
                         ></i>
@@ -186,7 +188,9 @@
                         <i class="bi {item.icon}"></i>
                         <span>{item.label}</span>
                         {#if item.badge}
-                            <span class="app-shell__nav-badge">{item.badge}</span>
+                            <span class="app-shell__nav-badge"
+                                >{item.badge}</span
+                            >
                         {/if}
                     </a>
                 {/if}
@@ -353,24 +357,27 @@
     .app-shell__sidebar {
         width: 280px;
         background-color: var(--surface);
-        border-right: 1px solid var(--border);
         display: flex;
         flex-direction: column;
         position: fixed;
         inset: 0 auto 0 0;
         z-index: 1050;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow:
+            rgba(0, 0, 0, 0.15) 4px 0px 10px -2px,
+            rgba(0, 0, 0, 0.1) 2px 0px 4px -1px;
     }
 
     .app-shell__brand {
         position: relative;
-        padding: 1.5rem;
+        padding: 0 1rem;
+        height: 75px;
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        border-bottom: 1px solid var(--border);
         background: var(--brand-gradient);
         overflow: hidden;
+        border: none;
     }
 
     .app-shell__brand::after {
@@ -561,24 +568,20 @@
         top: 0;
         z-index: 1040;
         background-color: var(--surface);
-        border-bottom: 1px solid var(--border);
-        padding: 1rem 2rem;
+        padding: 0 1rem;
         display: flex;
+        height: 75px;
         align-items: center;
         justify-content: space-between;
+        border: none;
         box-shadow:
-            0 1px 0 0 var(--border),
-            0 6px 18px rgba(15, 23, 42, 0.03);
-    }
-
-    .app-shell__header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: var(--brand-gradient);
+            rgba(14, 63, 126, 0.06) 0px 0px 0px 1px,
+            rgba(42, 51, 70, 0.03) 0px 1px 1px -0.5px,
+            rgba(42, 51, 70, 0.04) 0px 2px 2px -1px,
+            rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px,
+            rgba(42, 51, 70, 0.03) 0px 5px 5px -2.5px,
+            rgba(42, 51, 70, 0.03) 0px 10px 10px -5px,
+            rgba(42, 51, 70, 0.03) 0px 24px 24px -8px;
     }
 
     .app-shell__header-left {

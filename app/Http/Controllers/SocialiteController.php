@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -24,6 +25,15 @@ class SocialiteController extends Controller
     public function callback(): RedirectResponse
     {
         $googleUser = Socialite::driver('google')->user();
+        // cek dulu by email
+
+        $email = $googleUser->getEmail();
+
+        if (User::whereEmail($email)->doesntExist()) {
+            Toast::error('Akun google tidak terdaftar! Atau belum aktif Silahkan hubungi operator sekolah');
+
+            return redirect()->route('login');
+        }
 
         $user = User::updateOrCreate(
             ['google_id' => $googleUser->getId()],
@@ -36,6 +46,6 @@ class SocialiteController extends Controller
 
         Auth::login($user);
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('app.gate'));
     }
 }
