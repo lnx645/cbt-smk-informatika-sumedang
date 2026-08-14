@@ -11,6 +11,7 @@
     import JurusanController from '@/actions/App/Http/Controllers/Admin/JurusanController';
     import MatpelController from '@/actions/App/Http/Controllers/Admin/MatpelController';
     import TahunAjaranController from '@/actions/App/Http/Controllers/Admin/TahunAjaranController';
+    import KelasController from '@/actions/App/Http/Controllers/Admin/KelasController';
 
     let { children }: { children: Snippet } = $props();
 
@@ -57,6 +58,11 @@
                     icon: 'bi-question-circle-fill',
                     badge: '120',
                 },
+                {
+                    href: KelasController.index().url,
+                    label: 'Kelas',
+                    icon: 'bi-collection-fill',
+                },
             ],
         },
 
@@ -77,7 +83,7 @@
             children: [
                 {
                     label: 'Pengaturan Kelas',
-                    href: '/manage/kelas-mapel',
+                    href: KelasController.index().url,
                     icon: 'bi-collection-fill',
                 },
                 {

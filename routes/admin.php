@@ -2,11 +2,14 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\JurusanController;
+use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\MatpelController;
 use App\Http\Controllers\Admin\TahunAjaranController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('', DashboardController::class)->name('index');
+
+Route::get('kelas', [KelasController::class, 'index'])->name('kelas.index');
 
 Route::get('tahun-ajaran', [TahunAjaranController::class, 'index'])->name('tahun-ajaran.index');
 Route::post('tahun-ajaran', [TahunAjaranController::class, 'store'])->name('tahun-ajaran.store');
@@ -22,3 +25,6 @@ Route::get('matpel', [MatpelController::class, 'index'])->name('matpel.index');
 Route::post('matpel', [MatpelController::class, 'store'])->name('matpel.store');
 Route::put('matpel/{matpel}', [MatpelController::class, 'update'])->name('matpel.update');
 Route::delete('matpel/{matpel}', [MatpelController::class, 'destroy'])->name('matpel.destroy');
+
+
+Route::get("kelas",[KelasController::class,"index"])->name("kelas.index");
