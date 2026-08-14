@@ -299,7 +299,7 @@
 <AppHead title={title} />
 
 <div
-    class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2"
+    class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 flex-wrap gap-2"
 >
     <div>
         <h1 class="h4 mb-1 fw-semibold">{title}</h1>
@@ -307,7 +307,7 @@
             <p class="text-muted mb-0 small">{subtitle}</p>
         {/if}
     </div>
-    <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
         {#each toolbarActions as act (act.key)}
             <Button
                 color={act.color ?? 'light'}
@@ -389,7 +389,7 @@
 
     <Card class="border rounded-3 shadow-sm overflow-hidden">
     <CardBody class="p-0">
-        <Table hover responsive class="crud-table mb-0 align-middle">
+        <Table hover responsive="sm" class="crud-table mb-0 align-middle">
             <thead class="crud-thead">
                 <tr>
                     {#each columns as col (col.key)}
@@ -411,13 +411,13 @@
                                     <Badge color={col.badgeColor ?? 'info'}>
                                         {display(col, item)}
                                     </Badge>
-                                {:else}
-                                    {display(col, item)}
-                                {/if}
+                        {:else}
+                            <span class="crud-clamp">{display(col, item)}</span>
+                        {/if}
                             </td>
                         {/each}
                         <td class="text-end pe-3">
-                            <div class="d-inline-flex align-items-center gap-1">
+                            <div class="d-inline-flex align-items-center gap-1 flex-wrap justify-content-end">
                                 {#each actions as act (act.key)}
                                     <Button
                                         size={act.size ?? 'sm'}
@@ -601,17 +601,39 @@
         font-size: 0.9rem;
     }
 
+    .crud-clamp {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-break: break-word;
+    }
+
     .crud-table tbody tr:last-child td {
         border-bottom: 0;
     }
 
     .crud-search {
-        width: 260px;
+        flex: 1 1 240px;
+        min-width: 0;
+        max-width: 360px;
     }
 
     .crud-filter-input {
-        width: auto;
-        min-width: 170px;
+        flex: 1 1 180px;
+        min-width: 0;
+    }
+
+    .crud-filterbar {
+        width: 100%;
+    }
+
+    @media (max-width: 575.98px) {
+        .crud-search,
+        .crud-filter-input {
+            flex: 1 1 100%;
+            max-width: 100%;
+        }
     }
 
     .crud-filterbar .crud-reset {

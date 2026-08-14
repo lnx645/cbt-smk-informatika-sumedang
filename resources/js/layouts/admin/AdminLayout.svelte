@@ -12,6 +12,7 @@
     import MatpelController from '@/actions/App/Http/Controllers/Admin/MatpelController';
     import TahunAjaranController from '@/actions/App/Http/Controllers/Admin/TahunAjaranController';
     import KelasController from '@/actions/App/Http/Controllers/Admin/KelasController';
+    import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
 
     let { children }: { children: Snippet } = $props();
 
@@ -35,7 +36,7 @@
             section: 'Data Master',
             items: [
                 {
-                    href: '/manage/users',
+                    href: PengajarController.index().url,
                     label: 'Pengajar',
                     icon: 'bi-people-fill',
                     badge: '482',
@@ -81,11 +82,6 @@
             label: 'Pengaturan',
             icon: 'bi-gear-fill',
             children: [
-                {
-                    label: 'Pengaturan Kelas',
-                    href: KelasController.index().url,
-                    icon: 'bi-collection-fill',
-                },
                 {
                     label: 'Pengaturan Jurusan',
                     href: JurusanController.index().url,

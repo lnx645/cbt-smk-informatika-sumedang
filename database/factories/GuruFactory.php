@@ -22,6 +22,7 @@ class GuruFactory extends Factory
             'nama_lengkap' => fake()->name(),
             'jenis_kelamin' => fake()->randomElement(['L', 'P']),
             'alamat' => fake()->address(),
+            'pendidikan_terakhir' => fake()->randomElement(['SMA/SMK', 'D3', 'D4', 'S1', 'S2', 'S3']),
             'foto_profil' => null,
             'is_aktif' => true,
         ];

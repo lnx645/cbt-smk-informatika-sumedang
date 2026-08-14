@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['nip', 'nama_lengkap', 'jenis_kelamin', 'alamat', 'foto_profil', 'is_aktif'])]
+#[Fillable(['nip', 'nama_lengkap', 'pendidikan_terakhir', 'jenis_kelamin', 'alamat', 'foto_profil', 'is_aktif'])]
 class Guru extends Model
 {
     /** @use HasFactory<GuruFactory> */
