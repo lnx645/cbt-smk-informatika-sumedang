@@ -13,9 +13,6 @@ use Inertia\Inertia;
 
 class KelasController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $kelas = Kelas::with(['jurusan', 'walikelas'])->get();
@@ -40,15 +37,13 @@ class KelasController extends Controller
                 'id' => $k->id,
                 'nama' => $k->nama,
                 'parent_id' => $k->parent_id,
+                'jurusan_id' => $k->jurusan_id,
             ]),
             'jurusans' => Jurusan::orderBy('name')->get(['id', 'name', 'kode']),
             'gurus' => Guru::orderBy('nama_lengkap')->get(['id', 'nama_lengkap']),
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validateKelas($request);
@@ -63,9 +58,6 @@ class KelasController extends Controller
         return Redirect::route('admin.kelas.index');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Kelas $kelas): RedirectResponse
     {
         $data = $this->validateKelas($request, $kelas);
@@ -80,24 +72,41 @@ class KelasController extends Controller
         return Redirect::route('admin.kelas.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Kelas $kelas): RedirectResponse
     {
+        $ids = [$kelas->id];
+        $current = [$kelas->id];
+        while ($current) {
+            $current = Kelas::whereIn('parent_id', $current)->pluck('id')->all();
+            $ids = array_merge($ids, $current);
+        }
+
+        if (Kelas::whereIn('id', $ids)->has('siswas')->exists()) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => 'Kelas tidak dapat dihapus karena masih memiliki siswa.',
+            ]);
+
+            return Redirect::route('admin.kelas.index');
+        }
+
+        $childIds = array_slice($ids, 1);
+        if ($childIds) {
+            Kelas::whereIn('id', $childIds)->delete();
+        }
         $kelas->delete();
 
+        $total = count($ids);
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => 'Kelas berhasil dihapus.',
+            'message' => $total > 1
+                ? "Kelas beserta {$total} kelas terkait berhasil dihapus."
+                : 'Kelas berhasil dihapus.',
         ]);
 
         return Redirect::route('admin.kelas.index');
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     private function validateKelas(Request $request, ?Kelas $kelas = null): array
     {
         $request->merge(collect(['jurusan_id', 'guru_id', 'parent_id'])

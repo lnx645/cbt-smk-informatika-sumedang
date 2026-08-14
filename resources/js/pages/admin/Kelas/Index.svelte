@@ -136,7 +136,7 @@
         }
         let base = parts.join(' ');
         if (form.ruangan) {
-            base += ` - ${form.ruangan}`;
+            base += ` ${form.ruangan}`;
         }
         form.nama = base;
     }
@@ -169,6 +169,8 @@
 
     function onParentChange(value: string) {
         form.parent_id = value === '' ? null : Number(value);
+        const parent = (kelas_list ?? []).find((k) => k.id === form.parent_id);
+        form.jurusan_id = parent?.jurusan_id ?? null;
         rebuildNama();
     }
 
@@ -205,8 +207,24 @@
         }
     }
 
+    function countDescendants(node: Record<string, any>): number {
+        if (!node.children || !node.children.length) {
+            return 0;
+        }
+        let total = 0;
+        for (const child of node.children) {
+            total += 1 + countDescendants(child);
+        }
+        return total;
+    }
+
     function confirmDelete(node: Record<string, any>) {
-        if (!confirm(`Hapus kelas "${node.nama}"?`)) {
+        const count = countDescendants(node);
+        const message =
+            count > 0
+                ? `Hapus kelas "${node.nama}" beserta ${count} anak kelas terkait?`
+                : `Hapus kelas "${node.nama}"?`;
+        if (!confirm(message)) {
             return;
         }
         router.delete(KelasController.destroy({ kelas: node.id }).url);
@@ -214,27 +232,55 @@
 </script>
 
 {#snippet node(item, depth)}
-    <li class="kelas-tree__node">
-        <div class="kelas-tree__label">
-            {#if item.children && item.children.length}
-                <i class="bi bi-folder2-open text-warning"></i>
-            {:else}
-                <i class="bi bi-mortarboard-fill text-primary"></i>
-            {/if}
-            <span class="fw-semibold">{item.nama}</span>
-            {#if item.jurusan}
-                <span class="badge text-bg-info ms-2">{item.jurusan.name}</span>
-            {/if}
-            {#if item.walikelas}
-                <span class="text-muted ms-2"
-                    >Wali: {item.walikelas.nama_lengkap}</span
-                >
-            {/if}
-            <span class="kelas-tree__actions">
+    <li class="kt-node">
+        <div class="kt-row" style={`--depth:${depth}`}>
+            <span
+                class="kt-icon {item.children && item.children.length
+                    ? 'kt-icon--parent'
+                    : 'kt-icon--leaf'}"
+            >
+                {#if item.children && item.children.length}
+                    <i class="bi bi-folder2"></i>
+                {:else}
+                    <i class="bi bi-mortarboard-fill"></i>
+                {/if}
+            </span>
+            <div class="kt-body">
+                <div class="kt-title">
+                    <span class="kt-name">{item.nama}</span>
+                    {#if item.active}
+                        <span class="kt-badge">Aktif</span>
+                    {/if}
+                </div>
+                <div class="kt-meta">
+                    {#if item.jurusan}
+                        <span class="kt-chip kt-chip--jurusan"
+                            ><i class="bi bi-bookmark-fill"></i>
+                            {item.jurusan.name}</span
+                        >
+                    {/if}
+                    {#if item.ruangan}
+                        <span class="kt-meta-item"
+                            ><i class="bi bi-door-closed-fill"></i> Ruang {item.ruangan}</span
+                        >
+                    {/if}
+                    {#if item.walikelas}
+                        <span class="kt-meta-item"
+                            ><i class="bi bi-person-fill"></i>
+                            {item.walikelas.nama_lengkap}</span
+                        >
+                    {/if}
+                    {#if !item.jurusan && !item.ruangan && !item.walikelas}
+                        <span class="kt-meta-empty">Belum ada detail</span>
+                    {/if}
+                </div>
+            </div>
+            <span class="kt-actions">
                 <button
                     type="button"
-                    class="btn btn-sm btn-outline-secondary"
+                    class="btn btn-sm btn-outline-primary"
                     onclick={() => openEdit(item)}
+                    title="Edit"
                 >
                     <i class="bi bi-pencil"></i>
                 </button>
@@ -242,13 +288,14 @@
                     type="button"
                     class="btn btn-sm btn-outline-danger"
                     onclick={() => confirmDelete(item)}
+                    title="Hapus"
                 >
                     <i class="bi bi-trash"></i>
                 </button>
             </span>
         </div>
         {#if item.children && item.children.length}
-            <ul class="kelas-tree__children">
+            <ul class="kt-children">
                 {#each item.children as child (child.id)}
                     {@render node(child, depth + 1)}
                 {/each}
@@ -267,17 +314,22 @@
     <p class="text-muted mb-3">
         Struktur kelas ditampilkan sebagai hierarki orang tua–anak berdasarkan
         <code>parent_id</code>. Nama kelas dibentuk otomatis dari induk + jurusan
-        + ruangan (mis. <code>X RPL - Ruang 1</code>).
+        + ruangan (mis. <code>XI RPL 5</code>).
     </p>
 
     {#if items.length}
-        <ul class="kelas-tree">
-            {#each items as parent (parent.id)}
-                {@render node(parent, 0)}
-            {/each}
-        </ul>
+        <div class="kt-card card">
+            <ul class="kt-tree">
+                {#each items as parent (parent.id)}
+                    {@render node(parent, 0)}
+                {/each}
+            </ul>
+        </div>
     {:else}
-        <p class="text-muted">Belum ada data kelas.</p>
+        <div class="text-center text-muted py-5 border rounded bg-light">
+            <i class="bi bi-diagram-3 fs-1 d-block mb-2 opacity-50"></i>
+            Belum ada data kelas.
+        </div>
     {/if}
 </div>
 
@@ -368,6 +420,7 @@
         </FormGroup>
 
         <div class="crud-checkbox">
+            <!-- svelte-ignore a11y_consider_explicit_label -->
             <button
                 type="button"
                 class="crud-toggle__track"
@@ -392,37 +445,153 @@
 </Modal>
 
 <style>
-    .kelas-tree,
-    .kelas-tree__children {
-        list-style: none;
-        padding-left: 1.25rem;
-        margin: 0;
+    .kt-card {
+        background: #ffffff;
+        overflow: hidden;
     }
 
-    .kelas-tree {
+    .kt-tree,
+    .kt-children {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .kt-tree {
+        padding: 0.6rem;
+    }
+
+    /* ── Indentation for hierarchy (no connector lines) ── */
+    .kt-children {
+        margin-left: 1.4rem;
         padding-left: 0;
     }
 
-    .kelas-tree__children {
-        border-left: 2px solid #e9ecef;
-        margin-left: 0.5rem;
+    .kt-node {
+        position: relative;
+        padding: 0.12rem 0;
     }
 
-    .kelas-tree__node {
-        padding: 0.35rem 0;
-    }
-
-    .kelas-tree__label {
+    .kt-row {
+        position: relative;
         display: flex;
         align-items: center;
-        gap: 0.4rem;
+        gap: 0.65rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        transition:
+            background 0.15s ease,
+            box-shadow 0.15s ease;
+    }
+
+    
+
+    .kt-row:hover {
+        background: #f1f5f9;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .kt-row:hover::after {
+        transform: scaleY(1);
+    }
+
+    .kt-icon {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 0.5rem;
+        flex: 0 0 auto;
+        font-size: 1rem;
+        box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.04);
+    }
+
+    .kt-icon--parent {
+        background: #fdf5e3;
+        color: #d19c2a;
+    }
+
+    .kt-icon--leaf {
+        background: #e6f4fb;
+        color: #0091d4;
+    }
+
+    .kt-body {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .kt-title {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
         flex-wrap: wrap;
     }
 
-    .kelas-tree__actions {
-        margin-left: auto;
+    .kt-name {
+        font-weight: 600;
+        color: #334155;
+        font-size: 0.9rem;
+        letter-spacing: -0.01em;
+    }
+
+    .kt-meta {
         display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.2rem;
+    }
+
+    .kt-chip {
+        font-size: 0.72rem;
+        font-weight: 500;
+        padding: 0.12rem 0.5rem;
+        border-radius: 0.375rem;
+        background: #e6f4fb;
+        color: #006fa5;
+        display: inline-flex;
+        align-items: center;
         gap: 0.25rem;
+        white-space: nowrap;
+    }
+
+    .kt-meta-item {
+        font-size: 0.74rem;
+        color: #64748b;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        white-space: nowrap;
+    }
+
+    .kt-meta-empty {
+        color: #94a3b8;
+        font-size: 0.78rem;
+        font-style: italic;
+    }
+
+    .kt-badge {
+        font-size: 0.64rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        background: #eaf6ee;
+        color: #2c7a47;
+        padding: 0.15rem 0.5rem;
+        border-radius: 0.375rem;
+    }
+
+    .kt-actions {
+        display: flex;
+        gap: 0.35rem;
+        flex: 0 0 auto;
+        opacity: 0.55;
+        transition: opacity 0.15s ease;
+    }
+
+    .kt-row:hover .kt-actions {
+        opacity: 1;
     }
 
     .crud-checkbox {
@@ -449,7 +618,7 @@
     }
 
     .crud-toggle__track.is-on {
-        background: #198754;
+        background: #3a9d5c;
     }
 
     .crud-toggle__knob {

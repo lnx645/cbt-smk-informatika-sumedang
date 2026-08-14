@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-    #[Fillable(['nama', 'deskripsi', 'guru_id', 'active', 'parent_id', 'jurusan_id', 'ruangan'])]
+#[Fillable(['nama', 'deskripsi', 'guru_id', 'active', 'parent_id', 'jurusan_id', 'ruangan'])]
 class Kelas extends Model
 {
     /** @use HasFactory<KelasFactory> */
@@ -33,7 +33,7 @@ class Kelas extends Model
 
     public function siswas(): HasManyThrough
     {
-        return $this->hasManyThrough(Siswa::class, SiswaKelas::class, 'kelas_id', 'siswa_nisn', 'id', 'nisn');
+        return $this->hasManyThrough(Siswa::class, SiswaKelas::class, 'kelas_id', 'nisn', 'id', 'siswa_nisn');
     }
 
     public function jurusan()
