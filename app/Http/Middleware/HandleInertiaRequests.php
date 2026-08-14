@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -38,8 +39,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'tahunAjaranAktif' => TahunAjaran::where('active', true)->first(),
             'auth' => [
-                'user' => $request->user()?->load('siswa', 'siswa.jurusan',"siswa.kelas")->load('guru'),
+                'user' => $request->user()?->load('siswa', 'siswa.kelas.jurusan')->load('guru'),
             ],
         ];
     }

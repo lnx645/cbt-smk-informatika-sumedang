@@ -4,19 +4,24 @@
         type CrudField,
     } from '@/components/crud/CrudManager.svelte';
     import JurusanController from '@/actions/App/Http/Controllers/Admin/JurusanController';
-    import { WhenVisible } from '@inertiajs/svelte';
     import { Badge } from '@sveltestrap/sveltestrap';
 
     type JurusanItem = Record<string, unknown> & { id: number };
 
     let {
         jurusans,
+        filters: activeFilters = {},
     }: {
         jurusans: {
             data: JurusanItem[];
             current_page: number;
             last_page: number;
+            total: number;
+            per_page: number;
+            from?: number | null;
+            to?: number | null;
         };
+        filters?: Record<string, string>;
     } = $props();
 
     const columns: CrudColumn[] = [
@@ -52,6 +57,13 @@
     {columns}
     {fields}
     {items}
+    toolbarActions={[
+        {
+            key:"WK",
+
+            label:"Export CMD",
+        }
+    ]}
     actions={[{
         key:"OJ",
         icon:"bi bi-eye",
@@ -62,21 +74,20 @@
     controller={JurusanController}
     createLabel="Tambah Jurusan"
     resourceName="Jurusan"
+    searchable
+    searchPlaceholder="Cari nama atau kode…"
+    filters={[
+        {
+            name: 'has_kelas',
+            label: 'Jumlah Kelas',
+            type: 'select',
+            placeholder: 'Semua Kelas',
+            options: [
+                { value: '1', label: 'Ada Kelas' },
+                { value: '0', label: 'Belum Ada Kelas' },
+            ],
+        },
+    ]}
+    query={activeFilters}
+    only={['jurusans']}
 />
-
-{#if jurusans.current_page < jurusans.last_page}
-    <WhenVisible
-        data="jurusans"
-        params={{ data: { page: jurusans.current_page + 1 } }}
-        always
-    >
-        {#snippet children({ fetching })}
-            {#if fetching}
-                <div class="text-center text-muted small py-3">
-                    <span class="spinner-border spinner-border-sm me-2"></span>
-                    Memuat data…
-                </div>
-            {/if}
-        {/snippet}
-    </WhenVisible>
-{/if}

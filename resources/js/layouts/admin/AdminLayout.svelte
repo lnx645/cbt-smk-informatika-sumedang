@@ -9,6 +9,8 @@
     import BrandIcon from './BrandIcon.svelte';
     import DashboardController from '@/actions/App/Http/Controllers/Admin/DashboardController';
     import JurusanController from '@/actions/App/Http/Controllers/Admin/JurusanController';
+    import MatpelController from '@/actions/App/Http/Controllers/Admin/MatpelController';
+    import TahunAjaranController from '@/actions/App/Http/Controllers/Admin/TahunAjaranController';
 
     let { children }: { children: Snippet } = $props();
 
@@ -26,7 +28,7 @@
         {
             href: DashboardController().url,
             label: 'Dashboard',
-            icon: 'bi-grid-1x2-fill',
+            icon: 'bi-speedometer2',
         },
         {
             section: 'Data Master',
@@ -34,25 +36,25 @@
                 {
                     href: '/manage/users',
                     label: 'Pengajar',
-                    icon: 'bi-people-fill',
+                    icon: 'bi-person-chalkboard',
                     badge: '482',
                 },
                 {
                     href: '/manage/modul',
                     label: 'Peserta Didik',
-                    icon: 'bi-journal-richtext',
+                    icon: 'bi-mortarboard-fill',
                     badge: '24',
                 },
                 {
                     href: '/manage/ujian',
                     label: 'Ujian',
-                    icon: 'bi-file-earmark-text-fill',
+                    icon: 'bi-clipboard-check',
                     badge: '3',
                 },
                 {
                     href: '/manage/bank-soal',
                     label: 'Bank Soal',
-                    icon: 'bi-clipboard-data',
+                    icon: 'bi-question-circle-fill',
                     badge: '120',
                 },
             ],
@@ -76,7 +78,7 @@
                 {
                     label: 'Pengaturan Kelas',
                     href: '/manage/kelas-mapel',
-                    icon: 'bi-boxes',
+                    icon: 'bi-collection-fill',
                 },
                 {
                     label: 'Pengaturan Jurusan',
@@ -85,8 +87,13 @@
                 },
                 {
                     label: 'Pengaturan Matpel',
-                    href: '/manage/kelas-mapels',
-                    icon: 'bi-diagram-3-fill',
+                    href: MatpelController.index().url,
+                    icon: 'bi-book-half',
+                },
+                {
+                    label: 'Pengaturan Tahun Ajaran',
+                    href: TahunAjaranController.index().url,
+                    icon: 'bi-calendar-year',
                 },
             ],
         },

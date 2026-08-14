@@ -14,6 +14,7 @@
     import CookieConsent from '@/components/CookieConsent.svelte';
     import AuthenticatedSessionController from '@/actions/App/Http/Controllers/AuthenticatedSessionController';
     import ConfirmDialog from '@/components/ConfirmDialog.svelte';
+    import TahunAjaranInfo from '@/components/TahunAjaranInfo.svelte';
 
     export type AppShellNavItem = {
         href?: string;
@@ -232,6 +233,8 @@
         </nav>
 
         <div class="app-shell__sidebar-footer">
+            <TahunAjaranInfo class="app-shell__ta-info mb-2" />
+
             <button
                 type="button"
                 class={`app-shell__nav-item app-shell__nav-item--danger`}

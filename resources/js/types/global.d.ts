@@ -1,5 +1,11 @@
 import type { Auth } from '@/types/auth';
 
+export type TahunAjaran = {
+    id: number;
+    name: string;
+    active: boolean;
+};
+
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
     interface ImportMetaEnv {
@@ -22,6 +28,7 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            tahunAjaranAktif: TahunAjaran | null;
             [key: string]: unknown;
         };
     }

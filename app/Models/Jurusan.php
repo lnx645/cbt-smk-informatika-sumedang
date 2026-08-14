@@ -14,9 +14,9 @@ class Jurusan extends Model
     /** @use HasFactory<JurusanFactory> */
     use HasFactory;
 
-    public function siswas(): HasMany
+    public function siswas()
     {
-        return $this->hasMany(Siswa::class);
+        return Siswa::query()->whereHas('kelas', fn ($query) => $query->where('jurusan_id', $this->id));
     }
 
     public function kelas(): HasMany

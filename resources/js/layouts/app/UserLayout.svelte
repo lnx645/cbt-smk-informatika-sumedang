@@ -7,10 +7,15 @@
         type AppShellUser,
     } from '@/layouts/AppShellLayout.svelte';
     import BrandIcon from './BrandIcon.svelte';
+    import { Alert } from '@sveltestrap/sveltestrap';
     import MataPelajaranGuruController from '@/actions/App/Http/Controllers/MataPelajaranGuruController';
     import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
     let { children }: { children: Snippet } = $props();
     const authUser = $derived((usePage().props.auth as any)?.user ?? null);
+    const tahunAjaranAktif = $derived((usePage().props as any).tahunAjaranAktif ?? null);
+    const showTahunAjaranInfo = $derived(
+        !!authUser?.siswa && !tahunAjaranAktif,
+    );
     const user = $derived<AppShellUser>({
         name: authUser?.name ?? 'Pengguna',
         email: authUser?.email ?? '',
@@ -117,5 +122,11 @@
     {navItems}
     {user}
 >
+    {#if showTahunAjaranInfo}
+        <Alert color="info" class="d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>Tahun Pelajaran Baru Belum dimulai</span>
+        </Alert>
+    {/if}
     {@render children?.()}
 </AppShellLayout>

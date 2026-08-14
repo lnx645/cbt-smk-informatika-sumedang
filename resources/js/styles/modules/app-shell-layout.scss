@@ -272,6 +272,18 @@
     border-top: 1px solid var(--border);
 }
 
+.app-shell__ta-info {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.8rem;
+    border: none;
+    border-radius: 0.5rem;
+
+    i {
+        font-size: 0.95rem;
+    }
+}
+
 .app-shell__nav-item--danger:hover {
     background-color: var(--danger-soft);
     color: var(--danger) !important;

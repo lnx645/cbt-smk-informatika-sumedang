@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Kelas;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('siswa', function (Blueprint $table) {
-            $table->foreignIdFor(Kelas::class, 'kelas_id')->nullable()->constrained('kelas')->cascadeOnUpdate()->nullOnDelete();
+        Schema::create('siswa_kelas', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
         });
     }
 
@@ -22,8 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('siswa', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('kelas_id');
-        });
+        Schema::dropIfExists('siswa_kelas');
     }
 };

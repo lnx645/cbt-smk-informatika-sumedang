@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Component, Snippet } from 'svelte';
-    import { useForm, router } from '@inertiajs/svelte';
+    import { useForm, router, usePage } from '@inertiajs/svelte';
     import {
         Button,
         Card,
@@ -17,6 +17,7 @@
     } from '@sveltestrap/sveltestrap';
     import AppHead from '@/components/AppHead.svelte';
     import Select from '@/components/Select.svelte';
+    import Pagination from '@/components/Pagination.svelte';
     import { confirm } from '@/lib/confirm.svelte';
     import type { RouteDefinition } from '@/wayfinder';
 
@@ -35,13 +36,32 @@
 
     export type CrudFieldOption = { value: string | number; label: string };
 
+    export type CrudFilter = {
+        name: string;
+        label: string;
+        type?: 'text' | 'select' | 'date';
+        placeholder?: string;
+        options?: CrudFieldOption[];
+        size?: 'xs' | 'sm' | 'lg';
+    };
+
+    export type CrudPagination = {
+        current_page: number;
+        last_page: number;
+        total: number;
+        per_page: number;
+        from?: number | null;
+        to?: number | null;
+    };
+
     export type CrudAction = {
         key: string;
         label?: string;
         icon?: string;
         color?: string;
         class?: string;
-        onClick: (item: CrudItem) => void;
+        size?: 'sm' | 'lg';
+        onClick?: (item?: CrudItem) => void;
     };
 
     export type CrudField = {
@@ -55,13 +75,15 @@
             | 'select'
             | 'date'
             | 'file'
-            | 'image';
+            | 'image'
+            | 'checkbox';
         placeholder?: string;
         options?: CrudFieldOption[];
         accept?: string;
         required?: boolean;
         editable?: boolean;
         multiple?: boolean;
+        size?: 'xs' | 'sm' | 'lg';
     };
 
     type AnyRoute = RouteDefinition<'get' | 'post' | 'put' | 'delete'>;
@@ -83,6 +105,14 @@
         createLabel = 'Tambah',
         emptyText = 'Belum ada data.',
         actions = [],
+        toolbarActions = [],
+        searchable = false,
+        searchPlaceholder = 'Cari…',
+        filters = [],
+        query = {},
+        only = [],
+        onQuery,
+        pagination,
     }: {
         title?: string;
         subtitle?: string;
@@ -94,6 +124,14 @@
         createLabel?: string;
         emptyText?: string;
         actions?: CrudAction[];
+        toolbarActions?: CrudAction[];
+        searchable?: boolean;
+        searchPlaceholder?: string;
+        filters?: CrudFilter[];
+        query?: Record<string, string>;
+        only?: string[];
+        onQuery?: (params: Record<string, string>) => void;
+        pagination?: CrudPagination;
     } = $props();
 
     const label = $derived(resourceName ?? title ?? 'data');
@@ -104,7 +142,10 @@
 
     const form = useForm(
         Object.fromEntries(
-            fields.map((f) => [f.name, f.multiple ? [] : '']),
+            fields.map((f) => [
+                f.name,
+                f.type === 'checkbox' ? false : f.multiple ? [] : '',
+            ]),
         ),
     );
 
@@ -138,18 +179,25 @@
         previews = {};
         for (const field of fields) {
             (form as Record<string, unknown>)[field.name] =
-                item[field.name] ?? '';
+                field.type === 'checkbox'
+                    ? Boolean(item[field.name])
+                    : (item[field.name] ?? '');
         }
         modalOpen = true;
     }
 
     function submit() {
+        const onSuccess = () => {
+            modalOpen = false;
+            form.reset();
+        };
+
         if (editing) {
             const route = controller.update(editing);
-            form.submit({ url: route.url, method: route.method });
+            form.submit({ url: route.url, method: route.method, onSuccess });
         } else {
             const route = controller.store();
-            form.submit({ url: route.url, method: route.method });
+            form.submit({ url: route.url, method: route.method, onSuccess });
         }
     }
 
@@ -165,26 +213,184 @@
 
         router.delete(controller.destroy(item).url);
     }
+
+    const page = usePage();
+
+    let search = $state(query.search ?? '');
+    let filterValues = $state<Record<string, string>>(
+        Object.fromEntries(
+            filters.map((f) => [f.name, query[f.name] ?? '']),
+        ),
+    );
+
+    let hasActive = $derived(
+        search.trim() !== '' ||
+            filters.some((f) => (filterValues[f.name] ?? '') !== ''),
+    );
+
+    let searchTimer: ReturnType<typeof setTimeout> | undefined;
+
+    function onSearchInput() {
+        if (searchTimer) clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => applyQuery(), 350);
+    }
+
+    function optionValue(value: unknown): string {
+        if (
+            value &&
+            typeof value === 'object' &&
+            'value' in (value as Record<string, unknown>)
+        ) {
+            return String((value as Record<string, unknown>).value);
+        }
+        return value == null ? '' : String(value);
+    }
+
+    function setFilter(name: string, value: unknown) {
+        filterValues[name] = optionValue(value);
+        applyQuery();
+    }
+
+    function buildParams(): Record<string, string> {
+        const params: Record<string, string> = {};
+        if (search.trim()) params.search = search.trim();
+        for (const f of filters) {
+            const value = filterValues[f.name] ?? '';
+            if (value !== '') params[f.name] = value;
+        }
+        return params;
+    }
+
+    function navigate(params: Record<string, string>) {
+        if (onQuery) {
+            onQuery(params);
+            return;
+        }
+        const url = (page.url as string).split('?')[0];
+        router.get(url, params, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+            ...(only.length ? { only } : {}),
+        });
+    }
+
+    function applyQuery() {
+        navigate(buildParams());
+    }
+
+    function goToPage(page: number) {
+        if (!pagination) return;
+        if (page < 1 || page > pagination.last_page || page === pagination.current_page) {
+            return;
+        }
+        const params = buildParams();
+        params.page = String(page);
+        navigate(params);
+    }
+
+    function resetFilters() {
+        search = '';
+        for (const f of filters) filterValues[f.name] = '';
+        applyQuery();
+    }
 </script>
 
 <AppHead title={title} />
 
-<div class="d-flex align-items-center justify-content-between mb-3">
+<div
+    class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2"
+>
     <div>
-        <h1 class="h4 mb-1 fw-bold">{title}</h1>
+        <h1 class="h4 mb-1 fw-semibold">{title}</h1>
         {#if subtitle}
             <p class="text-muted mb-0 small">{subtitle}</p>
         {/if}
     </div>
-    <Button color="primary" onclick={openCreate}>
-        <i class="bi bi-plus-lg me-1"></i> {createLabel}
-    </Button>
-</div>
+    <div class="d-flex align-items-center gap-2">
+        {#each toolbarActions as act (act.key)}
+            <Button
+                color={act.color ?? 'light'}
+                size={act.size}
+                class={act.class}
+                title={act.label}
+                onclick={() => act.onClick?.()}
+            >
+                {#if act.icon}
+                    <i class={act.icon}></i>
+                {/if}
+                {#if act.label}
+                    {act.label}
+                {/if}
+            </Button>
+        {/each}
+        <Button color="primary" onclick={openCreate}>
+            <i class="bi bi-plus-lg me-1"></i> {createLabel}
+        </Button>
+    </div>
+    </div>
 
-<Card class="border-0 shadow-sm">
+    {#if searchable || filters.length > 0}
+        <div class="crud-filterbar d-flex flex-wrap align-items-center gap-2 mb-3">
+            {#if searchable}
+                <div class="input-group input-group-sm crud-search">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input
+                        class="form-control"
+                        type="search"
+                        placeholder={searchPlaceholder}
+                        bind:value={search}
+                        oninput={onSearchInput}
+                    />
+                </div>
+            {/if}
+
+            {#each filters as f (f.name)}
+                {#if f.type === 'select'}
+                    <select
+                        class="form-select form-select-sm crud-filter-input"
+                        value={filterValues[f.name]}
+                        onchange={(e: Event) =>
+                            setFilter(
+                                f.name,
+                                (e.currentTarget as HTMLSelectElement).value,
+                            )}
+                    >
+                        <option value="">{f.placeholder ?? f.label}</option>
+                        {#each f.options ?? [] as opt (String(opt.value))}
+                            <option value={opt.value}>{opt.label}</option>
+                        {/each}
+                    </select>
+                {:else}
+                    <input
+                        class="form-control form-control-sm crud-filter-input"
+                        type={f.type ?? 'text'}
+                        placeholder={f.placeholder ?? f.label}
+                        bind:value={filterValues[f.name]}
+                        oninput={() => applyQuery()}
+                    />
+                {/if}
+            {/each}
+
+            {#if hasActive}
+                <Button
+                    size="sm"
+                    color="light"
+                    class="crud-reset"
+                    onclick={resetFilters}
+                >
+                    <i class="bi bi-x-lg me-1"></i> Reset
+                </Button>
+            {/if}
+        </div>
+    {/if}
+
+    <Card class="border rounded-3 shadow-sm overflow-hidden">
     <CardBody class="p-0">
-        <Table hover responsive class="mb-0 align-middle">
-            <thead class="table-light">
+        <Table hover responsive class="crud-table mb-0 align-middle">
+            <thead class="crud-thead">
                 <tr>
                     {#each columns as col (col.key)}
                         <th class={col.center ? 'text-center' : ''}>{col.label}</th>
@@ -211,51 +417,59 @@
                             </td>
                         {/each}
                         <td class="text-end pe-3">
-                            {#each actions as act (act.key)}
+                            <div class="d-inline-flex align-items-center gap-1">
+                                {#each actions as act (act.key)}
+                                    <Button
+                                        size={act.size ?? 'sm'}
+                                        color={act.color ?? 'light'}
+                                        class={act.class}
+                                        title={act.label}
+                                        onclick={() => act.onClick?.(item)}
+                                    >
+                                        {#if act.icon}
+                                            <i class={act.icon}></i>
+                                        {/if}
+                                        {#if act.label}
+                                            {act.label}
+                                        {/if}
+                                    </Button>
+                                {/each}
                                 <Button
                                     size="sm"
-                                    color={act.color ?? 'light'}
-                                    class={act.class ?? 'me-1'}
-                                    title={act.label}
-                                    onclick={() => act.onClick(item)}
+                                    color="outline-secondary"
+                                    title="Edit"
+                                    onclick={() => openEdit(item)}
                                 >
-                                    {#if act.icon}
-                                        <i class={act.icon}></i>
-                                    {/if}
-                                    {#if act.label}
-                                        {act.label}
-                                    {/if}
+                                    <i class="bi bi-pencil"></i>
                                 </Button>
-                            {/each}
-                            <Button
-                                size="sm"
-                                color="light"
-                                class="me-1"
-                                onclick={() => openEdit(item)}
-                            >
-                                <i class="bi bi-pencil"></i>
-                            </Button>
-                            <Button
-                                size="sm"
-                                color="light"
-                                class="text-danger"
-                                onclick={() => confirmDelete(item)}
-                            >
-                                <i class="bi bi-trash"></i>
-                            </Button>
+                                <Button
+                                    size="sm"
+                                    color="outline-danger"
+                                    title="Hapus"
+                                    onclick={() => confirmDelete(item)}
+                                >
+                                    <i class="bi bi-trash"></i>
+                                </Button>
+                            </div>
                         </td>
                     </tr>
                 {:else}
                     <tr>
-                        <td colspan={columns.length + 1} class="text-center text-muted py-4">
-                            {emptyText}
+                        <td
+                            colspan={columns.length + 1}
+                            class="text-center text-muted py-4"
+                        >
+                            <i class="bi bi-inbox me-1"></i> {emptyText}
                         </td>
                     </tr>
                 {/each}
             </tbody>
-        </Table>
-    </CardBody>
-</Card>
+            </Table>
+            {#if pagination}
+                <Pagination meta={pagination} onPageChange={goToPage} />
+            {/if}
+        </CardBody>
+    </Card>
 
 <Modal isOpen={modalOpen} toggle={() => (modalOpen = !modalOpen)}>
     <ModalHeader toggle={() => (modalOpen = !modalOpen)}>
@@ -265,9 +479,11 @@
         <ModalBody>
             {#each fields as field, i (field.name)}
                 <FormGroup class={i === fields.length - 1 ? 'mb-0' : ''}>
-                    <Label for={field.name} class="small fw-semibold">
-                        {field.label}
-                    </Label>
+                    {#if field.type !== 'checkbox'}
+                        <Label for={field.name} class="small fw-semibold">
+                            {field.label}
+                        </Label>
+                    {/if}
 
                     {@const locked = !!editing && field.editable === false}
 
@@ -276,6 +492,7 @@
                             items={field.options ?? []}
                             value={(form as Record<string, unknown>)[field.name]}
                             multiple={field.multiple ?? false}
+                            size={field.size}
                             disabled={locked}
                             hasError={!!(form.errors as Record<string, string>)[field.name]}
                             placeholder={field.placeholder ?? 'Pilih…'}
@@ -293,6 +510,24 @@
                             invalid={!!(form.errors as Record<string, string>)[field.name]}
                             placeholder={field.placeholder ?? ''}
                         />
+                    {:else if field.type === 'checkbox'}
+                        <div class="crud-checkbox">
+                            <button
+                                type="button"
+                                class="crud-toggle__track"
+                                class:is-on={(form as Record<string, unknown>)[field.name]}
+                                role="switch"
+                                aria-checked={(form as Record<string, unknown>)[field.name] ? 'true' : 'false'}
+                                disabled={locked}
+                                onclick={() =>
+                                    ((form as Record<string, unknown>)[field.name] = !(form as Record<string, unknown>)[field.name])}
+                            >
+                                <span class="crud-toggle__knob"></span>
+                            </button>
+                            <Label for={field.name} class="crud-checkbox__label">
+                                {field.label}
+                            </Label>
+                        </div>
                     {:else if field.type === 'file' || field.type === 'image'}
                         <Input
                             id={field.name}
@@ -338,7 +573,7 @@
             {/each}
         </ModalBody>
         <ModalFooter>
-            <Button color="secondary" outline onclick={() => (modalOpen = false)}>
+            <Button color="secondary" type="button" outline onclick={() => (modalOpen = false)}>
                 Batal
             </Button>
             <Button color="primary" type="submit" disabled={form.processing}>
@@ -347,3 +582,89 @@
         </ModalFooter>
     </form>
 </Modal>
+
+<style>
+    .crud-table thead th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        font-size: 0.75rem;
+        border-bottom: 1px solid #dee2e6;
+        padding: 0.75rem 1rem;
+    }
+
+    .crud-table tbody td {
+        padding: 0.75rem 1rem;
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+
+    .crud-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .crud-search {
+        width: 260px;
+    }
+
+    .crud-filter-input {
+        width: auto;
+        min-width: 170px;
+    }
+
+    .crud-filterbar .crud-reset {
+        color: #6c757d;
+    }
+
+    .crud-checkbox {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .crud-checkbox__label {
+        margin-bottom: 0;
+        font-weight: 500;
+        color: #495057;
+        cursor: pointer;
+    }
+
+    .crud-toggle__track {
+        position: relative;
+        width: 46px;
+        height: 26px;
+        border-radius: 999px;
+        border: none;
+        background: #ced4da;
+        cursor: pointer;
+        padding: 0;
+        transition: background 0.2s ease;
+    }
+
+    .crud-toggle__track.is-on {
+        background: #198754;
+    }
+
+    .crud-toggle__track:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    .crud-toggle__knob {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        transition: transform 0.2s ease;
+    }
+
+    .crud-toggle__track.is-on .crud-toggle__knob {
+        transform: translateX(20px);
+    }
+</style>

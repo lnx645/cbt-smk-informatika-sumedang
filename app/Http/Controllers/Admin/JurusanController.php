@@ -15,9 +15,25 @@ class JurusanController extends Controller
     /**
      * Display a listing of the jurusan.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $jurusans = Jurusan::orderBy('name')
+        $search = $request->query('search');
+        $hasKelas = $request->query('has_kelas');
+
+        $query = Jurusan::query();
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('kode', 'like', "%{$search}%");
+            });
+        }
+        if ($hasKelas === '1') {
+            $query->has('kelas');
+        } elseif ($hasKelas === '0') {
+            $query->doesntHave('kelas');
+        }
+
+        $jurusans = $query->orderBy('name')
             ->paginate(10)
             ->through(fn (Jurusan $jurusan) => [
                 'id' => $jurusan->id,
@@ -28,6 +44,10 @@ class JurusanController extends Controller
 
         return Inertia::render('admin/Jurusan/Index', [
             'jurusans' => Inertia::merge($jurusans),
+            'filters' => [
+                'search' => $search ?? '',
+                'has_kelas' => $hasKelas ?? '',
+            ],
         ]);
     }
 

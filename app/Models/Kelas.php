@@ -8,16 +8,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-#[Fillable(['nama', 'deskripsi', 'guru_id', 'active', 'parent_id',"jurusan_id"])]
+#[Fillable(['nama', 'deskripsi', 'guru_id', 'active', 'parent_id', 'jurusan_id'])]
 class Kelas extends Model
 {
     /** @use HasFactory<KelasFactory> */
     use HasFactory;
 
-    public function guru(): BelongsTo
+    public function walikelas(): BelongsTo
     {
-        return $this->belongsTo(Guru::class);
+        return $this->belongsTo(Guru::class, 'guru_id');
     }
 
     public function parent(): BelongsTo
@@ -30,11 +31,13 @@ class Kelas extends Model
         return $this->hasMany(self::class, 'parent_id');
     }
 
-    public function siswas(): HasMany
+    public function siswas(): HasManyThrough
     {
-        return $this->hasMany(Siswa::class);
+        return $this->hasManyThrough(Siswa::class, SiswaKelas::class, 'kelas_id', 'siswa_nisn', 'id', 'nisn');
     }
-    public function jurusan(){
+
+    public function jurusan()
+    {
         return $this->belongsTo(Jurusan::class);
     }
 }

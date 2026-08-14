@@ -1,9 +1,21 @@
+export type Jurusan = {
+    id: number;
+    name: string;
+    kode: string;
+};
+
+export type Kelas = {
+    id: number;
+    nama: string;
+    deskripsi: string | null;
+    jurusan: Jurusan | null;
+};
+
 export type Siswa = {
     nisn: string;
     nis: string;
     nama_lengkap: string;
-    kelas: string;
-    jurusan: string;
+    kelas: Kelas | null;
     tempat_lahir: string | null;
     tanggal_lahir: string | null;
     jenis_kelamin: string | null;

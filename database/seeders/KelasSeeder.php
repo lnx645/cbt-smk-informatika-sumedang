@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Guru;
 use App\Models\Jurusan;
 use App\Models\Kelas;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class KelasSeeder extends Seeder
@@ -23,6 +22,7 @@ class KelasSeeder extends Seeder
                 Kelas::factory()->create([
                     'nama' => $tingkat.' '.$jurusan->kode,
                     'guru_id' => $gurus->random()->id,
+                    'jurusan_id' => $jurusan->id,
                     'active' => true,
                 ]);
             }
