@@ -2,7 +2,6 @@
     import { CookieBox } from 'svelte-cookie-consent';
     import {
         Container,
-        Collapse,
         Dropdown,
         DropdownToggle,
         DropdownMenu,
@@ -13,6 +12,8 @@
     import { inertia, page, router } from '@inertiajs/svelte';
     import '@/styles/modules/app-shell-layout.scss';
     import CookieConsent from '@/components/CookieConsent.svelte';
+    import AuthenticatedSessionController from '@/actions/App/Http/Controllers/AuthenticatedSessionController';
+    import ConfirmDialog from '@/components/ConfirmDialog.svelte';
 
     export type AppShellNavItem = {
         href?: string;
@@ -131,8 +132,7 @@
     }
 
     function logout() {
-        router.post(
-            '/logout',
+        router.post(AuthenticatedSessionController.destroy(),
             {},
             {
                 onFinish: () => {
@@ -216,14 +216,15 @@
                             class={`bi bi-chevron-down app-shell__nav-group-caret`}
                         ></i>
                     </button>
-                    <Collapse
-                        isOpen={openGroups[item.label]}
-                        class="app-shell__nav-group-collapse"
+                    <div
+                        class={`app-shell__nav-group-collapse ${openGroups[item.label] ? 'is-expanded' : ''}`}
                     >
-                        {#each item.children as child (child.href)}
-                            {@render navLink(child, true)}
-                        {/each}
-                    </Collapse>
+                        <div class="app-shell__nav-group-inner">
+                            {#each item.children as child (child.href)}
+                                {@render navLink(child, true)}
+                            {/each}
+                        </div>
+                    </div>
                 {:else}
                     {@render navLink(item, false)}
                 {/if}
@@ -363,3 +364,5 @@
         </main>
     </div>
 </div>
+
+<ConfirmDialog />

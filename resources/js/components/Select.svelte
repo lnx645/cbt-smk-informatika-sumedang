@@ -68,3 +68,20 @@
         {/snippet}
     </SvelteSelect>
 </div>
+
+<style>
+    :global(.svelte-select) {
+        padding: 0px 8px!important;
+    }
+    :global(.multi-item-text) {
+        display: flex;
+        align-items: center;
+    }
+    :global(.multi-item-clear) > svg {
+        width: 10px !important;
+        height: 10px !important;
+    }
+    :global(.selected-item){
+        font-size: 13px!important;
+    }
+</style>

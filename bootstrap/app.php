@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\AdminOnlyMiddleware;
+use App\Http\Middleware\AppOnlyMiddleware;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,10 +21,18 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
         ]);
         $middleware->redirectTo(function ($e) {
-            return 'auth.login';
+            return 'login';
         }, function ($e) {
-            return 'app.dashboard';
+            if($e->user()->role == "admin"){
+                return "admin";
+            }
+            return 'app';
         });
+
+        $middleware->alias([
+            "admin-only" => AdminOnlyMiddleware::class,
+            "app-only" => AppOnlyMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
