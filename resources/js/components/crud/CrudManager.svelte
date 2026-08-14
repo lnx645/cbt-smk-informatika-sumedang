@@ -194,10 +194,10 @@
 
         if (editing) {
             const route = controller.update(editing);
-            form.submit({ url: route.url, method: route.method, onSuccess });
+            form.submit({ url: route.url, method: route.method }, { onSuccess });
         } else {
             const route = controller.store();
-            form.submit({ url: route.url, method: route.method, onSuccess });
+            form.submit({ url: route.url, method: route.method }, { onSuccess });
         }
     }
 
