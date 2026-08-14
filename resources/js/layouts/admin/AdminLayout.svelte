@@ -36,7 +36,7 @@
                 {
                     href: '/manage/users',
                     label: 'Pengajar',
-                    icon: 'bi-person-chalkboard',
+                    icon: 'bi-people-fill',
                     badge: '482',
                 },
                 {
@@ -93,7 +93,7 @@
                 {
                     label: 'Pengaturan Tahun Ajaran',
                     href: TahunAjaranController.index().url,
-                    icon: 'bi-calendar-year',
+                    icon: 'bi-calendar',
                 },
             ],
         },
