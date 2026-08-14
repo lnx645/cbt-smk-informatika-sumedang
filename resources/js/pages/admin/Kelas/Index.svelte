@@ -1,6 +1,15 @@
 <script lang="ts">
     import { useForm, router } from '@inertiajs/svelte';
-    import { Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Label, Input, Button } from '@sveltestrap/sveltestrap';
+    import {
+        Modal,
+        ModalHeader,
+        ModalBody,
+        ModalFooter,
+        FormGroup,
+        Label,
+        Input,
+        Button,
+    } from '@sveltestrap/sveltestrap';
     import Select from '@/components/Select.svelte';
     import KelasController from '@/actions/App/Http/Controllers/Admin/KelasController';
 
@@ -18,8 +27,12 @@
         gurus?: Record<string, any>[];
     } = $props();
 
-    const jurusanOptions = $derived<SelectOption[]>(jurusans.map((j) => ({ value: j.id, label: j.name })));
-    const guruOptions = $derived<SelectOption[]>(gurus.map((g) => ({ value: g.id, label: g.nama_lengkap })));
+    const jurusanOptions = $derived<SelectOption[]>(
+        jurusans.map((j) => ({ value: j.id, label: j.name })),
+    );
+    const guruOptions = $derived<SelectOption[]>(
+        gurus.map((g) => ({ value: g.id, label: g.nama_lengkap })),
+    );
 
     let editingId = $state<number | null>(null);
     let modalOpen = $state(false);
@@ -60,7 +73,10 @@
                 }
                 options.push({
                     value: node.id,
-                    label: depth > 0 ? `${'  '.repeat(depth)}${node.nama}` : node.nama,
+                    label:
+                        depth > 0
+                            ? `${'  '.repeat(depth)}${node.nama}`
+                            : node.nama,
                 });
                 for (const child of childrenOf.get(node.id) ?? []) {
                     walk(child, depth + 1);
@@ -93,7 +109,11 @@
         }
         if (typeof value === 'object') {
             const obj = value as Record<string, unknown>;
-            if (obj.value !== undefined && obj.value !== null && obj.value !== '') {
+            if (
+                obj.value !== undefined &&
+                obj.value !== null &&
+                obj.value !== ''
+            ) {
                 return Number(obj.value);
             }
             return null;
@@ -179,10 +199,16 @@
     function submit() {
         if (editingId) {
             const route = KelasController.update({ kelas: editingId });
-            form.submit({ url: route.url, method: route.method }, { onSuccess: () => (modalOpen = false) });
+            form.submit(
+                { url: route.url, method: route.method },
+                { onSuccess: () => (modalOpen = false) },
+            );
         } else {
             const route = KelasController.store();
-            form.submit({ url: route.url, method: route.method }, { onSuccess: () => (modalOpen = false) });
+            form.submit(
+                { url: route.url, method: route.method },
+                { onSuccess: () => (modalOpen = false) },
+            );
         }
     }
 
@@ -212,28 +238,53 @@
 
 {#snippet node(item, depth)}
     <li>
-        <div class="kt-row" style={`padding-left: ${depth * 0.2 + 0.5}rem`}>
-            <i class={`kt-icon bi ${item.children && item.children.length ? 'bi-folder2' : 'bi-mortarboard-fill'}`}></i>
-            <span class="kt-name">{item.nama}</span>
+        <div
+            class="d-flex flex-wrap align-items-center gap-2 px-2 py-2 rounded"
+        >
+            <i
+                class={`bi ${item.children && item.children.length ? 'bi-folder2' : 'bi-mortarboard-fill'} text-secondary`}
+            ></i>
+            <span class="fs-6 fw-bold text-body text-nowrap">{item.nama}</span>
             {#if item.active}
-                <span class="badge text-bg-success ms-1">Aktif</span>
+                <span class="badge text-bg-success">Aktif</span>
             {/if}
-            <span class="kt-meta">
-                {#if item.jurusan}<i class="bi bi-bookmark-fill"></i> {item.jurusan.name}{/if}
-                {#if item.ruangan}<i class="bi bi-door-closed-fill"></i> Ruang {item.ruangan}{/if}
-                {#if item.walikelas}<i class="bi bi-person-fill"></i> {item.walikelas.nama_lengkap}{/if}
+            <span
+                class="d-flex flex-wrap text-xs align-items-center gap-2 text-secondary small"
+            >
+                {#if item.jurusan}<span
+                        ><i class="bi bi-bookmark-fill"></i>
+                        {item.jurusan.name}</span
+                    >{/if}
+                {#if item.ruangan}<span
+                        ><i class="bi bi-door-closed-fill"></i>
+                        R{item.ruangan}</span
+                    >{/if}
+                {#if item.walikelas}<span
+                        ><i class="bi bi-person-fill"></i>
+                        {item.walikelas.nama_lengkap}</span
+                    >{/if}
             </span>
-            <span class="kt-actions">
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick={() => openEdit(item)} title="Edit">
+            <span class="ms-auto d-flex gap-2">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    onclick={() => openEdit(item)}
+                    title="Edit"
+                >
                     <i class="bi bi-pencil"></i>
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-danger" onclick={() => confirmDelete(item)} title="Hapus">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    onclick={() => confirmDelete(item)}
+                    title="Hapus"
+                >
                     <i class="bi bi-trash"></i>
                 </button>
             </span>
         </div>
         {#if item.children && item.children.length}
-            <ul class="kt-tree">
+            <ul class="list-unstyled ps-3">
                 {#each item.children as child (child.id)}
                     {@render node(child, depth + 1)}
                 {/each}
@@ -242,7 +293,7 @@
     </li>
 {/snippet}
 
-<div class="container py-4">
+<div class="container-fluid px-0">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h1 class="h4 fw-semibold mb-0">Kelas</h1>
         <Button color="primary" size="sm" onclick={openCreate}>
@@ -251,13 +302,13 @@
     </div>
 
     {#if kelas_parent.length}
-        <ul class="kt-tree border rounded p-2">
+        <ul class="list-unstyled bg-white border rounded p-2 mb-0">
             {#each kelas_parent as parent (parent.id)}
                 {@render node(parent, 0)}
             {/each}
         </ul>
     {:else}
-        <div class="text-center text-muted py-5 border rounded bg-light">
+        <div class="text-center text-secondary py-5 border rounded bg-light">
             Belum ada data kelas.
         </div>
     {/if}
@@ -274,7 +325,10 @@
                 id="parent_id"
                 class="form-select"
                 value={form.parent_id ?? ''}
-                onchange={(e) => onParentChange((e.currentTarget as HTMLSelectElement).value)}
+                onchange={(e) =>
+                    onParentChange(
+                        (e.currentTarget as HTMLSelectElement).value,
+                    )}
             >
                 <option value="">Tidak ada (kelas induk)</option>
                 {#each parentGroups as group (group.label)}
@@ -289,7 +343,12 @@
 
         <FormGroup>
             <Label for="nama">Nama Kelas</Label>
-            <Input id="nama" bind:value={form.nama} oninput={onNamaInput} invalid={!!form.errors.nama} />
+            <Input
+                id="nama"
+                bind:value={form.nama}
+                oninput={onNamaInput}
+                invalid={!!form.errors.nama}
+            />
             {#if form.errors.nama}
                 <small class="text-danger">{form.errors.nama}</small>
             {/if}
@@ -308,7 +367,12 @@
 
         <FormGroup>
             <Label for="ruangan">Ruangan</Label>
-            <Input id="ruangan" bind:value={form.ruangan} oninput={onRuanganChange} placeholder="Mis. Ruang 1" />
+            <Input
+                id="ruangan"
+                bind:value={form.ruangan}
+                oninput={onRuanganChange}
+                placeholder="Mis. Ruang 1"
+            />
         </FormGroup>
 
         <FormGroup>
@@ -328,12 +392,27 @@
         </FormGroup>
 
         <FormGroup check>
-            <Input type="checkbox" bind:checked={form.active} />
-            <Label for="active" class="mb-0">Aktif</Label>
+            <div class="crud-checkbox">
+                <button
+                    type="button"
+                    class="crud-toggle__track"
+                    class:is-on={form.active}
+                    role="switch"
+                    aria-checked={form.active ? 'true' : 'false'}
+                    onclick={() => (form.active = !form.active)}
+                >
+                    <span class="crud-toggle__knob"></span>
+                </button>
+                <Label for="active" class="crud-checkbox__label">Aktif</Label>
+            </div>
         </FormGroup>
     </ModalBody>
     <ModalFooter>
-        <Button color="secondary" outline onclick={() => (modalOpen = !modalOpen)}>Batal</Button>
+        <Button
+            color="secondary"
+            outline
+            onclick={() => (modalOpen = !modalOpen)}>Batal</Button
+        >
         <Button color="primary" onclick={submit} disabled={form.processing}>
             {editingId ? 'Simpan' : 'Tambah'}
         </Button>
@@ -341,49 +420,46 @@
 </Modal>
 
 <style>
-    .kt-tree {
-        list-style: none;
-        margin: 0;
-    }
-
-    .kt-row {
+    .crud-checkbox {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.4rem 0.6rem;
-        border-radius: 0.4rem;
+        gap: 0.6rem;
     }
 
-    .kt-row:hover {
-        background: #f1f5f9;
+    .crud-checkbox__label {
+        margin: 0;
+        cursor: pointer;
     }
 
-    .kt-name {
-        font-weight: 600;
+    .crud-toggle__track {
+        position: relative;
+        width: 46px;
+        height: 26px;
+        border-radius: 999px;
+        border: none;
+        background: var(--bs-secondary);
+        cursor: pointer;
+        padding: 0;
+        transition: background 0.2s ease;
     }
 
-    .kt-icon {
-        color: #94a3b8;
-        font-size: 1rem;
+    .crud-toggle__track.is-on {
+        background: var(--bs-success);
     }
 
-    .kt-meta {
-        color: #64748b;
-        font-size: 0.8rem;
+    .crud-toggle__knob {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        transition: transform 0.2s ease;
     }
 
-    .kt-meta :global(.bi) {
-        margin-right: 0.2rem;
-    }
-
-    .kt-actions {
-        margin-left: auto;
-        display: flex;
-        gap: 0.35rem;
-        opacity: 0.5;
-    }
-
-    .kt-row:hover .kt-actions {
-        opacity: 1;
+    .crud-toggle__track.is-on .crud-toggle__knob {
+        transform: translateX(20px);
     }
 </style>
