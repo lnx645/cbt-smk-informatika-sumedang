@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Database\Factories\SiswaKelasFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Table('siswa_kelas')]
-#[Fillable(['siswa_nisn', 'kelas_id', 'active'])]
+#[Fillable(['siswa_nisn', 'kelas_id', 'tahun_ajaran_id', 'active'])]
 class SiswaKelas extends Model
 {
     /** @use HasFactory<SiswaKelasFactory> */
@@ -26,5 +28,10 @@ class SiswaKelas extends Model
     public function kelas(): BelongsTo
     {
         return $this->belongsTo(Kelas::class);
+    }
+
+    public function tahunAjaran(): BelongsTo
+    {
+        return $this->belongsTo(TahunAjaran::class);
     }
 }

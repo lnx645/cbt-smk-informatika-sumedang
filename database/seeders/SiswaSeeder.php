@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\SiswaKelas;
+use App\Models\TahunAjaran;
 use Illuminate\Database\Seeder;
 
 class SiswaSeeder extends Seeder
@@ -15,6 +16,8 @@ class SiswaSeeder extends Seeder
     public function run(): void
     {
         $kelases = Kelas::all();
+        $tahunAjaranId = TahunAjaran::where('active', true)->first()?->id
+            ?? TahunAjaran::orderBy('id')->value('id');
 
         foreach ($kelases as $kelas) {
             $jumlah = rand(4, 8);
@@ -27,6 +30,7 @@ class SiswaSeeder extends Seeder
                 SiswaKelas::create([
                     'siswa_nisn' => $siswa->nisn,
                     'kelas_id' => $kelas->id,
+                    'tahun_ajaran_id' => $tahunAjaranId,
                     'active' => true,
                 ]);
 

@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\SiswaKelas;
+use App\Models\TahunAjaran;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -22,6 +23,7 @@ class SiswaKelasFactory extends Factory
         return [
             'siswa_nisn' => Siswa::factory(),
             'kelas_id' => Kelas::factory(),
+            'tahun_ajaran_id' => TahunAjaran::where('active', true)->first()?->id ?? TahunAjaran::factory(),
             'active' => true,
         ];
     }
