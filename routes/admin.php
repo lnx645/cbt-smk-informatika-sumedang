@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('', DashboardController::class)->name('index');
 
 Route::get('kelas', [KelasController::class, 'index'])->name('kelas.index');
+Route::post('kelas', [KelasController::class, 'store'])->name('kelas.store');
+Route::put('kelas/{kelas}', [KelasController::class, 'update'])->name('kelas.update');
+Route::delete('kelas/{kelas}', [KelasController::class, 'destroy'])->name('kelas.destroy');
 
 Route::get('tahun-ajaran', [TahunAjaranController::class, 'index'])->name('tahun-ajaran.index');
 Route::post('tahun-ajaran', [TahunAjaranController::class, 'store'])->name('tahun-ajaran.store');
@@ -25,6 +28,3 @@ Route::get('matpel', [MatpelController::class, 'index'])->name('matpel.index');
 Route::post('matpel', [MatpelController::class, 'store'])->name('matpel.store');
 Route::put('matpel/{matpel}', [MatpelController::class, 'update'])->name('matpel.update');
 Route::delete('matpel/{matpel}', [MatpelController::class, 'destroy'])->name('matpel.destroy');
-
-
-Route::get("kelas",[KelasController::class,"index"])->name("kelas.index");
