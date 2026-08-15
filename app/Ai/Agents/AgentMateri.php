@@ -13,7 +13,7 @@ use Stringable;
 class AgentMateri implements Agent, Conversational, HasTools
 {
     use Promptable;
-    
+
     /**
      * Get the instructions that the agent should follow.
      */

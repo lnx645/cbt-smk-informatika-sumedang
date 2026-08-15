@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('kelas') && !Schema::hasColumn('kelas', 'ruangan')) {
+        if (Schema::hasTable('kelas') && ! Schema::hasColumn('kelas', 'ruangan')) {
             DB::statement('ALTER TABLE kelas ADD COLUMN ruangan VARCHAR(255) NULL');
         }
     }

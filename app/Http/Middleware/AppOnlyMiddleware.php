@@ -15,9 +15,10 @@ class AppOnlyMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()?->role == "admin") {
-            return redirect()->route("admin.index");
+        if ($request->user()?->role == 'admin') {
+            return redirect()->route('admin.index');
         }
+
         return $next($request);
     }
 }

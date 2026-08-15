@@ -23,15 +23,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectTo(function ($e) {
             return 'login';
         }, function ($e) {
-            if($e->user()->role == "admin"){
-                return "admin";
+            if ($e->user()->role == 'admin') {
+                return 'admin';
             }
+
             return 'app';
         });
 
         $middleware->alias([
-            "admin-only" => AdminOnlyMiddleware::class,
-            "app-only" => AppOnlyMiddleware::class,
+            'admin-only' => AdminOnlyMiddleware::class,
+            'app-only' => AppOnlyMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

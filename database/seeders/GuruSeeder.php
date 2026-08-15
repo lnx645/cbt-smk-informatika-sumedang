@@ -3,8 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Guru;
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class GuruSeeder extends Seeder
@@ -19,7 +17,7 @@ class GuruSeeder extends Seeder
         foreach ($gurus as $index => $guru) {
             $guru->user()->create([
                 'name' => $guru->nama_lengkap,
-                'email' => uniqid("guru_") .'@smkifsu.sch.id',
+                'email' => uniqid('guru_').'@smkifsu.sch.id',
                 'password' => 'password',
                 'role' => 'guru',
             ]);

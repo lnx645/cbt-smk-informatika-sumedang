@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('kelas', function (Blueprint $table) {
-            $table->foreignIdFor(Jurusan::class)->nullable()->constrained("jurusans")->cascadeOnUpdate()->nullOnDelete();
+            $table->foreignIdFor(Jurusan::class)->nullable()->constrained('jurusans')->cascadeOnUpdate()->nullOnDelete();
         });
     }
 

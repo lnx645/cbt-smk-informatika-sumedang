@@ -6,7 +6,8 @@
         CrudField,
     } from '@/components/crud/CrudManager.svelte';
     import { Badge, Button } from '@sveltestrap/sveltestrap';
-
+    import { router } from '@inertiajs/svelte';
+    import AturJadwalPengajarController from '@/actions/App/Http/Controllers/AturJadwalPengajarController';
     let fields: CrudField[] = [
         {
             name: 'nama_lengkap',
@@ -115,7 +116,13 @@
             label: 'Atur Jadwal',
             icon: 'bi-users',
             size: 'sm',
-            onClick(item) {},
+             onClick(item) {
+                 router.visit(
+                     AturJadwalPengajarController.index({
+                         guru_id: item?.id as any,
+                     }).url,
+                 );
+             },
         },
     ]}
     subtitle="Kelola Pengajar Disini / Guru"

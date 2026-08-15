@@ -15,14 +15,17 @@ class AdminOnlyMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user("web");
+        $user = $request->user('web');
         if ($user) {
-            if ($user->role != "admin") {
+            if ($user->role != 'admin') {
                 abort(403);
+
                 return $next($request);
             }
+
             return $next($request);
         }
-        return redirect()->to("app.login");
+
+        return redirect()->to('app.login');
     }
 }

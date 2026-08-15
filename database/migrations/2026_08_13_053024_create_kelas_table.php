@@ -14,10 +14,10 @@ return new class extends Migration
     {
         Schema::create('kelas', function (Blueprint $table) {
             $table->id();
-            $table->string("nama");
-            $table->text("deskripsi");
-            $table->foreignIdFor(Guru::class)->constrained("gurus")->nullOnDelete()->cascadeOnUpdate();
-            $table->boolean("active")->default(false);
+            $table->string('nama');
+            $table->text('deskripsi');
+            $table->foreignIdFor(Guru::class)->constrained('gurus')->nullOnDelete()->cascadeOnUpdate();
+            $table->boolean('active')->default(false);
             $table->timestamps();
         });
     }

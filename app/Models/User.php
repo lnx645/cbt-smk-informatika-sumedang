@@ -26,7 +26,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email',"is_admin", 'password', 'google_id', 'role', 'nisn', 'guru_id'])]
+#[Fillable(['name', 'email', 'is_admin', 'password', 'google_id', 'role', 'nisn', 'guru_id'])]
 #[Hidden(['password', 'remember_token'])]
 #[Appends('gate_access', 'role')]
 class User extends Authenticatable
@@ -66,6 +66,7 @@ class User extends Authenticatable
             get: fn ($value, $attributes) => (($this->siswa !== null) || ($this->guru !== null)) || ($this->role === 'admin')
         );
     }
+
     protected function role(): Attribute
     {
         return Attribute::make(

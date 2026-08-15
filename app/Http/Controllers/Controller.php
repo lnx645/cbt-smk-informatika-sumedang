@@ -9,7 +9,8 @@ abstract class Controller
 {
     public ?User $user;
 
-    public function __construct(){
-         $this->user = Auth::guard("web")->user();
+    public function __construct()
+    {
+        $this->user = Auth::guard('web')->user();
     }
 }

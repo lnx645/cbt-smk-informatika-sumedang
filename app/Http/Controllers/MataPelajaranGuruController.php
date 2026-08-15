@@ -11,6 +11,6 @@ class MataPelajaranGuruController extends Controller
      */
     public function index(Request $request)
     {
-        return inertia("guru/Matpel");
+        return inertia('guru/Matpel');
     }
 }

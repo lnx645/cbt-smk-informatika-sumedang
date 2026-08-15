@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -11,15 +12,15 @@ class LinkExternalController extends Controller
         // Ambil parameter 'l' atau 'link' dari query string
         $url = $request->path();
 
-        if (!$url) {
+        if (! $url) {
             return redirect()->back();
         }
-        if (!preg_match("~^(?:f|ht)tps?://~i", $url)) {
-            $url = "https://" . $url;
+        if (! preg_match('~^(?:f|ht)tps?://~i', $url)) {
+            $url = 'https://'.$url;
         }
 
         try {
-           
+
             $response = Http::timeout(3)->head($url);
 
             if ($response->failed()) {
@@ -32,6 +33,7 @@ class LinkExternalController extends Controller
             // Terjadi timeout, domain mati, atau error koneksi
             // Lanjut ke blok error di bawah
         }
+
         return redirect()->back()->with('error', 'Tautan eksternal tidak aktif atau tidak dapat diakses.');
     }
 }

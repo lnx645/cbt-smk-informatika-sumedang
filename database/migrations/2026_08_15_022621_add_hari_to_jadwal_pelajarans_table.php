@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Kelas;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('kelas', function (Blueprint $table) {
-            $table->foreignIdFor(Kelas::class, 'parent_id')->nullable()->constrained('kelas')->nullOnDelete()->cascadeOnUpdate();
+        Schema::table('jadwal_pelajarans', function (Blueprint $table) {
+            $table->string('hari')->after('kelas_id')->default('Senin');
         });
     }
 
@@ -22,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('kelas', function (Blueprint $table) {
-            //
+        Schema::table('jadwal_pelajarans', function (Blueprint $table) {
+            $table->dropColumn('hari');
         });
     }
 };
