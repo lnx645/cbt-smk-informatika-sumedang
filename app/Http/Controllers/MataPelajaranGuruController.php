@@ -13,4 +13,8 @@ class MataPelajaranGuruController extends Controller
     {
         return inertia('guru/Matpel');
     }
+
+    public function detail(Request $erquest,string $kelas,string $matpel){
+        return "OKE";
+    }
 }

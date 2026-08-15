@@ -233,8 +233,6 @@
         </nav>
 
         <div class="app-shell__sidebar-footer">
-            <TahunAjaranInfo class="app-shell__ta-info mb-2" />
-
             <button
                 type="button"
                 class={`app-shell__nav-item app-shell__nav-item--danger`}

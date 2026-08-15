@@ -7,7 +7,7 @@ use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\MatpelController;
 use App\Http\Controllers\Admin\PengajarController;
 use App\Http\Controllers\Admin\TahunAjaranController;
-use App\Http\Controllers\AturJadwalPengajarController;
+use App\Http\Controllers\Admin\AturJadwalPengajarController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('', DashboardController::class)->name('index');

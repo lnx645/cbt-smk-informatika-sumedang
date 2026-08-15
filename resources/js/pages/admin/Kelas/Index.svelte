@@ -246,7 +246,7 @@
             ></i>
             <span class="fs-6 fw-bold text-body text-nowrap">{item.nama}</span>
             {#if item.active}
-                <span class="badge text-bg-success">Aktif</span>
+                <span class="badge text-bg-success text-xs fw-light">Aktif</span>
             {/if}
             <span
                 class="d-flex flex-wrap text-xs align-items-center gap-2 text-secondary small"

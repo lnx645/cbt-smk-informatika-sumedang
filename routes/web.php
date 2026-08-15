@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LinkExternalController;
 use App\Http\Controllers\MataPelajaranGuruController;
 use App\Http\Controllers\SocialiteController;
@@ -15,9 +16,10 @@ Route::middleware('guest')->group(function (): void {
     Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])->name('auth.google.callback');
 });
 
-Route::middleware('auth')->prefix('app')->middleware('app-only')->group(function (): void {
-    Route::get('/', DashboardController::class)->name('app.dashboard');
-    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('auth.logout');
+Route::middleware(['auth',"app-only"])->prefix('app')->name("app.")->group(function (): void {
+    Route::get('/', DashboardController::class)->name('dashboard');
+    Route::get("matpel/{matpel}/kelas-{id}/manage", KelasController::class)->name("kelas.room");
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('auth.logout');
     Route::get('matpel-saya', [MataPelajaranGuruController::class, 'index'])->name('app.matpel');
 });
 

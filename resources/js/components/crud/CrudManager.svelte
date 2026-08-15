@@ -320,7 +320,7 @@
         {#each toolbarActions as act (act.key)}
             <Button
                 color={act.color ?? 'light'}
-                size={act.size}
+                size={act.size ?? "sm"}
                 class={act.class}
                 title={act.label}
                 onclick={() => act.onClick?.()}
@@ -333,8 +333,8 @@
                 {/if}
             </Button>
         {/each}
-        <Button color="primary" onclick={openCreate}>
-            <i class="bi bi-plus-lg me-1"></i>
+        <Button size="sm" color="primary" onclick={openCreate}>
+            <i class="bi bi-plus-lg"></i>
             {createLabel}
         </Button>
     </div>
@@ -509,7 +509,7 @@
             {#each fields as field, i (field.name)}
                 <FormGroup class={i === fields.length - 1 ? 'mb-0' : ''}>
                     {#if field.type !== 'checkbox'}
-                        <Label for={field.name} class="small fw-semibold">
+                        <Label for={field.name} class="small fs-6">
                             {field.label}
                         </Label>
                     {/if}
@@ -537,6 +537,7 @@
                         />
                     {:else if field.type === 'textarea'}
                         <Input
+                            bsSize="sm"
                             id={field.name}
                             type="textarea"
                             bind:value={
@@ -550,6 +551,7 @@
                         />
                     {:else if field.type === 'checkbox'}
                         <div class="crud-checkbox">
+                            <!-- svelte-ignore a11y_consider_explicit_label -->
                             <button
                                 type="button"
                                 class="crud-toggle__track"
@@ -582,6 +584,7 @@
                     {:else if field.type === 'file' || field.type === 'image'}
                         <Input
                             id={field.name}
+                            bsSize="sm"
                             type="file"
                             accept={field.accept ??
                                 (field.type === 'image'
@@ -613,6 +616,7 @@
                     {:else}
                         <Input
                             id={field.name}
+                            bsSize="sm"
                             type={(field.type ?? 'text') as never}
                             bind:value={
                                 (form as Record<string, unknown>)[field.name]
@@ -639,12 +643,18 @@
             <Button
                 color="secondary"
                 type="button"
+                size="sm"
                 outline
                 onclick={() => (modalOpen = false)}
             >
                 Batal
             </Button>
-            <Button color="primary" type="submit" disabled={form.processing}>
+            <Button
+                color="primary"
+                size="sm"
+                type="submit"
+                disabled={form.processing}
+            >
                 {editing ? 'Simpan Perubahan' : 'Simpan'}
             </Button>
         </ModalFooter>
@@ -727,8 +737,8 @@
 
     .crud-toggle__track {
         position: relative;
-        width: 46px;
-        height: 26px;
+        width: 40px;
+        height: 20px;
         border-radius: 999px;
         border: none;
         background: #ced4da;
@@ -748,10 +758,10 @@
 
     .crud-toggle__knob {
         position: absolute;
-        top: 3px;
+        top: 2.5px;
         left: 3px;
-        width: 20px;
-        height: 20px;
+        width: 15px;
+        height: 15px;
         border-radius: 50%;
         background: #fff;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);

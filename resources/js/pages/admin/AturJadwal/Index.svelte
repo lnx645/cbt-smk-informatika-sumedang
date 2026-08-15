@@ -11,7 +11,7 @@
         ModalFooter,
     } from '@sveltestrap/sveltestrap';
     import { useForm, router } from '@inertiajs/svelte';
-    import AturJadwalPengajarController from '@/actions/App/Http/Controllers/AturJadwalPengajarController';
+    import AturJadwalPengajarController from '@/actions/App/Http/Controllers/Admin/AturJadwalPengajarController';
 
     type EventJadwal = {
         id: number;

@@ -15,7 +15,10 @@
     import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
     import JamPelajaranController from '@/actions/App/Http/Controllers/Admin/JamPelajaranController';
 
-    let { children }: { children: Snippet } = $props();
+    let {
+        children,
+        tahunAjaranAktif,
+    }: { children: Snippet; tahunAjaranAktif: { name: string } } = $props();
 
     const authUser = $derived((usePage().props.auth as any)?.user ?? null);
 
@@ -117,7 +120,7 @@
     brandSubtitle="Panel Manajemen"
     {brandIconNode}
     title="Panel Administrasi"
-    description="Kelola sistem ujian dan pembelajaran"
+    description={`TA${tahunAjaranAktif?.name}`}
     {navItems}
     {user}
 >

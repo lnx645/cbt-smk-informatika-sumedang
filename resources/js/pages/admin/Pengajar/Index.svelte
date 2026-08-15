@@ -7,7 +7,7 @@
     } from '@/components/crud/CrudManager.svelte';
     import { Badge, Button } from '@sveltestrap/sveltestrap';
     import { router } from '@inertiajs/svelte';
-    import AturJadwalPengajarController from '@/actions/App/Http/Controllers/AturJadwalPengajarController';
+    import AturJadwalPengajarController from '@/actions/App/Http/Controllers/Admin/AturJadwalPengajarController';
     let fields: CrudField[] = [
         {
             name: 'nama_lengkap',
