@@ -21,8 +21,6 @@ class DatabaseSeeder extends Seeder
             KelasSeeder::class,
             SiswaSeeder::class,
             MatpelSeeder::class,
-            JamPelajaranSeeder::class,
-            JadwalPelajaranSeeder::class,
             TahunAjaranSeeder::class,
         ]);
 

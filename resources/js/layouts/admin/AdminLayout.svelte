@@ -13,7 +13,6 @@
     import TahunAjaranController from '@/actions/App/Http/Controllers/Admin/TahunAjaranController';
     import KelasController from '@/actions/App/Http/Controllers/Admin/KelasController';
     import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
-    import JamPelajaranController from '@/actions/App/Http/Controllers/Admin/JamPelajaranController';
 
     let {
         children,
@@ -100,11 +99,6 @@
                     label: 'Pengaturan Tahun Ajaran',
                     href: TahunAjaranController.index().url,
                     icon: 'bi-calendar',
-                },
-                {
-                    label: 'Pengaturan Jam Pelajaran',
-                    href: JamPelajaranController.index().url,
-                    icon: 'bi-clock',
                 },
             ],
         },

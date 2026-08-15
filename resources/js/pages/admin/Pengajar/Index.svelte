@@ -1,13 +1,11 @@
 <script lang="ts">
-    import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
-    import CrudManager from '@/components/crud/CrudManager.svelte';
-    import type {
-        CrudColumn,
-        CrudField,
-    } from '@/components/crud/CrudManager.svelte';
-    import { Badge, Button } from '@sveltestrap/sveltestrap';
-    import { router } from '@inertiajs/svelte';
-    import AturJadwalPengajarController from '@/actions/App/Http/Controllers/Admin/AturJadwalPengajarController';
+import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
+import CrudManager from '@/components/crud/CrudManager.svelte';
+import type {
+    CrudColumn,
+    CrudField,
+} from '@/components/crud/CrudManager.svelte';
+import { Badge, Button } from '@sveltestrap/sveltestrap';
     let fields: CrudField[] = [
         {
             name: 'nama_lengkap',
@@ -110,21 +108,6 @@
     title="Pengajar"
     {columns}
     {items}
-    actions={[
-        {
-            key: 'atur_jadwal',
-            label: 'Atur Jadwal',
-            icon: 'bi-users',
-            size: 'sm',
-             onClick(item) {
-                 router.visit(
-                     AturJadwalPengajarController.index({
-                         guru_id: item?.id as any,
-                     }).url,
-                 );
-             },
-        },
-    ]}
     subtitle="Kelola Pengajar Disini / Guru"
     controller={PengajarController}
     createLabel="Tambah"

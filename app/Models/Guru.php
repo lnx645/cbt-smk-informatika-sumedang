@@ -34,8 +34,4 @@ class Guru extends Model
     {
         return $this->hasMany(Kelas::class, 'guru_id');
     }
-    public function jadwalPelajarans(): HasMany
-    {
-        return $this->hasMany(JadwalPelajaran::class);
-    }
 }
