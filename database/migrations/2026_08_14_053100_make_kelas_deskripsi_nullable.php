@@ -1,29 +1,26 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         if (Schema::hasColumn('kelas', 'deskripsi')) {
-            DB::statement('ALTER TABLE kelas ALTER COLUMN deskripsi DROP NOT NULL');
+            Schema::table('kelas', function (Blueprint $table) {
+                $table->text('deskripsi')->nullable()->change();
+            });
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         if (Schema::hasColumn('kelas', 'deskripsi')) {
-            DB::statement("UPDATE kelas SET deskripsi = '' WHERE deskripsi IS NULL");
-            DB::statement('ALTER TABLE kelas ALTER COLUMN deskripsi SET NOT NULL');
+            Schema::table('kelas', function (Blueprint $table) {
+                $table->text('deskripsi')->nullable(false)->change();
+            });
         }
     }
 };

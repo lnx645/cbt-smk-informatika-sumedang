@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\JamPelajaranController;
 use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\MatpelController;
@@ -32,6 +33,8 @@ Route::put('matpel/{matpel}', [MatpelController::class, 'update'])->name('matpel
 Route::delete('matpel/{matpel}', [MatpelController::class, 'destroy'])->name('matpel.destroy');
 
 Route::resource('pengajar', PengajarController::class)->except(['create', 'edit', 'show']);
+
+Route::resource('jam-pelajaran', JamPelajaranController::class)->except(['show', 'create', 'edit']);
 
 Route::get('pengajar/atur-jadwal/{guru_id}', [AturJadwalPengajarController::class, 'index'])
     ->name('pengajar.atur-jadwal');

@@ -1,27 +1,26 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        DB::statement('ALTER TABLE kelas ALTER COLUMN guru_id DROP NOT NULL;');
-        DB::statement('ALTER TABLE kelas ALTER COLUMN jurusan_id DROP NOT NULL;');
-        DB::statement('ALTER TABLE kelas ALTER COLUMN parent_id DROP NOT NULL;');
+        Schema::table('kelas', function (Blueprint $table) {
+            $table->unsignedBigInteger('guru_id')->nullable()->change();
+            $table->unsignedBigInteger('jurusan_id')->nullable()->change();
+            $table->unsignedBigInteger('parent_id')->nullable()->change();
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        DB::statement('ALTER TABLE kelas ALTER COLUMN parent_id SET NOT NULL;');
-        DB::statement('ALTER TABLE kelas ALTER COLUMN jurusan_id SET NOT NULL;');
-        DB::statement('ALTER TABLE kelas ALTER COLUMN guru_id SET NOT NULL;');
+        Schema::table('kelas', function (Blueprint $table) {
+            $table->unsignedBigInteger('guru_id')->nullable(false)->change();
+            $table->unsignedBigInteger('jurusan_id')->nullable(false)->change();
+            $table->unsignedBigInteger('parent_id')->nullable(false)->change();
+        });
     }
 };

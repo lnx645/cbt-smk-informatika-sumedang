@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Guru;
 use App\Models\JadwalPelajaran;
+use App\Models\JamPelajaran;
 use App\Models\Kelas;
 use App\Models\Matpel;
 use App\Support\Toast;
-use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -40,7 +40,7 @@ class AturJadwalPengajarController extends Controller
             ELSE 7
         END";
 
-        $jadwalList = JadwalPelajaran::with(['matpel', 'kelas'])
+        $jadwalList = JadwalPelajaran::with(['matpel', 'kelas', 'jamPelajaran'])
             ->where('guru_id', $guru->id)
             ->orderByRaw($hariOrder)
             ->orderBy('jam_mulai')
@@ -53,8 +53,8 @@ class AturJadwalPengajarController extends Controller
                     'matpel_id' => $j->matpel_id,
                     'kelas' => $j->kelas->nama,
                     'kelas_id' => $j->kelas_id,
-                    'jam_mulai' => Carbon::parse($j->jam_mulai)->format('H:i'),
-                    'jam_selesai' => Carbon::parse($j->jam_selesai)->format('H:i'),
+                    'jam_mulai' => $j->jamPelajaran->mulai ?? '-',
+                    'jam_selesai' => $j->jamPelajaran->selesai ?? '-',
                     'ruangan' => $j->kelas->ruangan ?? '',
                     'color' => $this->colorForMatpel($j->matpel->name),
                 ];
@@ -63,13 +63,28 @@ class AturJadwalPengajarController extends Controller
 
         $matpelOptions = Matpel::pluck('name', 'id')->all();
         $kelasOptions = $this->buildLeafKelasOptions();
+        $jpSlots = $this->getJpSlots();
 
         return Inertia::render('admin/AturJadwal/Index', [
             'guru' => $guruData,
             'jadwal' => $jadwalList,
             'matpelOptions' => $matpelOptions,
             'kelasOptions' => $kelasOptions,
+            'jpSlots' => $jpSlots,
         ]);
+    }
+
+    private function getJpSlots(): array
+    {
+        return JamPelajaran::where('is_break', false)
+            ->orderBy('urutan')
+            ->get()
+            ->mapWithKeys(fn (JamPelajaran $jp) => [$jp->id => [
+                'mulai' => $jp->mulai,
+                'selesai' => $jp->selesai,
+                'label' => $jp->label,
+            ]])
+            ->all();
     }
 
     private function buildLeafKelasOptions(): array
@@ -112,40 +127,16 @@ class AturJadwalPengajarController extends Controller
             return Redirect::back();
         }
 
-        if (($clash = $this->timeClashKelas($data['kelas_id'], $data['hari'], $data['jam_mulai'], $data['jam_selesai'], $guru_id))) {
-            Toast::error(sprintf(
-                'Jadwal bentrok: kelas %s sudah diajar oleh guru %s untuk %s pada %s, %s - %s.',
-                $clash->kelas->nama ?? $clash->kelas_id,
-                $clash->guru->nama_lengkap ?? $clash->guru_id,
-                $clash->matpel->name ?? $clash->matpel_id,
-                $clash->hari,
-                $clash->jam_mulai,
-                $clash->jam_selesai,
-            ));
-
-            return Redirect::back();
-        }
-
-        if (($clash = $this->timeClashGuru($guru_id, $data['hari'], $data['jam_mulai'], $data['jam_selesai']))) {
-            Toast::error(sprintf(
-                'Jadwal bentrok: guru ini sudah mengajar kelas %s untuk %s pada %s, %s - %s.',
-                $clash->kelas->nama ?? $clash->kelas_id,
-                $clash->matpel->name ?? $clash->matpel_id,
-                $clash->hari,
-                $clash->jam_mulai,
-                $clash->jam_selesai,
-            ));
-
-            return Redirect::back();
-        }
+        $jpSlot = JamPelajaran::findOrFail($data['jp']);
 
         JadwalPelajaran::create([
             'guru_id' => $guru_id,
             'matpel_id' => $data['matpel_id'],
             'kelas_id' => $data['kelas_id'],
+            'jam_pelajaran_id' => $jpSlot->id,
             'hari' => $data['hari'],
-            'jam_mulai' => $data['jam_mulai'],
-            'jam_selesai' => $data['jam_selesai'],
+            'jam_mulai' => $jpSlot->jam_mulai,
+            'jam_selesai' => $jpSlot->jam_selesai,
         ]);
 
         Toast::success('Jadwal berhasil ditambahkan.');
@@ -174,39 +165,15 @@ class AturJadwalPengajarController extends Controller
             return Redirect::back();
         }
 
-        if (($clash = $this->timeClashKelas($data['kelas_id'], $data['hari'], $data['jam_mulai'], $data['jam_selesai'], $guru_id, $jadwal->id))) {
-            Toast::error(sprintf(
-                'Jadwal bentrok: kelas %s sudah diajar oleh guru %s untuk %s pada %s, %s - %s.',
-                $clash->kelas->nama ?? $clash->kelas_id,
-                $clash->guru->nama_lengkap ?? $clash->guru_id,
-                $clash->matpel->name ?? $clash->matpel_id,
-                $clash->hari,
-                $clash->jam_mulai,
-                $clash->jam_selesai,
-            ));
-
-            return Redirect::back();
-        }
-
-        if (($clash = $this->timeClashGuru($guru_id, $data['hari'], $data['jam_mulai'], $data['jam_selesai'], $jadwal->id))) {
-            Toast::error(sprintf(
-                'Jadwal bentrok: guru ini sudah mengajar kelas %s untuk %s pada %s, %s - %s.',
-                $clash->kelas->nama ?? $clash->kelas_id,
-                $clash->matpel->name ?? $clash->matpel_id,
-                $clash->hari,
-                $clash->jam_mulai,
-                $clash->jam_selesai,
-            ));
-
-            return Redirect::back();
-        }
+        $jpSlot = JamPelajaran::findOrFail($data['jp']);
 
         $jadwal->update([
             'matpel_id' => $data['matpel_id'],
             'kelas_id' => $data['kelas_id'],
+            'jam_pelajaran_id' => $jpSlot->id,
             'hari' => $data['hari'],
-            'jam_mulai' => $data['jam_mulai'],
-            'jam_selesai' => $data['jam_selesai'],
+            'jam_mulai' => $jpSlot->jam_mulai,
+            'jam_selesai' => $jpSlot->jam_selesai,
         ]);
 
         Toast::success('Jadwal berhasil diperbarui.');
@@ -234,8 +201,7 @@ class AturJadwalPengajarController extends Controller
             'matpel_id' => ['required', 'exists:matpels,id'],
             'kelas_id' => ['required', 'exists:kelas,id'],
             'hari' => ['required', 'string'],
-            'jam_mulai' => ['required', 'date_format:H:i'],
-            'jam_selesai' => ['required', 'date_format:H:i', 'after:jam_mulai'],
+            'jp' => ['required', 'integer'],
         ]);
     }
 
@@ -262,37 +228,6 @@ class AturJadwalPengajarController extends Controller
         }
 
         return $q->exists();
-    }
-
-    private function timeClashKelas(int $kelas_id, string $hari, string $jamMulai, string $jamSelesai, string $guru_id, ?int $excludeId = null): ?JadwalPelajaran
-    {
-        $q = JadwalPelajaran::with(['guru', 'matpel', 'kelas'])
-            ->where('kelas_id', $kelas_id)
-            ->where('hari', $hari)
-            ->where('guru_id', '!=', $guru_id)
-            ->where('jam_mulai', '<', $jamSelesai)
-            ->where('jam_selesai', '>', $jamMulai);
-
-        if ($excludeId) {
-            $q->where('id', '!=', $excludeId);
-        }
-
-        return $q->first();
-    }
-
-    private function timeClashGuru(string $guru_id, string $hari, string $jamMulai, string $jamSelesai, ?int $excludeId = null): ?JadwalPelajaran
-    {
-        $q = JadwalPelajaran::with(['guru', 'matpel', 'kelas'])
-            ->where('guru_id', $guru_id)
-            ->where('hari', $hari)
-            ->where('jam_mulai', '<', $jamSelesai)
-            ->where('jam_selesai', '>', $jamMulai);
-
-        if ($excludeId) {
-            $q->where('id', '!=', $excludeId);
-        }
-
-        return $q->first();
     }
 
     private function colorForMatpel(string $matpel): string

@@ -72,6 +72,7 @@
             | 'email'
             | 'number'
             | 'textarea'
+            | 'time'
             | 'select'
             | 'date'
             | 'file'
@@ -194,10 +195,16 @@
 
         if (editing) {
             const route = controller.update(editing);
-            form.submit({ url: route.url, method: route.method }, { onSuccess });
+            form.submit(
+                { url: route.url, method: route.method },
+                { onSuccess },
+            );
         } else {
             const route = controller.store();
-            form.submit({ url: route.url, method: route.method }, { onSuccess });
+            form.submit(
+                { url: route.url, method: route.method },
+                { onSuccess },
+            );
         }
     }
 
@@ -218,9 +225,7 @@
 
     let search = $state(query.search ?? '');
     let filterValues = $state<Record<string, string>>(
-        Object.fromEntries(
-            filters.map((f) => [f.name, query[f.name] ?? '']),
-        ),
+        Object.fromEntries(filters.map((f) => [f.name, query[f.name] ?? ''])),
     );
 
     let hasActive = $derived(
@@ -281,7 +286,11 @@
 
     function goToPage(page: number) {
         if (!pagination) return;
-        if (page < 1 || page > pagination.last_page || page === pagination.current_page) {
+        if (
+            page < 1 ||
+            page > pagination.last_page ||
+            page === pagination.current_page
+        ) {
             return;
         }
         const params = buildParams();
@@ -296,7 +305,7 @@
     }
 </script>
 
-<AppHead title={title} />
+<AppHead {title} />
 
 <div
     class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 flex-wrap gap-2"
@@ -307,7 +316,7 @@
             <p class="text-muted mb-0 small">{subtitle}</p>
         {/if}
     </div>
-        <div class="d-flex align-items-center gap-2 flex-wrap">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
         {#each toolbarActions as act (act.key)}
             <Button
                 color={act.color ?? 'light'}
@@ -325,78 +334,81 @@
             </Button>
         {/each}
         <Button color="primary" onclick={openCreate}>
-            <i class="bi bi-plus-lg me-1"></i> {createLabel}
+            <i class="bi bi-plus-lg me-1"></i>
+            {createLabel}
         </Button>
     </div>
-    </div>
+</div>
 
-    {#if searchable || filters.length > 0}
-        <div class="crud-filterbar d-flex flex-wrap align-items-center gap-2 mb-3">
-            {#if searchable}
-                <div class="input-group input-group-sm crud-search">
-                    <span class="input-group-text bg-white">
-                        <i class="bi bi-search"></i>
-                    </span>
+{#if searchable || filters.length > 0}
+    <div class="crud-filterbar d-flex flex-wrap align-items-center gap-2 mb-3">
+        {#if searchable}
+            <div class="input-group input-group-sm crud-search">
+                <span class="input-group-text bg-white">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input
+                    class="form-control"
+                    type="search"
+                    placeholder={searchPlaceholder}
+                    bind:value={search}
+                    oninput={onSearchInput}
+                />
+            </div>
+        {/if}
+
+        {#each filters as f (f.name)}
+            <div class="input-group input-group-sm crud-filter-input">
+                <span class="input-group-text">{f.label}</span>
+                {#if f.type === 'select'}
+                    <select
+                        class="form-select"
+                        value={filterValues[f.name]}
+                        onchange={(e: Event) =>
+                            setFilter(
+                                f.name,
+                                (e.currentTarget as HTMLSelectElement).value,
+                            )}
+                    >
+                        <option value="">{f.placeholder ?? 'Semua'}</option>
+                        {#each f.options ?? [] as opt (String(opt.value))}
+                            <option value={opt.value}>{opt.label}</option>
+                        {/each}
+                    </select>
+                {:else}
                     <input
                         class="form-control"
-                        type="search"
-                        placeholder={searchPlaceholder}
-                        bind:value={search}
-                        oninput={onSearchInput}
+                        type={f.type ?? 'text'}
+                        placeholder={f.placeholder ?? f.label}
+                        bind:value={filterValues[f.name]}
+                        oninput={() => applyQuery()}
                     />
-                </div>
-            {/if}
+                {/if}
+            </div>
+        {/each}
 
-            {#each filters as f (f.name)}
-                <div class="input-group input-group-sm crud-filter-input">
-                    <span class="input-group-text">{f.label}</span>
-                    {#if f.type === 'select'}
-                        <select
-                            class="form-select"
-                            value={filterValues[f.name]}
-                            onchange={(e: Event) =>
-                                setFilter(
-                                    f.name,
-                                    (e.currentTarget as HTMLSelectElement).value,
-                                )}
-                        >
-                            <option value="">{f.placeholder ?? 'Semua'}</option>
-                            {#each f.options ?? [] as opt (String(opt.value))}
-                                <option value={opt.value}>{opt.label}</option>
-                            {/each}
-                        </select>
-                    {:else}
-                        <input
-                            class="form-control"
-                            type={f.type ?? 'text'}
-                            placeholder={f.placeholder ?? f.label}
-                            bind:value={filterValues[f.name]}
-                            oninput={() => applyQuery()}
-                        />
-                    {/if}
-                </div>
-            {/each}
+        {#if hasActive}
+            <Button
+                size="sm"
+                color="light"
+                class="crud-reset"
+                onclick={resetFilters}
+            >
+                <i class="bi bi-x-lg me-1"></i> Reset
+            </Button>
+        {/if}
+    </div>
+{/if}
 
-            {#if hasActive}
-                <Button
-                    size="sm"
-                    color="light"
-                    class="crud-reset"
-                    onclick={resetFilters}
-                >
-                    <i class="bi bi-x-lg me-1"></i> Reset
-                </Button>
-            {/if}
-        </div>
-    {/if}
-
-    <Card class="border rounded-3 shadow-sm overflow-hidden">
+<Card class="border rounded-3 shadow-sm overflow-hidden">
     <CardBody class="p-0">
         <Table hover responsive="sm" class="crud-table mb-0 align-middle">
             <thead class="crud-thead">
                 <tr>
                     {#each columns as col (col.key)}
-                        <th class={col.center ? 'text-center' : ''}>{col.label}</th>
+                        <th class={col.center ? 'text-center' : ''}
+                            >{col.label}</th
+                        >
                     {/each}
                     <th class="text-end pe-3">Aksi</th>
                 </tr>
@@ -409,18 +421,22 @@
                                 {#if col.cell}
                                     {@render col.cell(item)}
                                 {:else if col.cellComponent}
-                                    <col.cellComponent item={item} />
+                                    <col.cellComponent {item} />
                                 {:else if col.badge}
                                     <Badge color={col.badgeColor ?? 'info'}>
                                         {display(col, item)}
                                     </Badge>
-                        {:else}
-                            <span class="crud-clamp">{display(col, item)}</span>
-                        {/if}
+                                {:else}
+                                    <span class="crud-clamp"
+                                        >{display(col, item)}</span
+                                    >
+                                {/if}
                             </td>
                         {/each}
                         <td class="text-end pe-3">
-                            <div class="d-inline-flex align-items-center gap-1 flex-wrap justify-content-end">
+                            <div
+                                class="d-inline-flex align-items-center gap-1 flex-wrap justify-content-end"
+                            >
                                 {#each actions as act (act.key)}
                                     <Button
                                         size={act.size ?? 'sm'}
@@ -462,23 +478,29 @@
                             colspan={columns.length + 1}
                             class="text-center text-muted py-4"
                         >
-                            <i class="bi bi-inbox me-1"></i> {emptyText}
+                            <i class="bi bi-inbox me-1"></i>
+                            {emptyText}
                         </td>
                     </tr>
                 {/each}
             </tbody>
-            </Table>
-            {#if pagination}
-                <Pagination meta={pagination} onPageChange={goToPage} />
-            {/if}
-        </CardBody>
-    </Card>
+        </Table>
+        {#if pagination}
+            <Pagination meta={pagination} onPageChange={goToPage} />
+        {/if}
+    </CardBody>
+</Card>
 
 <Modal isOpen={modalOpen} toggle={() => (modalOpen = !modalOpen)}>
     <ModalHeader toggle={() => (modalOpen = !modalOpen)}>
         {editing ? `Edit ${label}` : `Tambah ${label}`}
     </ModalHeader>
-    <form onsubmit={(e) => { e.preventDefault(); submit(); }}>
+    <form
+        onsubmit={(e) => {
+            e.preventDefault();
+            submit();
+        }}
+    >
         <ModalBody>
             {#each fields as field, i (field.name)}
                 <FormGroup class={i === fields.length - 1 ? 'mb-0' : ''}>
@@ -493,24 +515,33 @@
                     {#if field.type === 'select'}
                         <Select
                             items={field.options ?? []}
-                            value={(form as Record<string, unknown>)[field.name]}
+                            value={(form as Record<string, unknown>)[
+                                field.name
+                            ]}
                             multiple={field.multiple ?? false}
                             size={field.size}
                             disabled={locked}
-                            hasError={!!(form.errors as Record<string, string>)[field.name]}
+                            hasError={!!(form.errors as Record<string, string>)[
+                                field.name
+                            ]}
                             placeholder={field.placeholder ?? 'Pilih…'}
                             getOptionValue={(item: unknown) =>
                                 (item as CrudFieldOption).value}
                             onchange={(v: unknown) =>
-                                ((form as Record<string, unknown>)[field.name] = v)}
+                                ((form as Record<string, unknown>)[field.name] =
+                                    v)}
                         />
                     {:else if field.type === 'textarea'}
                         <Input
                             id={field.name}
                             type="textarea"
-                            bind:value={(form as Record<string, unknown>)[field.name]}
+                            bind:value={
+                                (form as Record<string, unknown>)[field.name]
+                            }
                             disabled={locked}
-                            invalid={!!(form.errors as Record<string, string>)[field.name]}
+                            invalid={!!(form.errors as Record<string, string>)[
+                                field.name
+                            ]}
                             placeholder={field.placeholder ?? ''}
                         />
                     {:else if field.type === 'checkbox'}
@@ -518,16 +549,29 @@
                             <button
                                 type="button"
                                 class="crud-toggle__track"
-                                class:is-on={(form as Record<string, unknown>)[field.name]}
+                                class:is-on={(form as Record<string, unknown>)[
+                                    field.name
+                                ]}
                                 role="switch"
-                                aria-checked={(form as Record<string, unknown>)[field.name] ? 'true' : 'false'}
+                                aria-checked={(form as Record<string, unknown>)[
+                                    field.name
+                                ]
+                                    ? 'true'
+                                    : 'false'}
                                 disabled={locked}
                                 onclick={() =>
-                                    ((form as Record<string, unknown>)[field.name] = !(form as Record<string, unknown>)[field.name])}
+                                    ((form as Record<string, unknown>)[
+                                        field.name
+                                    ] = !(form as Record<string, unknown>)[
+                                        field.name
+                                    ])}
                             >
                                 <span class="crud-toggle__knob"></span>
                             </button>
-                            <Label for={field.name} class="crud-checkbox__label">
+                            <Label
+                                for={field.name}
+                                class="crud-checkbox__label"
+                            >
                                 {field.label}
                             </Label>
                         </div>
@@ -535,14 +579,20 @@
                         <Input
                             id={field.name}
                             type="file"
-                            accept={field.accept ?? (field.type === 'image' ? 'image/*' : undefined)}
+                            accept={field.accept ??
+                                (field.type === 'image'
+                                    ? 'image/*'
+                                    : undefined)}
                             disabled={locked}
                             onchange={(e: Event) =>
                                 setFile(
                                     field.name,
-                                    (e.currentTarget as HTMLInputElement).files?.[0] ?? null,
+                                    (e.currentTarget as HTMLInputElement)
+                                        .files?.[0] ?? null,
                                 )}
-                            invalid={!!(form.errors as Record<string, string>)[field.name]}
+                            invalid={!!(form.errors as Record<string, string>)[
+                                field.name
+                            ]}
                         />
                         {#if fieldValue<string>(field.name)}
                             <div class="mt-2">
@@ -560,23 +610,34 @@
                         <Input
                             id={field.name}
                             type={(field.type ?? 'text') as never}
-                            bind:value={(form as Record<string, unknown>)[field.name]}
+                            bind:value={
+                                (form as Record<string, unknown>)[field.name]
+                            }
                             disabled={locked}
-                            invalid={!!(form.errors as Record<string, string>)[field.name]}
+                            invalid={!!(form.errors as Record<string, string>)[
+                                field.name
+                            ]}
                             placeholder={field.placeholder ?? ''}
                         />
                     {/if}
 
                     {#if (form.errors as Record<string, string>)[field.name]}
                         <div class="text-danger small mt-1">
-                            {(form.errors as Record<string, string>)[field.name]}
+                            {(form.errors as Record<string, string>)[
+                                field.name
+                            ]}
                         </div>
                     {/if}
                 </FormGroup>
             {/each}
         </ModalBody>
         <ModalFooter>
-            <Button color="secondary" type="button" outline onclick={() => (modalOpen = false)}>
+            <Button
+                color="secondary"
+                type="button"
+                outline
+                onclick={() => (modalOpen = false)}
+            >
                 Batal
             </Button>
             <Button color="primary" type="submit" disabled={form.processing}>
