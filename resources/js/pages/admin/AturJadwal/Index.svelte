@@ -269,7 +269,7 @@
     </div>
 
     {#if guruData}
-        <div class="card border rounded-3 shadow-sm mb-3">
+        <div class="card border rounded-1 shadow-sm mb-3">
             <div class="card-body d-flex flex-wrap align-items-center gap-3">
                 <div
                     class="rounded-circle bg-secondary-subtle text-secondary-emphasis d-flex align-items-center justify-content-center fw-semibold"
@@ -311,7 +311,7 @@
         </div>
     {/if}
 
-    <Modal bind:isOpen={modalOpen} size="lg" backdrop="static">
+    <Modal bind:isOpen={modalOpen} size="md" backdrop="static">
         <ModalHeader toggle={cancelForm}>
             <span class="fw-semibold"
                 >{editingId ? 'Edit Jadwal' : 'Tambah Jadwal'}</span

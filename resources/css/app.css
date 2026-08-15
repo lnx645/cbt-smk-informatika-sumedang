@@ -15094,12 +15094,10 @@ textarea.form-control-lg {
   --color-bg-overlay: #e2e8f0;
   --color-border: #cbd5e1;
   --color-divider: #e2e8f0;
-  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-heading: Invitnesia;
   --font-heading-fallback: Georgia, serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-      Roboto, Helvetica, Arial, sans-serif;
-  --font-body-fallback: -apple-system, BlinkMacSystemFont, 'Segoe UI',
-      Roboto, Helvetica, Arial, sans-serif;
+  --font-body: Invitnesia;
+  --font-body-fallback:Invitnesia;
   --font-accent: 'Great Vibes', cursive;
   --font-accent-fallback: cursive;
   --font-script: 'Great Vibes', cursive;

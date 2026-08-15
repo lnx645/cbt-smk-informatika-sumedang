@@ -360,7 +360,7 @@
         </header>
 
         <!-- Body Content -->
-        <main class="app-shell__content">
+        <main class="app-shell__content p-md-2 p-3 px-2">
             <Container fluid class="px-0">
                 {@render children?.()}
             </Container>

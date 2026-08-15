@@ -400,9 +400,9 @@
     </div>
 {/if}
 
-<Card class="border rounded-3 shadow-sm overflow-hidden">
-    <CardBody class="p-0">
-        <Table hover responsive="sm" class="crud-table mb-0 align-middle">
+<Card class="border rounded-1 shadow-sm overflow-hidden">
+    <CardBody class="p-0  table-responsive">
+        <table class="crud-table mb-0 align-middle">
             <thead class="crud-thead">
                 <tr>
                     {#each columns as col (col.key)}
@@ -484,14 +484,18 @@
                     </tr>
                 {/each}
             </tbody>
-        </Table>
+        </table>
         {#if pagination}
             <Pagination meta={pagination} onPageChange={goToPage} />
         {/if}
     </CardBody>
 </Card>
 
-<Modal isOpen={modalOpen} toggle={() => (modalOpen = !modalOpen)}>
+<Modal
+    backdrop="static"
+    isOpen={modalOpen}
+    toggle={() => (modalOpen = !modalOpen)}
+>
     <ModalHeader toggle={() => (modalOpen = !modalOpen)}>
         {editing ? `Edit ${label}` : `Tambah ${label}`}
     </ModalHeader>
@@ -648,21 +652,25 @@
 </Modal>
 
 <style>
+    .crud-table {
+        width: 100%;
+    }
     .crud-table thead th {
-        background: #f8f9fa;
+        background: var(--bs-gray-100);
         font-weight: 600;
         color: #6c757d;
-        text-transform: uppercase;
+        text-transform: capitalize;
         letter-spacing: 0.03em;
         font-size: 0.75rem;
-        border-bottom: 1px solid #dee2e6;
-        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--bs-gray-300);
+        padding: 0.4rem 1rem;
     }
 
     .crud-table tbody td {
-        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--bs-gray-200);
+        padding: 0.3rem 1rem;
         vertical-align: middle;
-        font-size: 0.9rem;
+        font-size: 0.75rem;
     }
 
     .crud-clamp {
