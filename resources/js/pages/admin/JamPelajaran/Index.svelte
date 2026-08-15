@@ -27,13 +27,26 @@
         };
         filters?: Record<string, string>;
     } = $props();
-
+    let haris = [
+        {value:"Normal",label:"Normal"},
+        { value: 'Senin', label: 'Senin' },
+        { value: 'Selasa', label: 'Selasa' },
+        { value: 'Rabu', label: 'Rabu' },
+        { value: 'Kamis', label: 'Kamis' },
+        { value: 'Jumat', label: 'Jumat' },
+        { value: 'Sabtu', label: 'Sabtu' },
+    ];
     const columns: CrudColumn[] = [
         { key: 'urutan', label: 'Urutan', center: true },
         { key: 'label', label: 'Label' },
         {
             key: 'jam_mulai',
             label: 'Jam Mulai',
+            center: true,
+        },
+        {
+            key: 'hari',
+            label: 'Hari',
             center: true,
         },
         {
@@ -57,11 +70,19 @@
             placeholder: 'JP 1, Istirahat 1, dst.',
         },
         {
+            name: 'hari',
+            type: 'select',
+            label: 'Hari',
+            placeholder: 'Select Hari',
+            options: haris,
+        },
+        {
             name: 'jam_mulai',
             label: 'Jam Mulai',
             type: 'time',
             placeholder: 'HH:MM',
         },
+
         {
             name: 'jam_selesai',
             label: 'Jam Selesai',
@@ -111,6 +132,13 @@
                 { value: '1', label: 'Istirahat' },
                 { value: '0', label: 'JP' },
             ],
+        },
+        {
+            name: 'hari',
+            label: 'Hari',
+            type:"select",
+            placeholder: 'Default Senin',
+            options: haris,
         },
     ]}
     query={activeFilters}

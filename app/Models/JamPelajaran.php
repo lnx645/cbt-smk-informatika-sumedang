@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['label', 'jam_mulai', 'jam_selesai', 'is_break', 'urutan'])]
+#[Fillable(['label', 'jam_mulai',"hari", 'jam_selesai', 'is_break', 'urutan'])]
 class JamPelajaran extends Model
 {
     use HasFactory;

@@ -36,9 +36,18 @@
         foto: string | null;
     };
 
-    type SelectOption = { value: number | string; label: string };
+    type SelectOption = {
+        value: number | string;
+        label: string;
+        disabled: boolean;
+    };
 
-    type JpSlot = { mulai: string; selesai: string; label?: string };
+    type JpSlot = {
+        mulai: string;
+        selesai: string;
+        label?: string;
+        hari?: string;
+    };
 
     let {
         guru = null,
@@ -119,6 +128,7 @@
     const matpelSelectOptions = $derived<SelectOption[]>(
         Object.entries(matpelOptions ?? {}).map(([id, name]) => ({
             value: Number(id),
+            disabled: false,
             label: String(name),
         })),
     );
@@ -126,19 +136,9 @@
     const kelasSelectOptions = $derived<SelectOption[]>(
         Object.entries(kelasOptions ?? {}).map(([id, name]) => ({
             value: Number(id),
+            disabled: false,
             label: String(name),
         })),
-    );
-
-    const jpSelectOptions = $derived<SelectOption[]>(
-        (Object.entries(jpSlots ?? {}) as [string, JpSlot][]).map(
-            ([key, slot]) => ({
-                value: Number(key),
-                label: slot?.label
-                    ? `${slot.label} (${slot.mulai}-${slot.selesai})`
-                    : `JP ${key} (${slot.mulai}-${slot.selesai})`,
-            }),
-        ),
     );
 
     let modalOpen = $state(false);
@@ -147,10 +147,20 @@
     const form = useForm({
         matpel_id: null as number | null,
         kelas_id: null as number | null,
-        hari: '',
+        hari: 'Senin',
         jp: null as number | null,
     });
-
+    const jpSelectOptions = $derived<SelectOption[]>(
+        (Object.entries(jpSlots ?? {}) as [string, JpSlot][])
+            .filter((e) => e[1].hari == form.hari)
+            .map(([key, slot]) => ({
+                value: Number(key),
+                disabled: false,
+                label: slot?.label
+                    ? `${slot.label} (${slot.mulai}-${slot.selesai})`
+                    : `JP ${key} (${slot.mulai}-${slot.selesai})`,
+            })),
+    );
     function extractId(value: unknown): number | null {
         if (value === null || value === undefined || value === '') {
             return null;
@@ -331,17 +341,18 @@
         </div>
     {/if}
 
-    <Modal
-        bind:isOpen={modalOpen}
-        size="lg"
-        backdrop="static"
-    >
+    <Modal bind:isOpen={modalOpen} size="lg" backdrop="static">
         <ModalHeader toggle={() => (modalOpen = !modalOpen)}>
             <span class="fw-semibold"
                 >{editingId ? 'Edit Jadwal' : 'Tambah Jadwal'}</span
             >
         </ModalHeader>
-        <form onsubmit={(e) => { e.preventDefault(); submit(); }}>
+        <form
+            onsubmit={(e) => {
+                e.preventDefault();
+                submit();
+            }}
+        >
             <ModalBody>
                 <FormGroup>
                     <Label for="matpel_id" class="small fw-semibold"
@@ -363,8 +374,7 @@
                 </FormGroup>
 
                 <FormGroup>
-                    <Label for="kelas_id" class="small fw-semibold"
-                        >Kelas</Label
+                    <Label for="kelas_id" class="small fw-semibold">Kelas</Label
                     >
                     <Select
                         items={kelasSelectOptions}
@@ -382,9 +392,7 @@
                 </FormGroup>
 
                 <FormGroup>
-                    <Label for="hari" class="small fw-semibold"
-                        >Hari</Label
-                    >
+                    <Label for="hari" class="small fw-semibold">Hari</Label>
                     <select
                         id="hari"
                         class="form-select"
@@ -412,6 +420,7 @@
                         >Jam Pelajaran</Label
                     >
                     <select
+                        disabled={!!!form.hari}
                         id="jp"
                         class="form-select"
                         value={form.jp ?? ''}
@@ -419,11 +428,12 @@
                             onJpChange(
                                 (e.currentTarget as HTMLSelectElement).value,
                             )}
-                        disabled={form.processing}
                     >
                         <option value="">Pilih JP…</option>
                         {#each jpSelectOptions as opt (opt.value)}
-                            <option value={opt.value}>{opt.label}</option>
+                            <option disabled={opt.disabled} value={opt.value}
+                                >{opt.label}</option
+                            >
                         {/each}
                     </select>
                     {#if form.errors.jp}
@@ -435,8 +445,7 @@
 
                 <div class="alert alert-light small mb-0">
                     <i class="bi bi-info-circle me-1"></i>
-                    Setiap JP = 45 menit. Istirahat 1: 09:30-10:00,
-                    Istirahat 2: 12:00-12:30.
+                    Setiap JP = 45 menit. Istirahat 1: 09:30-10:00, Istirahat 2: 12:00-12:30.
                 </div>
             </ModalBody>
             <ModalFooter>
@@ -462,7 +471,9 @@
     </Modal>
 
     {#if guruData}
-        <div class="shadow-none card overflow-hidden rounded-none bg-transparent">
+        <div
+            class="shadow-none card overflow-hidden rounded-none bg-transparent"
+        >
             <div class="p-0">
                 {#if hasJadwal}
                     <div class="table-responsive">
@@ -504,7 +515,8 @@
                                                 type="button"
                                                 class="btn btn-sm py-0 btn-outline-danger"
                                                 title="Hapus"
-                                                onclick={() => confirmDelete(item)}
+                                                onclick={() =>
+                                                    confirmDelete(item)}
                                             >
                                                 <i class="bi bi-trash"></i>
                                             </button>

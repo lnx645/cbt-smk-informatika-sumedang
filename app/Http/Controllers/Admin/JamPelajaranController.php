@@ -19,7 +19,10 @@ class JamPelajaranController extends Controller
         $queryJp = JamPelajaran::query();
 
         $filter = $request->query('is_break');
-
+        $hari = $request->query("hari");
+        if ($hari) {
+            $queryJp->whereHari($hari);
+        }
         if ($filter != '') {
             $queryJp->whereIsBreak($filter == '1' ? true : false);
         }
@@ -37,6 +40,7 @@ class JamPelajaranController extends Controller
                         'label' => $jp->label,
                         'jam_mulai' => $jp->mulai,
                         'jam_selesai' => $jp->selesai,
+                        "hari" => $jp->hari,
                         'is_break' => $jp->is_break,
                         'urutan' => $jp->urutan,
                     ];
@@ -58,8 +62,12 @@ class JamPelajaranController extends Controller
             'jam_mulai' => ['required', 'date_format:H:i'],
             'jam_selesai' => ['required', 'date_format:H:i', 'after:jam_mulai'],
             'is_break' => ['boolean'],
+            'hari' => ["required"],
             'urutan' => ['required', 'integer', 'min:0'],
         ]);
+        if (is_array($data["hari"])) {
+            $data["hari"] = $data["hari"]["value"];
+        }
 
         JamPelajaran::create($data);
 
@@ -73,11 +81,14 @@ class JamPelajaranController extends Controller
         $data = $request->validate([
             'label' => ['required', 'string', 'max:50'],
             'jam_mulai' => ['required', 'date_format:H:i'],
+            'hari' => ["required"],
             'jam_selesai' => ['required', 'date_format:H:i', 'after:jam_mulai'],
             'is_break' => ['boolean'],
             'urutan' => ['required', 'integer', 'min:0'],
         ]);
-
+        if (is_array($data["hari"])) {
+            $data["hari"] = $data["hari"]["value"];
+        }
         $jamPelajaran->update($data);
 
         Toast::success('Jam pelajaran berhasil diperbarui.');

@@ -11,7 +11,6 @@ use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -65,6 +64,7 @@ class AturJadwalPengajarController extends Controller
         $matpelOptions = Matpel::pluck('name', 'id')->all();
         $kelasOptions = $this->buildLeafKelasOptions();
         $jpSlots = $this->getJpSlots();
+
         return Inertia::render('admin/AturJadwal/Index', [
             'guru' => $guruData,
             'jadwal' => $jadwalList,
@@ -79,11 +79,14 @@ class AturJadwalPengajarController extends Controller
         return JamPelajaran::where('is_break', false)
             ->orderBy('urutan')
             ->get()
-            ->mapWithKeys(fn (JamPelajaran $jp) => [$jp->id => [
-                'mulai' => $jp->jam_mulai,
-                'selesai' => $jp->jam_selesai,
-                'label' => $jp->label,
-            ]])
+            ->mapWithKeys(fn(JamPelajaran $jp) => [
+                $jp->id => [
+                    'mulai' => $jp->jam_mulai,
+                    'selesai' => $jp->jam_selesai,
+                    "hari" => $jp->hari,
+                    'label' => $jp->label,
+                ]
+            ])
             ->all();
     }
 
@@ -91,7 +94,7 @@ class AturJadwalPengajarController extends Controller
     {
         $all = Kelas::all(['id', 'nama', 'parent_id'])->keyBy('id');
 
-        $leaves = $all->filter(fn ($k) => ! $all->contains('parent_id', $k->id));
+        $leaves = $all->filter(fn($k) => !$all->contains('parent_id', $k->id));
 
         $options = [];
         foreach ($leaves as $leaf) {
@@ -114,8 +117,19 @@ class AturJadwalPengajarController extends Controller
         Guru::findOrFail($guru_id);
 
         $data = $this->validateJadwal($request, $guru_id);
-
         $jpSlot = JamPelajaran::findOrFail($data['jp']);
+
+        // Cek apakah mata pelajaran sudah di-assign pada hari & jam tersebut
+        $existing = JadwalPelajaran::where('jam_pelajaran_id', $data["jp"])
+            ->where('hari', $data["hari"])
+            ->where('matpel_id', $data["matpel_id"])
+            ->with("guru")
+            ->first();
+
+        if ($existing) {
+            Toast::error("Mata pelajaran tersebut sudah di assign ke: {$existing->guru->nama_lengkap}");
+            return redirect()->back();
+        }
 
         JadwalPelajaran::create([
             'guru_id' => $guru_id,
@@ -141,6 +155,19 @@ class AturJadwalPengajarController extends Controller
 
         $data = $this->validateJadwal($request, $guru_id, $jadwal->id);
         $jpSlot = JamPelajaran::findOrFail($data['jp']);
+
+        // Cek bentrok (abaikan ID jadwal yang sedang diedit)
+        $existing = JadwalPelajaran::where('jam_pelajaran_id', $data["jp"])
+            ->where('hari', $data["hari"])
+            ->where('matpel_id', $data["matpel_id"])
+            ->where('id', '!=', $jadwal->id)
+            ->with("guru")
+            ->first();
+
+        if ($existing) {
+            Toast::error("Mata pelajaran tersebut sudah di assign ke: {$existing->guru->nama_lengkap}");
+            return redirect()->back();
+        }
 
         $jadwal->update([
             'matpel_id' => $data['matpel_id'],
@@ -175,17 +202,14 @@ class AturJadwalPengajarController extends Controller
         return $request->validate([
             'matpel_id' => ['required', 'exists:matpels,id'],
             'kelas_id' => ['required', 'exists:kelas,id'],
-            'hari' => ['required', 'string'],
+            'hari' => ['required', 'string', 'in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu'],
             'jp' => [
                 'required',
                 'integer',
-                Rule::unique('jadwal_pelajarans', 'jam_pelajaran_id')
-                    ->where('guru_id', $guruId)
-                    ->where('hari', $request->hari)
-                    ->ignore($excludeId),
+                'exists:jam_pelajarans,id',
             ],
         ], [
-            'jp.unique' => 'Guru tersebut sudah memiliki jadwal mengajar pada jam dan hari yang sama.',
+            'hari.in' => 'Hari harus dipilih dari Senin sampai Sabtu.',
         ]);
     }
 

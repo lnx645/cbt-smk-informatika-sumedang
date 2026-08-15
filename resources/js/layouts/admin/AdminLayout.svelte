@@ -101,7 +101,7 @@
                 {
                     label: 'Pengaturan Jam Pelajaran',
                     href: JamPelajaranController.index().url,
-                    icon: 'bi-calendar',
+                    icon: 'bi-clock',
                 },
             ],
         },
