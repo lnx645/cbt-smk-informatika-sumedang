@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Ai\Agents\AgentMateri;
 use App\Http\Controllers\Controller;
 use App\Models\Guru;
 use Illuminate\Http\RedirectResponse;
@@ -9,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravel\Ai\Enums\Lab;
 
 class PengajarController extends Controller
 {
@@ -21,6 +23,7 @@ class PengajarController extends Controller
         $jenisKelamin = $request->query('jenis_kelamin');
         $isAktif = $request->query('is_aktif');
         $pendidikan = $request->query('pendidikan_terakhir');
+        $walikelas = $request->query('walikelas');
 
         $query = Guru::query()->with('walikelas');
         if ($search) {
@@ -36,6 +39,11 @@ class PengajarController extends Controller
         }
         if ($pendidikan) {
             $query->where('pendidikan_terakhir', $pendidikan);
+        }
+        if ($walikelas === '1') {
+            $query->has('walikelas');
+        } elseif ($walikelas === '0') {
+            $query->doesntHave('walikelas');
         }
 
         $pengajar = $query->orderBy('nama_lengkap')
@@ -68,6 +76,7 @@ class PengajarController extends Controller
                 'jenis_kelamin' => $jenisKelamin ?? '',
                 'is_aktif' => $isAktif ?? '',
                 'pendidikan_terakhir' => $pendidikan ?? '',
+                'walikelas' => $walikelas ?? '',
             ],
             'pendidikanOptions' => $pendidikanOptions,
         ]);
@@ -86,6 +95,8 @@ class PengajarController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $request->merge($this->normalizeJenisKelamin($request));
+
         $data = $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:50'],
             'pendidikan_terakhir' => ['nullable', 'string', 'max:50'],
@@ -135,6 +146,8 @@ class PengajarController extends Controller
      */
     public function update(Request $request, Guru $pengajar): RedirectResponse
     {
+        $request->merge($this->normalizeJenisKelamin($request));
+
         $data = $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:50'],
             'pendidikan_terakhir' => ['nullable', 'string', 'max:50'],
@@ -185,5 +198,22 @@ class PengajarController extends Controller
         ]);
 
         return Redirect::route('admin.pengajar.index');
+    }
+
+    /**
+     * Extract the scalar value from the select component payload
+     * (svelte-select returns { value, label } instead of the raw value).
+     */
+    private function normalizeJenisKelamin(Request $request): array
+    {
+        $value = $request->input('jenis_kelamin');
+
+        if (is_array($value)) {
+            $value = $value['value'] ?? reset($value);
+        } elseif (is_object($value)) {
+            $value = $value->value ?? null;
+        }
+
+        return ['jenis_kelamin' => $value];
     }
 }

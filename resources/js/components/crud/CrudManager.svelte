@@ -348,30 +348,33 @@
             {/if}
 
             {#each filters as f (f.name)}
-                {#if f.type === 'select'}
-                    <select
-                        class="form-select form-select-sm crud-filter-input"
-                        value={filterValues[f.name]}
-                        onchange={(e: Event) =>
-                            setFilter(
-                                f.name,
-                                (e.currentTarget as HTMLSelectElement).value,
-                            )}
-                    >
-                        <option value="">{f.placeholder ?? f.label}</option>
-                        {#each f.options ?? [] as opt (String(opt.value))}
-                            <option value={opt.value}>{opt.label}</option>
-                        {/each}
-                    </select>
-                {:else}
-                    <input
-                        class="form-control form-control-sm crud-filter-input"
-                        type={f.type ?? 'text'}
-                        placeholder={f.placeholder ?? f.label}
-                        bind:value={filterValues[f.name]}
-                        oninput={() => applyQuery()}
-                    />
-                {/if}
+                <div class="input-group input-group-sm crud-filter-input">
+                    <span class="input-group-text">{f.label}</span>
+                    {#if f.type === 'select'}
+                        <select
+                            class="form-select"
+                            value={filterValues[f.name]}
+                            onchange={(e: Event) =>
+                                setFilter(
+                                    f.name,
+                                    (e.currentTarget as HTMLSelectElement).value,
+                                )}
+                        >
+                            <option value="">{f.placeholder ?? 'Semua'}</option>
+                            {#each f.options ?? [] as opt (String(opt.value))}
+                                <option value={opt.value}>{opt.label}</option>
+                            {/each}
+                        </select>
+                    {:else}
+                        <input
+                            class="form-control"
+                            type={f.type ?? 'text'}
+                            placeholder={f.placeholder ?? f.label}
+                            bind:value={filterValues[f.name]}
+                            oninput={() => applyQuery()}
+                        />
+                    {/if}
+                </div>
             {/each}
 
             {#if hasActive}

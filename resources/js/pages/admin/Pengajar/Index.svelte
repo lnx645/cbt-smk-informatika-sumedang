@@ -101,7 +101,7 @@
             {/each}
         </div>
     {:else}
-        <span class="text-muted">-</span>
+        <span class="text-muted">Bukan Wali kelas</span>
     {/if}
 {/snippet}
 
@@ -155,6 +155,16 @@
             type: 'select',
             placeholder: 'Semua',
             options: pendidikanOptions.map((p: string) => ({ value: p, label: p })),
+        },
+        {
+            name: 'walikelas',
+            label: 'Wali Kelas',
+            type: 'select',
+            placeholder: 'Semua',
+            options: [
+                { value: '1', label: 'Wali Kelas' },
+                { value: '0', label: 'Bukan Wali Kelas' },
+            ],
         },
     ]}
     {fields}
