@@ -1,5 +1,6 @@
 <script lang="ts">
-    import IsRole from '@/components/IsRole.svelte';
+    import VanillaDatePicker from '@/components/DatePicker/VanillaDatePicker.svelte';
+import IsRole from '@/components/IsRole.svelte';
     import Select from '@/components/Select.svelte';
     import { Container, Input } from '@sveltestrap/sveltestrap';
     let collection = [
@@ -17,5 +18,6 @@
         <Select size="sm" items={collection} placeholder="foo" />
         <Input />
     </IsRole>
+    <VanillaDatePicker/>
     <IsRole role="guru">lorem</IsRole>
 </Container>
