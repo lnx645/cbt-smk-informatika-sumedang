@@ -30,4 +30,4 @@ Route::post('matpel', [MatpelController::class, 'store'])->name('matpel.store');
 Route::put('matpel/{matpel}', [MatpelController::class, 'update'])->name('matpel.update');
 Route::delete('matpel/{matpel}', [MatpelController::class, 'destroy'])->name('matpel.destroy');
 
-Route::resource('pengajar', PengajarController::class);
+Route::resource('pengajar', PengajarController::class)->except(['create', 'edit', 'show']);

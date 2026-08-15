@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Ai\Agents\AgentMateri;
 use App\Http\Controllers\Controller;
 use App\Models\Guru;
 use Illuminate\Http\RedirectResponse;
@@ -10,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
-use Laravel\Ai\Enums\Lab;
 
 class PengajarController extends Controller
 {
@@ -83,14 +81,6 @@ class PengajarController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request): RedirectResponse
@@ -123,22 +113,6 @@ class PengajarController extends Controller
         ]);
 
         return Redirect::route('admin.pengajar.index');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Guru $pengajar)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Guru $pengajar)
-    {
-        //
     }
 
     /**
