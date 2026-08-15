@@ -15081,6 +15081,33 @@ textarea.form-control-lg {
   font-family: "Invitnesia";
   src: url("./example-font.woff2");
 }
+:root {
+  --color-primary: #0091d4;
+  --color-secondary: #64748b;
+  --color-accent: #fdd406;
+  --color-text-on-primary: #ffffff;
+  --color-text-primary: #334155;
+  --color-text-secondary: #64748b;
+  --color-text-muted: #64748b;
+  --color-bg: #f6f8fb;
+  --color-bg-card: #ffffff;
+  --color-bg-overlay: #e2e8f0;
+  --color-border: #cbd5e1;
+  --color-divider: #e2e8f0;
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-heading-fallback: Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+      Roboto, Helvetica, Arial, sans-serif;
+  --font-body-fallback: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+      Roboto, Helvetica, Arial, sans-serif;
+  --font-accent: 'Great Vibes', cursive;
+  --font-accent-fallback: cursive;
+  --font-script: 'Great Vibes', cursive;
+  --font-script-fallback: cursive;
+  --font-arabic: 'Amiri', 'Scheherazade New', 'Geeza Pro', serif;
+  --font-arabic-fallback: serif;
+}
+
 .font-heading {
   font-family: var(--font-heading) !important;
 }
@@ -15258,7 +15285,7 @@ textarea.form-control-lg {
 }
 
 body {
-  font-family: "Invitnesia" !important;
+  font-family: var(--font-body);
 }
 
 /*# sourceMappingURL=app.css.map */

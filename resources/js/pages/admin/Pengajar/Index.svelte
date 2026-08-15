@@ -13,13 +13,13 @@
             label: 'Nama',
             placeholder: 'Contoh: Ahmad Badawi Syah Agus',
         },
-        
+
         {
             name: 'pendidikan_terakhir',
             label: 'Pendidikan Terakhir',
             placeholder: 'Contoh: Ahmad Badawi Syah Agus',
         },
-        
+
         {
             name: 'jenis_kelamin',
             label: 'Jenis Kelamin',
@@ -72,7 +72,7 @@
             label: 'Wali Kelas',
             cell: walikelasCell,
         },
-      
+
         {
             key: 'is_aktif',
             label: 'Aktif',
@@ -111,14 +111,12 @@
     {items}
     actions={[
         {
-            key:"atur_jadwal",
-            label:"Atur Jadwal",
-            icon:"bi-users",
-            size:"sm",
-            onClick(item) {
-                
-            },
-        }
+            key: 'atur_jadwal',
+            label: 'Atur Jadwal',
+            icon: 'bi-users',
+            size: 'sm',
+            onClick(item) {},
+        },
     ]}
     subtitle="Kelola Pengajar Disini / Guru"
     controller={PengajarController}
@@ -154,7 +152,10 @@
             label: 'Pendidikan',
             type: 'select',
             placeholder: 'Semua',
-            options: pendidikanOptions.map((p: string) => ({ value: p, label: p })),
+            options: pendidikanOptions.map((p: string) => ({
+                value: p,
+                label: p,
+            })),
         },
         {
             name: 'walikelas',
