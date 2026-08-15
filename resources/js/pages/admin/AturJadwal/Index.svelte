@@ -11,7 +11,6 @@
         ModalFooter,
     } from '@sveltestrap/sveltestrap';
     import { useForm, router } from '@inertiajs/svelte';
-    import Select from '@/components/Select.svelte';
     import AturJadwalPengajarController from '@/actions/App/Http/Controllers/AturJadwalPengajarController';
 
     type EventJadwal = {
@@ -125,22 +124,6 @@
             : '',
     );
 
-    const matpelSelectOptions = $derived<SelectOption[]>(
-        Object.entries(matpelOptions ?? {}).map(([id, name]) => ({
-            value: Number(id),
-            disabled: false,
-            label: String(name),
-        })),
-    );
-
-    const kelasSelectOptions = $derived<SelectOption[]>(
-        Object.entries(kelasOptions ?? {}).map(([id, name]) => ({
-            value: Number(id),
-            disabled: false,
-            label: String(name),
-        })),
-    );
-
     let modalOpen = $state(false);
     let editingId = $state<number | null>(null);
 
@@ -150,6 +133,7 @@
         hari: 'Senin',
         jp: null as number | null,
     });
+
     const jpSelectOptions = $derived<SelectOption[]>(
         (Object.entries(jpSlots ?? {}) as [string, JpSlot][])
             .filter((e) => e[1].hari == form.hari)
@@ -161,6 +145,7 @@
                     : `JP ${key} (${slot.mulai}-${slot.selesai})`,
             })),
     );
+
     function extractId(value: unknown): number | null {
         if (value === null || value === undefined || value === '') {
             return null;
@@ -186,7 +171,7 @@
         form.reset();
         form.matpel_id = null;
         form.kelas_id = null;
-        form.hari = '';
+        form.hari = 'Senin';
         form.jp = null;
     }
 
@@ -201,9 +186,10 @@
         const found = entries.find(
             ([, slot]) =>
                 slot.mulai === item.jam_mulai &&
-                slot.selesai === item.jam_selesai,
+                slot.selesai === item.jam_selesai &&
+                slot.hari === item.hari,
         );
-        form.jp = found ? Number(found[0]) : 1;
+        form.jp = found ? Number(found[0]) : null;
     }
 
     function cancelForm() {
@@ -212,24 +198,8 @@
         form.reset();
         form.matpel_id = null;
         form.kelas_id = null;
-        form.hari = '';
+        form.hari = 'Senin';
         form.jp = null;
-    }
-
-    function onMatpelChange(value: unknown) {
-        form.matpel_id = extractId(value);
-    }
-
-    function onKelasChange(value: unknown) {
-        form.kelas_id = extractId(value);
-    }
-
-    function onHariChange(value: string) {
-        form.hari = value || '';
-    }
-
-    function onJpChange(value: unknown) {
-        form.jp = extractId(value);
     }
 
     function submit() {
@@ -342,7 +312,7 @@
     {/if}
 
     <Modal bind:isOpen={modalOpen} size="lg" backdrop="static">
-        <ModalHeader toggle={() => (modalOpen = !modalOpen)}>
+        <ModalHeader toggle={cancelForm}>
             <span class="fw-semibold"
                 >{editingId ? 'Edit Jadwal' : 'Tambah Jadwal'}</span
             >
@@ -354,18 +324,22 @@
             }}
         >
             <ModalBody>
+                <!-- Select Mata Pelajaran (HTML Select + bind:value) -->
                 <FormGroup>
                     <Label for="matpel_id" class="small fw-semibold"
                         >Mata Pelajaran</Label
                     >
-                    <Select
-                        items={matpelSelectOptions}
-                        value={form.matpel_id}
-                        placeholder="Pilih mata pelajaran…"
-                        getOptionValue={(item: SelectOption) => item.value}
-                        onchange={onMatpelChange}
+                    <select
+                        id="matpel_id"
+                        class="form-select"
+                        bind:value={form.matpel_id}
                         disabled={form.processing}
-                    />
+                    >
+                        <option value={null} disabled>Pilih mata pelajaran…</option>
+                        {#each Object.entries(matpelOptions ?? {}) as [id, name] (id)}
+                            <option value={Number(id)}>{name}</option>
+                        {/each}
+                    </select>
                     {#if form.errors.matpel_id}
                         <small class="text-danger d-block mt-1"
                             >{form.errors.matpel_id}</small
@@ -373,17 +347,20 @@
                     {/if}
                 </FormGroup>
 
+                <!-- Select Kelas (HTML Select + bind:value) -->
                 <FormGroup>
-                    <Label for="kelas_id" class="small fw-semibold">Kelas</Label
-                    >
-                    <Select
-                        items={kelasSelectOptions}
-                        value={form.kelas_id}
-                        placeholder="Pilih kelas…"
-                        getOptionValue={(item: SelectOption) => item.value}
-                        onchange={onKelasChange}
+                    <Label for="kelas_id" class="small fw-semibold">Kelas</Label>
+                    <select
+                        id="kelas_id"
+                        class="form-select"
+                        bind:value={form.kelas_id}
                         disabled={form.processing}
-                    />
+                    >
+                        <option value={null} disabled>Pilih kelas…</option>
+                        {#each Object.entries(kelasOptions ?? {}) as [id, name] (id)}
+                            <option value={Number(id)}>{name}</option>
+                        {/each}
+                    </select>
                     {#if form.errors.kelas_id}
                         <small class="text-danger d-block mt-1"
                             >{form.errors.kelas_id}</small
@@ -391,19 +368,16 @@
                     {/if}
                 </FormGroup>
 
+                <!-- Select Hari -->
                 <FormGroup>
                     <Label for="hari" class="small fw-semibold">Hari</Label>
                     <select
                         id="hari"
                         class="form-select"
-                        value={form.hari ?? ''}
-                        onchange={(e) =>
-                            onHariChange(
-                                (e.currentTarget as HTMLSelectElement).value,
-                            )}
+                        bind:value={form.hari}
                         disabled={form.processing}
                     >
-                        <option value="">Pilih hari…</option>
+                        <option value="" disabled>Pilih hari…</option>
                         {#each hariList as h (h)}
                             <option value={h}>{h}</option>
                         {/each}
@@ -415,25 +389,20 @@
                     {/if}
                 </FormGroup>
 
+                <!-- Select JP -->
                 <FormGroup>
                     <Label for="jp" class="small fw-semibold"
                         >Jam Pelajaran</Label
                     >
                     <select
-                        disabled={!!!form.hari}
+                        disabled={!form.hari || form.processing}
                         id="jp"
                         class="form-select"
-                        value={form.jp ?? ''}
-                        onchange={(e) =>
-                            onJpChange(
-                                (e.currentTarget as HTMLSelectElement).value,
-                            )}
+                        bind:value={form.jp}
                     >
-                        <option value="">Pilih JP…</option>
+                        <option value={null}>Pilih JP…</option>
                         {#each jpSelectOptions as opt (opt.value)}
-                            <option disabled={opt.disabled} value={opt.value}
-                                >{opt.label}</option
-                            >
+                            <option value={opt.value}>{opt.label}</option>
                         {/each}
                     </select>
                     {#if form.errors.jp}
@@ -445,7 +414,7 @@
 
                 <div class="alert alert-light small mb-0">
                     <i class="bi bi-info-circle me-1"></i>
-                    Setiap JP = 45 menit. Istirahat 1: 09:30-10:00, Istirahat 2: 12:00-12:30.
+                    Setiap JP menyesuaikan dengan slot waktu hari tersebut.
                 </div>
             </ModalBody>
             <ModalFooter>
@@ -453,7 +422,8 @@
                     color="secondary"
                     outline
                     size="sm"
-                    onclick={() => (modalOpen = false)}
+                    type="button"
+                    onclick={cancelForm}
                     disabled={form.processing}
                 >
                     Batal
@@ -494,18 +464,18 @@
                                         </td>
                                         <td
                                             class="lh-sm border-light-subtle border-bottom-1"
-                                            style:fontSize="5px"
+                                            style:fontSize="11px"
                                         >
                                             {item.matpel} / {item.kelas} / {item.jam_mulai}
                                             - {item.jam_selesai}
                                         </td>
                                         <td
-                                            class="text-end border-light-subtle border-bottom-1 d-flex align-items-center w-100 justify-content-end"
-                                            style="width: 60px; font-size:11px;"
+                                            class="text-end border-light-subtle border-bottom-1 d-flex align-items-center justify-content-end gap-1"
+                                            style="width: 70px;"
                                         >
                                             <button
                                                 type="button"
-                                                class="btn btn-sm py-0 btn-outline-secondary me-1"
+                                                class="btn btn-sm py-0 px-1 btn-outline-secondary"
                                                 title="Edit"
                                                 onclick={() => openEdit(item)}
                                             >
@@ -513,7 +483,7 @@
                                             </button>
                                             <button
                                                 type="button"
-                                                class="btn btn-sm py-0 btn-outline-danger"
+                                                class="btn btn-sm py-0 px-1 btn-outline-danger"
                                                 title="Hapus"
                                                 onclick={() =>
                                                     confirmDelete(item)}
