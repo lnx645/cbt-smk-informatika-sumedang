@@ -15,18 +15,16 @@ class JamPelajaran extends Model
 
     protected $casts = [
         'is_break' => 'boolean',
-        'jam_mulai' => 'datetime:H:i',
-        'jam_selesai' => 'datetime:H:i',
     ];
 
     public function getMulaiAttribute(): string
     {
-        return Carbon::parse($this->jam_mulai)->format('H:i');
+        return $this->jam_mulai ? Carbon::parse($this->jam_mulai)->format('H:i') : '';
     }
 
     public function getSelesaiAttribute(): string
     {
-        return Carbon::parse($this->jam_selesai)->format('H:i');
+        return $this->jam_selesai ? Carbon::parse($this->jam_selesai)->format('H:i') : '';
     }
 
     public function jadwalPelajarans(): HasMany

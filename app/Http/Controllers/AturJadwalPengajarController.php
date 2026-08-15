@@ -11,6 +11,7 @@ use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -53,8 +54,8 @@ class AturJadwalPengajarController extends Controller
                     'matpel_id' => $j->matpel_id,
                     'kelas' => $j->kelas->nama,
                     'kelas_id' => $j->kelas_id,
-                    'jam_mulai' => $j->jamPelajaran->mulai ?? '-',
-                    'jam_selesai' => $j->jamPelajaran->selesai ?? '-',
+                    'jam_mulai' => $j->jamPelajaran->jam_mulai ?? '-',
+                    'jam_selesai' => $j->jamPelajaran->jam_selesai ?? '-',
                     'ruangan' => $j->kelas->ruangan ?? '',
                     'color' => $this->colorForMatpel($j->matpel->name),
                 ];
@@ -64,7 +65,6 @@ class AturJadwalPengajarController extends Controller
         $matpelOptions = Matpel::pluck('name', 'id')->all();
         $kelasOptions = $this->buildLeafKelasOptions();
         $jpSlots = $this->getJpSlots();
-
         return Inertia::render('admin/AturJadwal/Index', [
             'guru' => $guruData,
             'jadwal' => $jadwalList,
@@ -80,8 +80,8 @@ class AturJadwalPengajarController extends Controller
             ->orderBy('urutan')
             ->get()
             ->mapWithKeys(fn (JamPelajaran $jp) => [$jp->id => [
-                'mulai' => $jp->mulai,
-                'selesai' => $jp->selesai,
+                'mulai' => $jp->jam_mulai,
+                'selesai' => $jp->jam_selesai,
                 'label' => $jp->label,
             ]])
             ->all();
@@ -113,19 +113,7 @@ class AturJadwalPengajarController extends Controller
     {
         Guru::findOrFail($guru_id);
 
-        $data = $this->validateJadwal($request);
-
-        if ($this->duplicateGuruMatpel($guru_id, $data['hari'], $data['matpel_id'])) {
-            Toast::error('Guru sudah mengajar mata pelajaran ini pada hari yang sama.');
-
-            return Redirect::back();
-        }
-
-        if ($this->duplicateKelasMatpel($data['kelas_id'], $data['matpel_id'])) {
-            Toast::error('Kelas sudah memiliki jadwal untuk mata pelajaran ini.');
-
-            return Redirect::back();
-        }
+        $data = $this->validateJadwal($request, $guru_id);
 
         $jpSlot = JamPelajaran::findOrFail($data['jp']);
 
@@ -151,20 +139,7 @@ class AturJadwalPengajarController extends Controller
             abort(404);
         }
 
-        $data = $this->validateJadwal($request, $jadwal->id);
-
-        if ($this->duplicateGuruMatpel($guru_id, $data['hari'], $data['matpel_id'], $jadwal->id)) {
-            Toast::error('Guru sudah mengajar mata pelajaran ini pada hari yang sama.');
-
-            return Redirect::back();
-        }
-
-        if ($this->duplicateKelasMatpel($data['kelas_id'], $data['matpel_id'], $jadwal->id)) {
-            Toast::error('Kelas sudah memiliki jadwal untuk mata pelajaran ini.');
-
-            return Redirect::back();
-        }
-
+        $data = $this->validateJadwal($request, $guru_id, $jadwal->id);
         $jpSlot = JamPelajaran::findOrFail($data['jp']);
 
         $jadwal->update([
@@ -195,39 +170,23 @@ class AturJadwalPengajarController extends Controller
         return Redirect::back();
     }
 
-    private function validateJadwal(Request $request, ?int $excludeId = null): array
+    private function validateJadwal(Request $request, string $guruId, ?int $excludeId = null): array
     {
         return $request->validate([
             'matpel_id' => ['required', 'exists:matpels,id'],
             'kelas_id' => ['required', 'exists:kelas,id'],
             'hari' => ['required', 'string'],
-            'jp' => ['required', 'integer'],
+            'jp' => [
+                'required',
+                'integer',
+                Rule::unique('jadwal_pelajarans', 'jam_pelajaran_id')
+                    ->where('guru_id', $guruId)
+                    ->where('hari', $request->hari)
+                    ->ignore($excludeId),
+            ],
+        ], [
+            'jp.unique' => 'Guru tersebut sudah memiliki jadwal mengajar pada jam dan hari yang sama.',
         ]);
-    }
-
-    private function duplicateGuruMatpel(string $guru_id, string $hari, int $matpel_id, ?int $excludeId = null): bool
-    {
-        $q = JadwalPelajaran::where('guru_id', $guru_id)
-            ->where('hari', $hari)
-            ->where('matpel_id', $matpel_id);
-
-        if ($excludeId) {
-            $q->where('id', '!=', $excludeId);
-        }
-
-        return $q->exists();
-    }
-
-    private function duplicateKelasMatpel(int $kelas_id, int $matpel_id, ?int $excludeId = null): bool
-    {
-        $q = JadwalPelajaran::where('kelas_id', $kelas_id)
-            ->where('matpel_id', $matpel_id);
-
-        if ($excludeId) {
-            $q->where('id', '!=', $excludeId);
-        }
-
-        return $q->exists();
     }
 
     private function colorForMatpel(string $matpel): string
