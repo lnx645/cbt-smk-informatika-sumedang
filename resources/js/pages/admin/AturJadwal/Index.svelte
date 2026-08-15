@@ -343,31 +343,33 @@
             {/if}
         </FormGroup>
 
-        <FormGroup>
-            <Label for="jam_mulai">Jam Mulai</Label>
-            <Input
-                id="jam_mulai"
-                type="time"
-                bind:value={form.jam_mulai}
-                invalid={!!form.errors.jam_mulai}
-            />
-            {#if form.errors.jam_mulai}
-                <small class="text-danger d-block mt-1">{form.errors.jam_mulai}</small>
-            {/if}
-        </FormGroup>
+    <FormGroup>
+        <Label for="jam_mulai">Jam Mulai</Label>
+        <Input
+            id="jam_mulai"
+            type="time"
+            bind:value={form.jam_mulai}
+            invalid={!!form.errors.jam_mulai}
+            disabled={form.processing}
+        />
+        {#if form.errors.jam_mulai}
+            <small class="text-danger d-block mt-1">{form.errors.jam_mulai}</small>
+        {/if}
+    </FormGroup>
 
-        <FormGroup>
-            <Label for="jam_selesai">Jam Selesai</Label>
-            <Input
-                id="jam_selesai"
-                type="time"
-                bind:value={form.jam_selesai}
-                invalid={!!form.errors.jam_selesai}
-            />
-            {#if form.errors.jam_selesai}
-                <small class="text-danger d-block mt-1">{form.errors.jam_selesai}</small>
-            {/if}
-        </FormGroup>
+    <FormGroup>
+        <Label for="jam_selesai">Jam Selesai</Label>
+        <Input
+            id="jam_selesai"
+            type="time"
+            bind:value={form.jam_selesai}
+            invalid={!!form.errors.jam_selesai}
+            disabled={form.processing}
+        />
+        {#if form.errors.jam_selesai}
+            <small class="text-danger d-block mt-1">{form.errors.jam_selesai}</small>
+        {/if}
+    </FormGroup>
     </ModalBody>
     <ModalFooter>
         <Button color="secondary" outline onclick={() => (modalOpen = false)} disabled={form.processing}>

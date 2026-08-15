@@ -16,9 +16,6 @@ use Inertia\Response;
 
 class AturJadwalPengajarController extends Controller
 {
-    /**
-     * Show the teaching schedule page for the given guru.
-     */
     public function index(Request $request, string $guru_id): Response
     {
         $guru = Guru::with('walikelas')->findOrFail($guru_id);
@@ -75,9 +72,6 @@ class AturJadwalPengajarController extends Controller
         ]);
     }
 
-    /**
-     * Build id => full hierarchy path for leaf classes only.
-     */
     private function buildLeafKelasOptions(): array
     {
         $all = Kelas::all(['id', 'nama', 'parent_id'])->keyBy('id');
@@ -100,30 +94,24 @@ class AturJadwalPengajarController extends Controller
         return $options;
     }
 
-    /**
-     * Store a new jadwal entry for the given guru.
-     */
     public function store(Request $request, string $guru_id): RedirectResponse
     {
         Guru::findOrFail($guru_id);
 
         $data = $this->validateJadwal($request);
 
-        // Prevent duplicate: same guru + hari + matpel
         if ($this->duplicateGuruMatpel($guru_id, $data['hari'], $data['matpel_id'])) {
             Toast::error('Guru sudah mengajar mata pelajaran ini pada hari yang sama.');
 
             return Redirect::back();
         }
 
-        // Prevent duplicate: same kelas + matpel
         if ($this->duplicateKelasMatpel($data['kelas_id'], $data['matpel_id'])) {
             Toast::error('Kelas sudah memiliki jadwal untuk mata pelajaran ini.');
 
             return Redirect::back();
         }
 
-        // Prevent schedule clash: same kelas + hari + overlapping time (other teacher)
         if (($clash = $this->timeClashKelas($data['kelas_id'], $data['hari'], $data['jam_mulai'], $data['jam_selesai'], $guru_id))) {
             Toast::error(sprintf(
                 'Jadwal bentrok: kelas %s sudah diajar oleh guru %s untuk %s pada %s, %s - %s.',
@@ -138,7 +126,6 @@ class AturJadwalPengajarController extends Controller
             return Redirect::back();
         }
 
-        // Prevent schedule clash: same guru + hari + overlapping time
         if (($clash = $this->timeClashGuru($guru_id, $data['hari'], $data['jam_mulai'], $data['jam_selesai']))) {
             Toast::error(sprintf(
                 'Jadwal bentrok: guru ini sudah mengajar kelas %s untuk %s pada %s, %s - %s.',
@@ -166,9 +153,6 @@ class AturJadwalPengajarController extends Controller
         return Redirect::back();
     }
 
-    /**
-     * Update an existing jadwal entry.
-     */
     public function update(Request $request, string $guru_id, JadwalPelajaran $jadwal): RedirectResponse
     {
         $jadwal->load('guru');
@@ -178,21 +162,18 @@ class AturJadwalPengajarController extends Controller
 
         $data = $this->validateJadwal($request, $jadwal->id);
 
-        // Prevent duplicate: same guru + hari + matpel (excluding self)
         if ($this->duplicateGuruMatpel($guru_id, $data['hari'], $data['matpel_id'], $jadwal->id)) {
             Toast::error('Guru sudah mengajar mata pelajaran ini pada hari yang sama.');
 
             return Redirect::back();
         }
 
-        // Prevent duplicate: same kelas + matpel (excluding self)
         if ($this->duplicateKelasMatpel($data['kelas_id'], $data['matpel_id'], $jadwal->id)) {
             Toast::error('Kelas sudah memiliki jadwal untuk mata pelajaran ini.');
 
             return Redirect::back();
         }
 
-        // Prevent schedule clash: same kelas + hari + overlapping time (other teacher)
         if (($clash = $this->timeClashKelas($data['kelas_id'], $data['hari'], $data['jam_mulai'], $data['jam_selesai'], $guru_id, $jadwal->id))) {
             Toast::error(sprintf(
                 'Jadwal bentrok: kelas %s sudah diajar oleh guru %s untuk %s pada %s, %s - %s.',
@@ -207,7 +188,6 @@ class AturJadwalPengajarController extends Controller
             return Redirect::back();
         }
 
-        // Prevent schedule clash: same guru + hari + overlapping time
         if (($clash = $this->timeClashGuru($guru_id, $data['hari'], $data['jam_mulai'], $data['jam_selesai'], $jadwal->id))) {
             Toast::error(sprintf(
                 'Jadwal bentrok: guru ini sudah mengajar kelas %s untuk %s pada %s, %s - %s.',
@@ -234,9 +214,6 @@ class AturJadwalPengajarController extends Controller
         return Redirect::back();
     }
 
-    /**
-     * Delete a jadwal entry.
-     */
     public function destroy(string $guru_id, JadwalPelajaran $jadwal): RedirectResponse
     {
         $jadwal->load('guru');
@@ -251,9 +228,6 @@ class AturJadwalPengajarController extends Controller
         return Redirect::back();
     }
 
-    /**
-     * Shared validation for store and update.
-     */
     private function validateJadwal(Request $request, ?int $excludeId = null): array
     {
         return $request->validate([
@@ -265,9 +239,6 @@ class AturJadwalPengajarController extends Controller
         ]);
     }
 
-    /**
-     * Check if the same guru already teaches the same matpel on the same hari.
-     */
     private function duplicateGuruMatpel(string $guru_id, string $hari, int $matpel_id, ?int $excludeId = null): bool
     {
         $q = JadwalPelajaran::where('guru_id', $guru_id)
@@ -281,9 +252,6 @@ class AturJadwalPengajarController extends Controller
         return $q->exists();
     }
 
-    /**
-     * Check if the same kelas already has the same matpel scheduled.
-     */
     private function duplicateKelasMatpel(int $kelas_id, int $matpel_id, ?int $excludeId = null): bool
     {
         $q = JadwalPelajaran::where('kelas_id', $kelas_id)
@@ -296,10 +264,6 @@ class AturJadwalPengajarController extends Controller
         return $q->exists();
     }
 
-    /**
-     * Check for overlapping time slots for a given kelas on a given hari
-     * where a *different* guru is already teaching.
-     */
     private function timeClashKelas(int $kelas_id, string $hari, string $jamMulai, string $jamSelesai, string $guru_id, ?int $excludeId = null): ?JadwalPelajaran
     {
         $q = JadwalPelajaran::with(['guru', 'matpel', 'kelas'])
@@ -316,9 +280,6 @@ class AturJadwalPengajarController extends Controller
         return $q->first();
     }
 
-    /**
-     * Check for overlapping time slots for the same guru.
-     */
     private function timeClashGuru(string $guru_id, string $hari, string $jamMulai, string $jamSelesai, ?int $excludeId = null): ?JadwalPelajaran
     {
         $q = JadwalPelajaran::with(['guru', 'matpel', 'kelas'])
@@ -334,9 +295,6 @@ class AturJadwalPengajarController extends Controller
         return $q->first();
     }
 
-    /**
-     * Stable color per subject name for the legend.
-     */
     private function colorForMatpel(string $matpel): string
     {
         $colors = ['primary', 'info', 'success', 'warning', 'danger', 'secondary'];
