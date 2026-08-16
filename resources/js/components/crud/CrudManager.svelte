@@ -22,7 +22,7 @@
     import { confirm } from '@/lib/confirm.svelte';
     import type { RouteDefinition } from '@/wayfinder';
 
-    type CrudItem = Record<string, unknown> & { id: number };
+    type CrudItem = Record<string, unknown> & { id: number | string };
 
     export type CrudColumn = {
         key: string;

@@ -13,6 +13,7 @@
     import TahunAjaranController from '@/actions/App/Http/Controllers/Admin/TahunAjaranController';
     import KelasController from '@/actions/App/Http/Controllers/Admin/KelasController';
     import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
+    import SiswaController from '@/actions/App/Http/Controllers/Admin/SiswaController';
 
     let {
         children,
@@ -45,10 +46,9 @@
                     badge: '482',
                 },
                 {
-                    href: '/manage/modul',
+                    href: SiswaController.index().url,
                     label: 'Peserta Didik',
                     icon: 'bi-mortarboard-fill',
-                    badge: '24',
                 },
                 {
                     href: '/manage/ujian',

@@ -8,3 +8,4 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Http/Controllers/** | .ai/rules/controllers.md |
 | resources/js/layouts/AppShellLayout.svelte | .ai/rules/layouts.md |
 | resources/scss/** | .ai/rules/scss.md |
+| resources/js/pages/admin/Siswa/** | .ai/rules/siswa.md |
