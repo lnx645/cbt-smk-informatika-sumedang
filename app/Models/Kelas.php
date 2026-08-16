@@ -40,4 +40,9 @@ class Kelas extends Model
     {
         return $this->belongsTo(Jurusan::class);
     }
+
+    public function guruKelas(): HasMany
+    {
+        return $this->hasMany(GuruKelas::class);
+    }
 }

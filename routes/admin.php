@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AkunGuruController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\GuruKelasController;
 use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\MatpelController;
@@ -31,3 +33,14 @@ Route::put('matpel/{matpel}', [MatpelController::class, 'update'])->name('matpel
 Route::delete('matpel/{matpel}', [MatpelController::class, 'destroy'])->name('matpel.destroy');
 
 Route::resource('pengajar', PengajarController::class)->except(['create', 'edit', 'show']);
+
+Route::get('pengajar/{guru}/akun', [AkunGuruController::class, 'show'])->name('pengajar.akun');
+
+Route::post('pengajar/{guru}/akun', [AkunGuruController::class, 'store'])->name('pengajar.akun.store');
+
+Route::put('pengajar/{guru}/akun', [AkunGuruController::class, 'update'])->name('pengajar.akun.update');
+
+Route::delete('pengajar/{guru}/akun', [AkunGuruController::class, 'destroy'])->name('pengajar.akun.destroy');
+
+
+Route::get('pengajar/{guru}/guru-kelas', GuruKelasController::class)->name('pengajar.guru-kelas');

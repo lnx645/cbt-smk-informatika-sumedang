@@ -1,11 +1,14 @@
 <script lang="ts">
-import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
-import CrudManager from '@/components/crud/CrudManager.svelte';
-import type {
-    CrudColumn,
-    CrudField,
-} from '@/components/crud/CrudManager.svelte';
-import { Badge, Button } from '@sveltestrap/sveltestrap';
+    import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
+    import AkunGuruController from '@/actions/App/Http/Controllers/Admin/AkunGuruController';
+    import CrudManager from '@/components/crud/CrudManager.svelte';
+    import type {
+        CrudColumn,
+        CrudField,
+    } from '@/components/crud/CrudManager.svelte';
+    import { Badge, Button } from '@sveltestrap/sveltestrap';
+    import { router } from '@inertiajs/svelte';
+    import PlotingPengajarController from '@/actions/App/Http/Controllers/Admin/PlotingPengajarController';
     let fields: CrudField[] = [
         {
             name: 'nama_lengkap',
@@ -62,10 +65,7 @@ import { Badge, Button } from '@sveltestrap/sveltestrap';
             key: 'jenis_kelamin',
             label: 'Jenis Kelamin',
         },
-        {
-            key: 'pendidikan_terakhir',
-            label: 'Pendidikan',
-        },
+       
         {
             key: 'walikelas',
             label: 'Wali Kelas',
@@ -156,6 +156,30 @@ import { Badge, Button } from '@sveltestrap/sveltestrap';
                 { value: '1', label: 'Wali Kelas' },
                 { value: '0', label: 'Bukan Wali Kelas' },
             ],
+        },
+    ]}
+    actions={[
+        {
+            key: 'akun',
+            label: 'Atur Akun',
+            icon: 'bi-person-gear',
+            size: 'sm',
+            onClick(item) {
+                router.visit(
+                    AkunGuruController.show({ guru: item?.id as number }).url,
+                );
+            },
+        },
+        {
+            key: 'plotting_kelas',
+            label: 'Ploting Pengajar',
+            icon: 'bi-person-plus',
+            size: 'sm',
+            onClick(item) {
+                router.visit(
+                    PlotingPengajarController({ guru: item?.id as number }).url,
+                );
+            },
         },
     ]}
     {fields}

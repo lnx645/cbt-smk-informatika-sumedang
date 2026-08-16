@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Table('tahun_ajaran')]
 #[Fillable(['name', 'active'])]
@@ -22,5 +23,10 @@ class TahunAjaran extends Model
     public function scopeActive($query)
     {
         return $query->where('active', true);
+    }
+
+    public function guruKelas(): HasMany
+    {
+        return $this->hasMany(GuruKelas::class);
     }
 }
