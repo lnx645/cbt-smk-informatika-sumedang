@@ -33,3 +33,4 @@ Route::post('pengajar/{guru}/akun', [AkunGuruController::class, 'store'])->name(
 Route::put('pengajar/{guru}/akun', [AkunGuruController::class, 'update'])->name('pengajar.akun.update');
 Route::delete('pengajar/{guru}/akun', [AkunGuruController::class, 'destroy'])->name('pengajar.akun.destroy');
 Route::get('pengajar/{guru}/penugasan', GuruKelasController::class)->name('pengajar.guru-kelas');
+Route::post("pengajar/{guru}/penugasan", [GuruKelasController::class, "store"])->name("pengajar.guru.save-penugasan");
