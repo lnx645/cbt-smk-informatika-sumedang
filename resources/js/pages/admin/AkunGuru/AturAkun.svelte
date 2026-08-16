@@ -10,6 +10,7 @@
     } from '@sveltestrap/sveltestrap';
     import AkunGuruController from '@/actions/App/Http/Controllers/Admin/AkunGuruController';
     import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
+    import PageHeader from '@/components/PageHeader.svelte';
 
     type Guru = {
         id: number;
@@ -74,17 +75,11 @@
 </script>
 
 <div class="container-fluid py-4">
-    <div
-        class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-3"
+    <PageHeader
+        title="Atur Akun Guru"
+        subtitle={`Kelola akun pengguna untuk ${guru?.nama_lengkap ?? '-'}`}
     >
-        <div>
-            <h5 class="fw-semibold mb-0 text-body">Atur Akun Guru</h5>
-            <p class="text-secondary mb-0 small">
-                Kelola akun pengguna untuk
-                <b>{guru?.nama_lengkap ?? '-'}</b>
-            </p>
-        </div>
-        <div class="d-flex align-items-center gap-2">
+        {#snippet actions()}
             {#if user}
                 <Button color="danger" size="sm" onclick={handleDelete}>
                     <i class="bi bi-trash me-1"></i> Hapus Akun
@@ -99,8 +94,8 @@
                 <i class="bi {isCreating ? 'bi-plus-lg' : 'bi-save'} me-1"></i>
                 {isCreating ? 'Buat Akun' : 'Simpan Perubahan'}
             </Button>
-        </div>
-    </div>
+        {/snippet}
+    </PageHeader>
 
     {#if guru}
         <div class="card border rounded-1 shadow-sm mb-3 p-3">

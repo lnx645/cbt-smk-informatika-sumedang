@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['nip', 'nama_lengkap', 'pendidikan_terakhir', 'jenis_kelamin', 'alamat', 'foto_profil', 'is_aktif'])]
@@ -38,5 +39,18 @@ class Guru extends Model
     public function guruKelas(): HasMany
     {
         return $this->hasMany(GuruKelas::class);
+    }
+    // Di dalam model Guru.php
+
+    public function mengajar(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Kelas::class,
+            GuruKelas::class,
+            'guru_id',
+            'id',
+            'id',
+            'kelas_id'
+        );
     }
 }

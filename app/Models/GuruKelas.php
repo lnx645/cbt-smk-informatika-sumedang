@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\GuruKelasFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GuruKelas extends Model
 {
-    /** @use HasFactory<\Database\Factories\GuruKelasFactory> */
+    /** @use HasFactory<GuruKelasFactory> */
     use HasFactory;
 
     protected $table = 'guru_kelas';
@@ -16,6 +17,7 @@ class GuruKelas extends Model
     protected $fillable = [
         'guru_id',
         'kelas_id',
+        'matpel_id',
         'tahun_ajaran_id',
         'aktif',
         'kode_undangan',
@@ -37,6 +39,11 @@ class GuruKelas extends Model
     public function kelas(): BelongsTo
     {
         return $this->belongsTo(Kelas::class);
+    }
+
+    public function matpel(): BelongsTo
+    {
+        return $this->belongsTo(Matpel::class);
     }
 
     public function tahunAjaran(): BelongsTo

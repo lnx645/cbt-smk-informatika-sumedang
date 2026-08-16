@@ -6,9 +6,9 @@
         CrudColumn,
         CrudField,
     } from '@/components/crud/CrudManager.svelte';
-    import { Badge, Button } from '@sveltestrap/sveltestrap';
+    import { Badge } from '@sveltestrap/sveltestrap';
     import { router } from '@inertiajs/svelte';
-    import PlotingPengajarController from '@/actions/App/Http/Controllers/Admin/PlotingPengajarController';
+    import PlotingPengajarController from '@/actions/App/Http/Controllers/Admin/GuruKelasController';
     let fields: CrudField[] = [
         {
             name: 'nama_lengkap',
@@ -65,7 +65,7 @@
             key: 'jenis_kelamin',
             label: 'Jenis Kelamin',
         },
-       
+
         {
             key: 'walikelas',
             label: 'Wali Kelas',
