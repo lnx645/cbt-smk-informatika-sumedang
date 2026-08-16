@@ -1,13 +1,15 @@
 <script lang="ts">
     import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
+    import AkunGuruController from '@/actions/App/Http/Controllers/Admin/AkunGuruController';
     import CrudManager from '@/components/crud/CrudManager.svelte';
     import type {
         CrudColumn,
         CrudField,
     } from '@/components/crud/CrudManager.svelte';
-    import { Badge, Button } from '@sveltestrap/sveltestrap';
+    import { Badge } from '@sveltestrap/sveltestrap';
     import { router } from '@inertiajs/svelte';
-    import AturJadwalPengajarController from '@/actions/App/Http/Controllers/Admin/AturJadwalPengajarController';
+    import PlotingPengajarController from '@/actions/App/Http/Controllers/Admin/GuruKelasController';
+    import GuruKelasController from '@/actions/App/Http/Controllers/Admin/GuruKelasController';
     let fields: CrudField[] = [
         {
             name: 'nama_lengkap',
@@ -64,10 +66,7 @@
             key: 'jenis_kelamin',
             label: 'Jenis Kelamin',
         },
-        {
-            key: 'pendidikan_terakhir',
-            label: 'Pendidikan',
-        },
+
         {
             key: 'walikelas',
             label: 'Wali Kelas',
@@ -110,21 +109,6 @@
     title="Pengajar"
     {columns}
     {items}
-    actions={[
-        {
-            key: 'atur_jadwal',
-            label: 'Atur Jadwal',
-            icon: 'bi-users',
-            size: 'sm',
-             onClick(item) {
-                 router.visit(
-                     AturJadwalPengajarController.index({
-                         guru_id: item?.id as any,
-                     }).url,
-                 );
-             },
-        },
-    ]}
     subtitle="Kelola Pengajar Disini / Guru"
     controller={PengajarController}
     createLabel="Tambah"
@@ -173,6 +157,34 @@
                 { value: '1', label: 'Wali Kelas' },
                 { value: '0', label: 'Bukan Wali Kelas' },
             ],
+        },
+    ]}
+    actions={[
+        {
+            key: 'akun',
+            label: 'Atur Akun',
+            icon: 'bi-person-gear',
+            size: 'sm',
+            onClick(item) {
+                router.visit(
+                    AkunGuruController.show({
+                        guru: item?.id as number,
+                    }).url,
+                );
+            },
+        },
+        {
+            key: 'plotting_kelas',
+            label: 'Ploting Pengajar',
+            icon: 'bi-person-plus',
+            size: 'sm',
+            onClick(item) {
+                router.visit(
+                    GuruKelasController.index({
+                        guru: item?.id as number,
+                    }).url,
+                );
+            },
         },
     ]}
     {fields}

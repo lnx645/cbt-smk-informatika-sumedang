@@ -13,23 +13,23 @@
 // tidak dideklarasikan).
 // ══════════════════════════════════════
 :root {
-    // ── Brand / Semantic ──
-    --color-primary: #0091d4; // Biru Muda Tut Wuri
-    --color-secondary: #64748b; // Slate 500
-    --color-accent: #fdd406; // Kuning Emas Tut Wuri
+    // ── Brand / Semantic (Anthropic / Claude — exact) ──
+    --color-primary: #D97757; // Clay (primary)
+    --color-secondary: #5E5D59; // Slate Light
+    --color-accent: #D4A27F; // Kraft (warm accent)
 
-    // ── Text ──
+    // ── Text (Anthropic Slate ramp) ──
     --color-text-on-primary: #ffffff;
-    --color-text-primary: #334155; // Slate 700 (heading)
-    --color-text-secondary: #64748b; // Slate 500 (body)
-    --color-text-muted: #64748b;
+    --color-text-primary: #141413; // Slate Dark (heading)
+    --color-text-secondary: #3D3D3A; // Slate Medium (body)
+    --color-text-muted: #5E5D59; // Slate Light
 
-    // ── Surfaces & Structure ──
-    --color-bg: #f6f8fb; // App background
+    // ── Surfaces & Structure (Anthropic Ivory/Cloud ramp) ──
+    --color-bg: #FAF9F5; // Ivory Light (canvas)
     --color-bg-card: #ffffff; // Card surface
-    --color-bg-overlay: #e2e8f0; // Muted surface (gray-200)
-    --color-border: #cbd5e1; // gray-300
-    --color-divider: #e2e8f0; // gray-200
+    --color-bg-overlay: #E8E6DC; // Ivory Dark (muted surface)
+    --color-border: #E8E6DC; // Ivory Dark (border)
+    --color-divider: #F0EEE6; // Ivory Medium (divider)
 
     // ── Font Families ──
     --font-heading: Invitnesia;

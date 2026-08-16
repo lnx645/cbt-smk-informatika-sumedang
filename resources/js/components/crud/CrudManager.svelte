@@ -16,6 +16,7 @@
         Badge,
     } from '@sveltestrap/sveltestrap';
     import AppHead from '@/components/AppHead.svelte';
+    import PageHeader from '@/components/PageHeader.svelte';
     import Select from '@/components/Select.svelte';
     import Pagination from '@/components/Pagination.svelte';
     import { confirm } from '@/lib/confirm.svelte';
@@ -307,16 +308,8 @@
 
 <AppHead {title} />
 
-<div
-    class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 flex-wrap gap-2"
->
-    <div>
-        <h1 class="h4 mb-1 fw-semibold">{title}</h1>
-        {#if subtitle}
-            <p class="text-muted mb-0 small">{subtitle}</p>
-        {/if}
-    </div>
-    <div class="d-flex align-items-center gap-2 flex-wrap">
+<PageHeader {title} {subtitle}>
+    {#snippet actions()}
         {#each toolbarActions as act (act.key)}
             <Button
                 color={act.color ?? 'light'}
@@ -337,8 +330,8 @@
             <i class="bi bi-plus-lg"></i>
             {createLabel}
         </Button>
-    </div>
-</div>
+    {/snippet}
+</PageHeader>
 
 {#if searchable || filters.length > 0}
     <div class="crud-filterbar d-flex flex-wrap align-items-center gap-2 mb-3">
@@ -668,7 +661,7 @@
     .crud-table thead th {
         background: var(--bs-gray-100);
         font-weight: 600;
-        color: #6c757d;
+        color: #5E5D59;
         text-transform: capitalize;
         letter-spacing: 0.03em;
         font-size: 0.75rem;
@@ -719,7 +712,7 @@
     }
 
     .crud-filterbar .crud-reset {
-        color: #6c757d;
+        color: #5E5D59;
     }
 
     .crud-checkbox {
@@ -731,7 +724,7 @@
     .crud-checkbox__label {
         margin-bottom: 0;
         font-weight: 500;
-        color: #495057;
+        color: #3D3D3A;
         cursor: pointer;
     }
 
@@ -741,14 +734,14 @@
         height: 20px;
         border-radius: 999px;
         border: none;
-        background: #ced4da;
+        background: #D1CFC5;
         cursor: pointer;
         padding: 0;
         transition: background 0.2s ease;
     }
 
     .crud-toggle__track.is-on {
-        background: #198754;
+        background: #788C5D;
     }
 
     .crud-toggle__track:disabled {

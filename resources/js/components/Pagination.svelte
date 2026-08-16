@@ -98,21 +98,21 @@
 <style>
     .crud-pagination {
         padding: 0.75rem 1rem;
-        border-top: 1px solid #eaedf1;
+        border-top: 1px solid #E8E6DC;
         background: #fff;
     }
 
     .crud-pagination-list .page-link {
         border-radius: 8px;
         margin: 0 2px;
-        color: #475569;
-        border-color: #e9ecef;
+        color: #5E5D59;
+        border-color: #E8E6DC;
         min-width: 34px;
         text-align: center;
     }
 
     .crud-pagination-list .page-link:hover {
-        background: #f1f5f9;
+        background: #F0EEE6;
     }
 
     .crud-pagination-list .page-item.active .page-link {
@@ -126,6 +126,6 @@
     }
 
     .crud-pagination-list .page-item.disabled .page-link {
-        color: #adb5bd;
+        color: #B0AEA5;
     }
 </style>

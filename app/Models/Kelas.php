@@ -40,7 +40,9 @@ class Kelas extends Model
     {
         return $this->belongsTo(Jurusan::class);
     }
-    public function jadwal(){
-        return $this->hasMany(JadwalPelajaran::class);
+
+    public function guruKelas(): HasMany
+    {
+        return $this->hasMany(GuruKelas::class);
     }
 }

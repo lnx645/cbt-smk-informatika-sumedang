@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Matpel;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,8 +12,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('jadwal_pelajarans', function (Blueprint $table) {
-            $table->string('hari')->after('kelas_id')->default('Senin');
+        Schema::table('guru_kelas', function (Blueprint $table) {
+            $table->foreignIdFor(Matpel::class)->nullable()->constrained('matpels')->cascadeOnUpdate()->nullOnDelete()->after('kelas_id');
         });
     }
 
@@ -21,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('jadwal_pelajarans', function (Blueprint $table) {
-            $table->dropColumn('hari');
+        Schema::table('guru_kelas', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('matpel_id');
         });
     }
 };

@@ -8,6 +8,7 @@
         DropdownItem,
     } from '@sveltestrap/sveltestrap';
     import type { Snippet } from 'svelte';
+    import { onMount } from 'svelte';
     import { Toaster } from 'svelte-sonner';
     import { inertia, page, router } from '@inertiajs/svelte';
     import '@/styles/modules/app-shell-layout.scss';
@@ -61,9 +62,68 @@
     } = $props();
 
     let sidebarOpen = $state(false);
+    let sidebarCollapsed = $state(false);
+    let hoverExpand = $state(false);
+    let isDesktop = $state(false);
+    let hoverLeaveTimer: ReturnType<typeof setTimeout> | null = null;
+
+    onMount(() => {
+        sidebarCollapsed =
+            localStorage.getItem('app-sidebar-collapsed') === 'true';
+
+        const mq = window.matchMedia('(min-width: 992px)');
+        isDesktop = mq.matches;
+        const handler = (event: MediaQueryListEvent) => {
+            isDesktop = event.matches;
+        };
+        mq.addEventListener('change', handler);
+
+        return () => mq.removeEventListener('change', handler);
+    });
+
+    $effect(() => {
+        localStorage.setItem('app-sidebar-collapsed', String(sidebarCollapsed));
+    });
 
     function toggleSidebar() {
         sidebarOpen = !sidebarOpen;
+    }
+
+    function toggleSidebarCollapse() {
+        sidebarCollapsed = !sidebarCollapsed;
+    }
+
+    let sidebarMini = $derived(sidebarCollapsed && !hoverExpand);
+
+    function openSidebarHover() {
+        if (!isDesktop) {
+            return;
+        }
+
+        if (hoverLeaveTimer) {
+            clearTimeout(hoverLeaveTimer);
+        }
+
+        hoverExpand = true;
+    }
+
+    function scheduleCollapse() {
+        if (!isDesktop) {
+            return;
+        }
+
+        if (hoverLeaveTimer) {
+            clearTimeout(hoverLeaveTimer);
+        }
+
+        hoverLeaveTimer = setTimeout(() => {
+            hoverExpand = false;
+            hoverLeaveTimer = null;
+        }, 180);
+    }
+
+    function navigate() {
+        sidebarOpen = false;
     }
 
     function normalizeUrl(url: string): string {
@@ -133,7 +193,8 @@
     }
 
     function logout() {
-        router.post(AuthenticatedSessionController.destroy(),
+        router.post(
+            AuthenticatedSessionController.destroy(),
             {},
             {
                 onFinish: () => {
@@ -160,7 +221,11 @@
 
 <div class="app-shell">
     <!-- Sidebar -->
-    <aside class={`app-shell__sidebar ${sidebarOpen ? 'open' : ''}`}>
+    <aside
+        class={`app-shell__sidebar ${sidebarOpen ? 'open' : ''} ${sidebarMini ? 'collapsed' : ''} ${hoverExpand ? 'app-shell__sidebar--hover' : ''}`}
+        onmouseenter={openSidebarHover}
+        onmouseleave={scheduleCollapse}
+    >
         <div class="app-shell__brand">
             <div class="app-shell__brand-badge">
                 {#if brandIconNode}
@@ -179,6 +244,8 @@
             <a
                 use:inertia={{ prefetch: true }}
                 href={entry.href}
+                title={entry.label}
+                onclick={navigate}
                 class={`app-shell__nav-item ${subitem ? 'app-shell__nav-subitem' : ''} ${isActive(entry.href ?? '') ? 'active' : ''}`}
                 aria-current={isActive(entry.href ?? '') ? 'page' : undefined}
             >
@@ -200,6 +267,7 @@
                 {:else if item.children?.length}
                     <button
                         type="button"
+                        title={item.label}
                         class={`app-shell__nav-item app-shell__nav-group ${openGroups[item.label] ? 'is-open' : ''}`}
                         onclick={() => toggleGroup(item.label)}
                         aria-expanded={openGroups[item.label]}
@@ -235,6 +303,7 @@
         <div class="app-shell__sidebar-footer">
             <button
                 type="button"
+                title="Keluar Sesi"
                 class={`app-shell__nav-item app-shell__nav-item--danger`}
                 onclick={logout}
             >
@@ -261,6 +330,22 @@
                     aria-label="Buka menu navigasi"
                 >
                     <i class="bi bi-list"></i>
+                </button>
+                <button
+                    class={`app-shell__collapse-toggle ${sidebarCollapsed ? 'is-active' : ''}`}
+                    onclick={toggleSidebarCollapse}
+                    onmouseenter={openSidebarHover}
+                    onmouseleave={scheduleCollapse}
+                    aria-label={sidebarCollapsed
+                        ? 'Perlihatkan bilah sisi'
+                        : 'Ciutkan bilah sisi'}
+                    title={sidebarCollapsed
+                        ? 'Perlihatkan bilah sisi'
+                        : 'Ciutkan bilah sisi'}
+                >
+                    <i
+                        class={`bi ${sidebarCollapsed ? 'bi-chevron-right' : 'bi-chevron-left'}`}
+                    ></i>
                 </button>
                 <div class="app-shell__header-title-wrapper">
                     <h1 class="app-shell__header-title">{title}</h1>
@@ -309,7 +394,6 @@
                     >
                         <!-- Bagian Header Dropdown (Biru) -->
                         <div class="app-shell__menu-profile-header">
-                            
                             <div class="app-shell__menu-profile-text">
                                 <div class="app-shell__menu-profile-name">
                                     {user.name}
@@ -332,7 +416,10 @@
                                 use:inertia
                                 href={user.homeHref ?? '/'}
                                 class="app-shell__custom-dropdown-item"
-                                onclick={() => (userMenuOpen = false)}
+                                onclick={() => {
+                                    userMenuOpen = false;
+                                    navigate();
+                                }}
                             >
                                 <i class="bi bi-house-door"></i>
                                 <span>Beranda</span>
