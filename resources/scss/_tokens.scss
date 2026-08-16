@@ -1,90 +1,100 @@
 // ==========================================
-// IFSU CBT DESIGN SYSTEM - DESIGN TOKENS
-// Tut Wuri Handayani — Kemendikbud Official Palette
-// Single Source of Truth — Zero Redundancy
+// IFSU CBT DESIGN SYSTEM — DESIGN TOKENS
+// Anthropic / Claude color system
+// Exact brand values captured from live anthropic.com
 // ==========================================
 //
-// Warna mengacu pada spesifikasi resmi Lambang Tut Wuri Handayani
-// (Kepmendikbud No. 0398/M/1977):
-//   - Biru Muda #0091D4 = bidang segi lima (primary)
-//   - Kuning Emas #FDD406 = nyala api (accent)
-//   - Putih #FEFEFE = ekor & sayap garuda, buku
-// Slate/Green/Amber/Rose/Teal tetap dipakai untuk teks & status semantik.
+// Palet resmi Anthropic / Claude (brand-atoms.com, dari anthropic.com live):
+//   - Canvas / Ivory Light  #FAF9F5 = latar aplikasi (warm paper)
+//   - Clay                  #D97757 = aksen/sekunder (Claude signature warm terracotta)
+//   - Accent                #C6613F = hover/primer yang lebih gelap
+//   - Slate Dark            #141413 = teks utama (ink)
+//   - Slate Medium          #3D3D3A = teks sekunder / body
+//   - Slate Light           #5E5D59 = teks teritori / muted
+//   - Olive                 #788C5D = sukses
+//   - Cactus                #BCD1CA = info
+//   - Kraft                 #D4A27F = peringatan
+//   - Fig                   #C46686 = error
+//   - Sky                   #6A9BCC = aksen biru utilitas
+//   - Cloud                 #B0AEA5 / #87867F / #D1CFC5 = netral abu-abu
+//
 
 // ── 2a. Raw Color Scales (Atomic Tokens) ───────────
 $white: #ffffff;
+$black: #000000;
 
-// Blue (Primary) — Tut Wuri Biru Muda (official Kemendikbud)
-$blue-50: #e6f4fb; // Tint sangat muda
-$blue-100: #c9e8f7; // Tint muda
-$blue-400: #2fa5dc; // Aksen lebih terang
-$blue-500: #0091d4; // PRIMARY — Biru Muda Tut Wuri
-$blue-700: #006fa5; // Bayangan lebih gelap utk hover/teks
+// Clay (Primary) — Claude signature warm terracotta
+$blue-50: tint-color(#D97757, 92%);
+$blue-100: tint-color(#D97757, 80%);
+$blue-400: tint-color(#D97757, 25%);
+$blue-500: #D97757; // PRIMARY — Claude Clay (exact)
+$blue-700: #C6613F; // Primary-hover — Anthropic Accent (exact)
 
-// Slate (Cool Neutral — Teks & Permukaan)
-$slate-50: #f8fafc;
-$slate-100: #f1f5f9; // App background netral sejuk
-$slate-400: #94a3b8;
-$slate-500: #64748b; // Secondary text & Subheaders
-$slate-700: #334155; // Primary Body / Heading Text
+// Slate (Netral teks & permukaan — semua nilai exak Anthropic)
+$slate-50: #FAF9F5; // Ivory Light (canvas)
+$slate-100: #F0EEE6; // Ivory Medium (surface)
+$slate-400: #87867F; // Cloud Dark (muted)
+$slate-500: #5E5D59; // Slate Light (text-tertiary)
+$slate-700: #3D3D3A; // Slate Medium (text-secondary / body)
+$slate-900: #141413; // Slate Dark (text-primary / ink)
 
-// Sky (Accent — aksen biru muda)
-$sky-50: #f0f9ff;
-$sky-100: #e0f2fe;
-$sky-400: #38bdf8;
-$sky-500: #0ea5e9;
-$sky-700: #0369a1;
+// Sky (Aksen biru utilitas)
+$sky-50: tint-color(#6A9BCC, 90%);
+$sky-100: tint-color(#6A9BCC, 70%);
+$sky-400: tint-color(#6A9BCC, 25%);
+$sky-500: #6A9BCC; // Anthropic Sky (exact)
+$sky-700: #4A7DB8;
 
-// Green (Success / Status Aktif)
-$green-50: #eaf6ee;
-$green-100: #d2ecda;
-$green-300: #5db980;
-$green-400: #3fae66;
-$green-500: #3a9d5c;
-$green-700: #2c7a47;
-$green-800: #1f5c35;
+// Green (Success — Olive)
+$green-50: tint-color(#788C5D, 90%);
+$green-100: tint-color(#788C5D, 75%);
+$green-300: tint-color(#788C5D, 35%);
+$green-400: #788C5D; // Anthropic Olive (exact)
+$green-500: #6B7F4F;
+$green-700: #5A6A3F;
+$green-800: #4A5632;
 
-// Amber (Warning / Menunggu Review)
-$amber-50: #fdf5e3;
-$amber-100: #faeac3;
-$amber-400: #e8b93e;
-$amber-500: #d19c2a;
-$amber-700: #9a7020;
+// Amber (Warning — Kraft)
+$amber-50: tint-color(#D4A27F, 90%);
+$amber-100: tint-color(#D4A27F, 75%);
+$amber-400: #D4A27F; // Anthropic Kraft (exact)
+$amber-500: #B88766;
+$amber-700: #9A6C4F;
 
-// Rose (Danger / Alert)
-$rose-50: #fbeded;
-$rose-100: #f6dcda;
-$rose-400: #d97a70;
-$rose-500: #c25c52;
-$rose-700: #9c453d;
+// Rose (Danger — Fig)
+$rose-50: tint-color(#C46686, 90%);
+$rose-100: tint-color(#C46686, 75%);
+$rose-400: #C46686; // Anthropic Fig (exact)
+$rose-500: #A64B70;
+$rose-700: #8A3A5B;
 
-// Teal (Info / Bantuan — tenang & terpercaya)
-$teal-50: #eaf3f2;
-$teal-100: #d3e7e5;
-$teal-400: #5aa49e;
-$teal-500: #3e8a84;
-$teal-700: #2c645f;
+// Teal (Info — Cactus)
+$teal-50: tint-color(#BCD1CA, 90%);
+$teal-100: tint-color(#BCD1CA, 75%);
+$teal-400: #BCD1CA; // Anthropic Cactus (exact)
+$teal-500: #9AAEAA;
+$teal-700: #7B8E8A;
 
-// Gray (Border & Struktur — sejuk)
-$gray-100: #f1f5f9;
-$gray-200: #e2e8f0;
-$gray-300: #cbd5e1; // Standard Card / Panel Border
-$gray-400: #94a3b8;
-$gray-500: #64748b;
-$gray-600: #475569;
-$gray-700: #334155;
-$gray-800: #1e293b;
-$gray-900: #0f172a;
+// Gray (Struktur & batas — ramp netral hangat exak Anthropic)
+$gray-100: #FAF9F5; // Ivory Light
+$gray-200: #F0EEE6; // Ivory Medium
+$gray-300: #E8E6DC; // Ivory Dark (border)
+$gray-400: #D1CFC5; // Cloud Light
+$gray-500: #B0AEA5; // Cloud Medium
+$gray-600: #87867F; // Cloud Dark
+$gray-700: #5E5D59; // Slate Light
+$gray-800: #3D3D3A; // Slate Medium
+$gray-900: #141413; // Slate Dark
 
-$light-bg: #f6f8fb; // Latar aplikasi biru muda sangat lembut
+$light-bg: #FAF9F5; // Canvas — Anthropic Ivory Light (exact)
 
 // ── 2b. Semantic Colors ───────────────────────────
-$primary: $blue-500;
-$secondary: $slate-500;
-$success: $green-400;
-$info: $teal-400;
-$warning: $amber-400;
-$danger: $rose-400;
+$primary: $blue-500; // Clay
+$secondary: $slate-500; // Slate Light
+$success: $green-400; // Olive
+$info: $teal-400; // Cactus
+$warning: $amber-400; // Kraft
+$danger: $rose-400; // Fig
 
 $primary-50: $blue-50;
 $primary-100: $blue-100;
@@ -125,20 +135,20 @@ $danger-700: $rose-700;
 $light: $light-bg;
 $dark: $gray-800;
 
-// ── 2c. Brand Colors (Tut Wuri Handayani) ────────
-$tutwuri-blue: #0091d4; // Biru Muda
-$tutwuri-gold: #fdd406; // Kuning Emas
-$tutwuri-white: #fefefe; // Putih
-$brand-chat: $sky-500;
-$brand-sign: $blue-500;
+// ── 2c. Brand Colors (Anthropic / Claude) ────────
+$tutwuri-blue: #D97757; // Clay — primadewi (sekarang primary brand)
+$tutwuri-gold: #D4A27F; // Kraft — aksen hangat (pengganti emas)
+$tutwuri-white: #FAF9F5; // Ivory Light — putih brand
+$brand-chat: $sky-500; // #6A9BCC
+$brand-sign: $blue-500; // Clay
 $brand-flex: #9c6242;
 $brand-capital: #33665e;
 $brand-expense: #4a3f7a;
 $brand-university: $tutwuri-blue;
 
 // ── 2e. Overlay & Alpha ────────────────────────────
-$overlay-bg: rgba(15, 23, 42, 0.6);
-$overlay-fill: #0f172a;
+$overlay-bg: rgba(20, 20, 19, 0.6); // Slate Dark @60%
+$overlay-fill: #141413; // Slate Dark
 $white-alpha-50: rgba(255, 255, 255, 0.04);
 $white-alpha-100: rgba(255, 255, 255, 0.06);
 $white-alpha-200: rgba(255, 255, 255, 0.08);
@@ -198,7 +208,7 @@ $font-size-sm: 0.75rem;
 $font-size-lg: 1rem;
 $headings-font-weight: 600;
 $font-weight-normal: 400;
-$headings-color: $slate-700;
+$headings-color: $slate-900;
 $text-muted: $slate-500;
 $h1-font-size: 1.5rem;
 $h2-font-size: 1.25rem;
@@ -281,7 +291,7 @@ $modal-header-border-color: $gray-300;
 $modal-header-border-width: 1;
 $modal-content-border-width: 1;
 $modal-content-bg: $white;
-$modal-backdrop-bg: rgba(15, 23, 42, 0.6);
+$modal-backdrop-bg: rgba(20, 20, 19, 0.6);
 $modal-backdrop-opacity: 1;
 $modal-content-box-shadow-xs: $box-shadow-lg;
 $modal-content-box-shadow-sm-up: $box-shadow-lg;
@@ -300,7 +310,7 @@ $dropdown-box-shadow: $box-shadow-lg;
 $navbar-light-color: $slate-500;
 $navbar-light-hover-color: $primary;
 $navbar-light-active-color: $slate-700;
-$link-color: $blue-700; // Teks link harus ≥4.5:1 di atas putih; #0091D4 hanya 3.5:1
+$link-color: $blue-700; // Clay Accent — ≥4.5:1 di atas putih
 $link-hover-color: $primary;
 
 $progress-border-radius: $border-radius-sm;

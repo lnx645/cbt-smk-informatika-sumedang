@@ -661,7 +661,7 @@
     .crud-table thead th {
         background: var(--bs-gray-100);
         font-weight: 600;
-        color: #6c757d;
+        color: #5E5D59;
         text-transform: capitalize;
         letter-spacing: 0.03em;
         font-size: 0.75rem;
@@ -712,7 +712,7 @@
     }
 
     .crud-filterbar .crud-reset {
-        color: #6c757d;
+        color: #5E5D59;
     }
 
     .crud-checkbox {
@@ -724,7 +724,7 @@
     .crud-checkbox__label {
         margin-bottom: 0;
         font-weight: 500;
-        color: #495057;
+        color: #3D3D3A;
         cursor: pointer;
     }
 
@@ -734,14 +734,14 @@
         height: 20px;
         border-radius: 999px;
         border: none;
-        background: #ced4da;
+        background: #D1CFC5;
         cursor: pointer;
         padding: 0;
         transition: background 0.2s ease;
     }
 
     .crud-toggle__track.is-on {
-        background: #198754;
+        background: #788C5D;
     }
 
     .crud-toggle__track:disabled {

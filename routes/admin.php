@@ -32,5 +32,7 @@ Route::get('pengajar/{guru}/akun', [AkunGuruController::class, 'show'])->name('p
 Route::post('pengajar/{guru}/akun', [AkunGuruController::class, 'store'])->name('pengajar.akun.store');
 Route::put('pengajar/{guru}/akun', [AkunGuruController::class, 'update'])->name('pengajar.akun.update');
 Route::delete('pengajar/{guru}/akun', [AkunGuruController::class, 'destroy'])->name('pengajar.akun.destroy');
-Route::get('pengajar/{guru}/penugasan', GuruKelasController::class)->name('pengajar.guru-kelas');
-Route::post("pengajar/{guru}/penugasan", [GuruKelasController::class, "store"])->name("pengajar.guru.save-penugasan");
+Route::get('pengajar/{guru}/penugasan', [GuruKelasController::class, 'index'])->name('pengajar.guru-kelas');
+Route::post('pengajar/{guru}/penugasan', [GuruKelasController::class, 'store'])->name('pengajar.guru-kelas.store');
+Route::put('pengajar/{guru}/penugasan/{guruKelas}', [GuruKelasController::class, 'update'])->name('pengajar.guru-kelas.update');
+Route::delete('pengajar/{guru}/penugasan/{guruKelas}', [GuruKelasController::class, 'destroy'])->name('pengajar.guru-kelas.destroy');

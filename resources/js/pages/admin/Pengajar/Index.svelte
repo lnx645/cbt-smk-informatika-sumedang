@@ -9,6 +9,7 @@
     import { Badge } from '@sveltestrap/sveltestrap';
     import { router } from '@inertiajs/svelte';
     import PlotingPengajarController from '@/actions/App/Http/Controllers/Admin/GuruKelasController';
+    import GuruKelasController from '@/actions/App/Http/Controllers/Admin/GuruKelasController';
     let fields: CrudField[] = [
         {
             name: 'nama_lengkap',
@@ -166,7 +167,9 @@
             size: 'sm',
             onClick(item) {
                 router.visit(
-                    AkunGuruController.show({ guru: item?.id as number }).url,
+                    AkunGuruController.show({
+                        guru: item?.id as number,
+                    }).url,
                 );
             },
         },
@@ -177,7 +180,9 @@
             size: 'sm',
             onClick(item) {
                 router.visit(
-                    PlotingPengajarController({ guru: item?.id as number }).url,
+                    GuruKelasController.index({
+                        guru: item?.id as number,
+                    }).url,
                 );
             },
         },
