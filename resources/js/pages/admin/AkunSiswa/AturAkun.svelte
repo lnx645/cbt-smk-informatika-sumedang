@@ -6,17 +6,16 @@
         Input,
         Button,
         Badge,
-        NavItem,
     } from '@sveltestrap/sveltestrap';
-    import AkunGuruController from '@/actions/App/Http/Controllers/Admin/AkunGuruController';
-    import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
+    import AkunSiswaController from '@/actions/App/Http/Controllers/Admin/AkunSiswaController';
+    import SiswaController from '@/actions/App/Http/Controllers/Admin/SiswaController';
     import PageHeader from '@/components/PageHeader.svelte';
     import Avatar from '@/components/Avatar.svelte';
 
-    type Guru = {
-        id: number;
+    type Siswa = {
+        nisn: string;
         nama_lengkap: string;
-        nip: string | null;
+        nis: string | null;
         jenis_kelamin: string | null;
         foto_profil: string | null;
         is_aktif: boolean;
@@ -28,10 +27,10 @@
         email: string;
     } | null;
 
-    let { guru, user }: { guru?: Guru; user?: User } = $props();
+    let { siswa, user }: { siswa?: Siswa; user?: User } = $props();
 
     const form = useForm({
-        name: user?.name ?? guru?.nama_lengkap,
+        name: user?.name ?? siswa?.nama_lengkap,
         email: user?.email ?? '',
         password: '',
         password_confirmation: '',
@@ -41,10 +40,12 @@
 
     function handleSubmit() {
         if (isCreating) {
-            form.submit(AkunGuruController.store({ guru: guru?.id as number }));
+            form.submit(
+                AkunSiswaController.store({ siswa: siswa?.nisn as string }),
+            );
         } else {
             form.submit(
-                AkunGuruController.update({ guru: guru?.id as number }),
+                AkunSiswaController.update({ siswa: siswa?.nisn as string }),
             );
         }
     }
@@ -52,19 +53,20 @@
     function handleDelete() {
         if (
             !confirm(
-                `Hapus akun ${user?.name ?? guru?.nama_lengkap}?\nIni akan menghapus akun pengguna secara permanen.`,
+                `Hapus akun ${user?.name ?? siswa?.nama_lengkap}?\nIni akan menghapus akun pengguna secara permanen.`,
             )
         ) {
             return;
         }
         router.delete(
-            AkunGuruController.destroy({ guru: guru?.id as number }).url,
+            AkunSiswaController.destroy({ siswa: siswa?.nisn as string })
+                .url,
         );
     }
 </script><div class="container-fluid py-4">
     <PageHeader
-        title="Atur Akun Guru"
-        subtitle={`Kelola akun pengguna untuk ${guru?.nama_lengkap ?? '-'}`}
+        title="Atur Akun Peserta Didik"
+        subtitle={`Kelola akun pengguna untuk ${siswa?.nama_lengkap ?? '-'}`}
     >
         {#snippet actions()}
             {#if user}
@@ -84,27 +86,28 @@
         {/snippet}
     </PageHeader>
 
-    {#if guru}
+    {#if siswa}
         <div class="card border rounded-1 shadow-sm mb-3 p-3">
             <div class="d-flex align-items-center gap-3">
                 <Avatar
-                    src={guru?.foto_profil}
-                    name={guru?.nama_lengkap ?? ''}
+                    src={siswa?.foto_profil}
+                    name={siswa?.nama_lengkap ?? ''}
                     size={56}
                 />
                 <div>
-                    <div class="fw-semibold text-body">{guru.nama_lengkap}</div>
+                    <div class="fw-semibold text-body">{siswa.nama_lengkap}</div>
                     <div class="text-secondary small">
-                        NIP {guru.nip ?? '-'}
+                        NISN {siswa.nisn}
+                        {#if siswa.nis}· NIS {siswa.nis}{/if}
                     </div>
                     <div class="text-secondary small">
-                        {guru.jenis_kelamin === 'L'
+                        {siswa.jenis_kelamin === 'L'
                             ? 'Laki-laki'
-                            : guru.jenis_kelamin === 'P'
+                            : siswa.jenis_kelamin === 'P'
                               ? 'Perempuan'
                               : '-'}
                     </div>
-                    {#if guru.is_aktif}
+                    {#if siswa.is_aktif}
                         <Badge color="success" class="mt-1">Aktif</Badge>
                     {:else}
                         <Badge color="danger" class="mt-1">Nonaktif</Badge>
@@ -126,7 +129,8 @@
         <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
             <i class="bi bi-exclamation-circle-fill"></i>
             <span class="small"
-                >Belum ada akun pengguna untuk guru ini. Buat akun di bawah ini.</span
+                >Belum ada akun pengguna untuk peserta didik ini. Buat akun di
+                bawah ini.</span
             >
         </div>
     {/if}
@@ -209,9 +213,9 @@
             color="secondary"
             outline
             size="sm"
-            onclick={() => router.visit(PengajarController.index().url)}
+            onclick={() => router.visit(SiswaController.index().url)}
         >
-            <i class="bi bi-arrow-left me-1"></i> Kembali ke Pengajar
+            <i class="bi bi-arrow-left me-1"></i> Kembali ke Peserta Didik
         </Button>
     </div>
 </div>

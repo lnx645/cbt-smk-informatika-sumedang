@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\Admin\AkunGuruController;
+use App\Http\Controllers\Admin\AkunSiswaController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GuruKelasController;
 use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\MatpelController;
 use App\Http\Controllers\Admin\PengajarController;
+use App\Http\Controllers\Admin\SiswaController;
+use App\Http\Controllers\Admin\SiswaKelasController;
 use App\Http\Controllers\Admin\TahunAjaranController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,3 +39,12 @@ Route::get('pengajar/{guru}/penugasan', [GuruKelasController::class, 'index'])->
 Route::post('pengajar/{guru}/penugasan', [GuruKelasController::class, 'store'])->name('pengajar.guru-kelas.store');
 Route::put('pengajar/{guru}/penugasan/{guruKelas}', [GuruKelasController::class, 'update'])->name('pengajar.guru-kelas.update');
 Route::delete('pengajar/{guru}/penugasan/{guruKelas}', [GuruKelasController::class, 'destroy'])->name('pengajar.guru-kelas.destroy');
+Route::resource('siswa', SiswaController::class)->except(['create', 'edit', 'show']);
+Route::get('siswa/{siswa}/akun', [AkunSiswaController::class, 'show'])->name('siswa.akun');
+Route::post('siswa/{siswa}/akun', [AkunSiswaController::class, 'store'])->name('siswa.akun.store');
+Route::put('siswa/{siswa}/akun', [AkunSiswaController::class, 'update'])->name('siswa.akun.update');
+Route::delete('siswa/{siswa}/akun', [AkunSiswaController::class, 'destroy'])->name('siswa.akun.destroy');
+Route::get('siswa/{siswa}/kelas', [SiswaKelasController::class, 'index'])->name('siswa.kelas');
+Route::post('siswa/{siswa}/kelas', [SiswaKelasController::class, 'store'])->name('siswa.kelas.store');
+Route::put('siswa/{siswa}/kelas/{siswaKelas}', [SiswaKelasController::class, 'update'])->name('siswa.kelas.update');
+Route::delete('siswa/{siswa}/kelas/{siswaKelas}', [SiswaKelasController::class, 'destroy'])->name('siswa.kelas.destroy');

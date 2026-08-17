@@ -22,7 +22,7 @@
     import { confirm } from '@/lib/confirm.svelte';
     import type { RouteDefinition } from '@/wayfinder';
 
-    type CrudItem = Record<string, unknown> & { id: number };
+    type CrudItem = Record<string, unknown> & { id: number | string };
 
     export type CrudColumn = {
         key: string;
@@ -114,6 +114,7 @@
         query = {},
         only = [],
         onQuery,
+        onCreateSuccess,
         pagination,
     }: {
         title?: string;
@@ -133,6 +134,7 @@
         query?: Record<string, string>;
         only?: string[];
         onQuery?: (params: Record<string, string>) => void;
+        onCreateSuccess?: (created?: CrudItem) => void;
         pagination?: CrudPagination;
     } = $props();
 
@@ -202,9 +204,16 @@
             );
         } else {
             const route = controller.store();
+            const created = { ...(form as Record<string, unknown>) } as CrudItem;
             form.submit(
                 { url: route.url, method: route.method },
-                { onSuccess },
+                {
+                    onSuccess: () => {
+                        modalOpen = false;
+                        form.reset();
+                        onCreateSuccess?.(created);
+                    },
+                },
             );
         }
     }
@@ -525,8 +534,11 @@
                             getOptionValue={(item: unknown) =>
                                 (item as CrudFieldOption).value}
                             onchange={(v: unknown) =>
-                                ((form as Record<string, unknown>)[field.name] =
-                                    v)}
+                                ((form as Record<string, unknown>)[
+                                    field.name
+                                ] = Array.isArray(v)
+                                    ? v.map(optionValue)
+                                    : optionValue(v))}
                         />
                     {:else if field.type === 'textarea'}
                         <Input
@@ -599,7 +611,13 @@
                                 <img
                                     src={fieldValue<File>(field.name)
                                         ? previews[field.name]
-                                        : fieldValue<string>(field.name)}
+                                        : fieldValue<string>(field.name).startsWith(
+                                                '/storage/',
+                                            )
+                                          ? fieldValue<string>(field.name)
+                                          : `/storage/${fieldValue<string>(
+                                                field.name,
+                                            )}`}
                                     alt={field.label}
                                     class="img-thumbnail"
                                     style="max-height: 96px;"

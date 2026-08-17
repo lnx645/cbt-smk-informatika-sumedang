@@ -10,7 +10,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     layout(name, page) {
-        if (name.startsWith("ErrorPage")) {
+        if (name.startsWith('ErrorPage')) {
             return ErrorPage;
         }
         let url = page.url;
@@ -22,7 +22,7 @@ createInertiaApp({
         return MainLayout;
     },
     progress: {
-        color: '#1d4ed8',
+        color: '#d47150',
     },
 });
 

@@ -10,6 +10,7 @@
     import { router } from '@inertiajs/svelte';
     import PlotingPengajarController from '@/actions/App/Http/Controllers/Admin/GuruKelasController';
     import GuruKelasController from '@/actions/App/Http/Controllers/Admin/GuruKelasController';
+    import Avatar from '@/components/Avatar.svelte';
     let fields: CrudField[] = [
         {
             name: 'nama_lengkap',
@@ -61,6 +62,7 @@
         {
             key: 'nama_lengkap',
             label: 'Nama Lengkap',
+            cell: namaCell,
         },
         {
             key: 'jenis_kelamin',
@@ -91,6 +93,17 @@
     {:else}
         <Badge color="danger">Nonaktif</Badge>
     {/if}
+{/snippet}
+
+{#snippet namaCell(item)}
+    <div class="d-flex align-items-center gap-2">
+        <Avatar
+            src={item.foto_profil as string | null}
+            name={item.nama_lengkap as string}
+            size={36}
+        />
+        <span class="fw-semibold">{item.nama_lengkap}</span>
+    </div>
 {/snippet}
 
 {#snippet walikelasCell(item)}

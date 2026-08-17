@@ -32,6 +32,7 @@ class SiswaSeeder extends Seeder
                     'kelas_id' => $kelas->id,
                     'tahun_ajaran_id' => $tahunAjaranId,
                     'active' => true,
+                    'pertama_masuk' => true,
                 ]);
 
                 $siswa->user()->create([

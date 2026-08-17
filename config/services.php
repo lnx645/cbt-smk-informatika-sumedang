@@ -41,4 +41,8 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'default_account' => [
+        'email_prefix' => env('DEFAULT_ACCOUNT_EMAIL_PREFIX', 'siswa_{nisn}@sch.id'),
+    ],
+
 ];

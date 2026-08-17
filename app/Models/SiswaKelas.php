@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Table('siswa_kelas')]
-#[Fillable(['siswa_nisn', 'kelas_id', 'tahun_ajaran_id', 'active'])]
+#[Fillable(['siswa_nisn', 'kelas_id', 'tahun_ajaran_id', 'active', 'pertama_masuk'])]
 class SiswaKelas extends Model
 {
     /** @use HasFactory<SiswaKelasFactory> */
@@ -18,6 +18,7 @@ class SiswaKelas extends Model
 
     protected $casts = [
         'active' => 'boolean',
+        'pertama_masuk' => 'boolean',
     ];
 
     public function siswa(): BelongsTo

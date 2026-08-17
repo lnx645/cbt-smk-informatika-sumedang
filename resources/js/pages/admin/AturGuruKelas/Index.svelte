@@ -19,6 +19,7 @@
     import GuruKelasController from '@/actions/App/Http/Controllers/Admin/GuruKelasController';
     import Select from '@/components/Select.svelte';
     import PageHeader from '@/components/PageHeader.svelte';
+    import Avatar from '@/components/Avatar.svelte';
 
     interface MatpelItem {
         id: number;
@@ -43,6 +44,7 @@
         guru_id: number;
         nama: string;
         nip: string | null;
+        foto_profil?: string | null;
         kelas: KelasItem[];
         daftar_kelas: { id: number; nama: string }[];
         matpels: { id: number; name: string }[];
@@ -54,6 +56,7 @@
         guru_id,
         nama = '',
         nip = null,
+        foto_profil = null,
         kelas = [],
         daftar_kelas = [],
         matpels = [],
@@ -72,18 +75,6 @@
     );
 
     const hasClasses = $derived(kelas.length > 0);
-
-    const guruInisial = $derived(
-        nama
-            ? nama
-                  .split(',')[0]
-                  .split(' ')
-                  .slice(0, 2)
-                  .map((w: string) => w[0])
-                  .join('')
-                  .toUpperCase()
-            : '',
-    );
 
     function extractId(value: unknown): number | null {
         if (value === null || value === undefined || value === '') {
@@ -215,12 +206,11 @@
     <div class="card border rounded-1 shadow-sm mb-3">
         <div class="card-body">
             <div class="d-flex align-items-center gap-3">
-                <div
-                    class="rounded-circle bg-secondary-subtle text-secondary-emphasis d-flex align-items-center justify-content-center fw-semibold"
-                    style="width:56px;height:56px;font-size:1.1rem"
-                >
-                    {guruInisial}
-                </div>
+                <Avatar
+                    src={foto_profil}
+                    name={nama}
+                    size={56}
+                />
                 <div>
                     <div class="fw-semibold text-body fs-5">
                         {nama}
