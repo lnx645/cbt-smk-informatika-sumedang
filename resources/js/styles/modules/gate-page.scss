@@ -20,7 +20,7 @@
         var(--tw-blue) 0%,
         var(--tw-blue-dark) 100%
     );
-    color: #fff;
+    color: var(--inv-white);
     position: relative;
     overflow: hidden;
     box-shadow:
@@ -201,7 +201,7 @@
     align-items: center;
     justify-content: center;
     background: var(--brand-gradient);
-    color: #fff;
+    color: var(--inv-white);
     font-size: 1.1rem;
     flex-shrink: 0;
 }

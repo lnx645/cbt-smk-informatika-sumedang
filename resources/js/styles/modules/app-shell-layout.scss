@@ -186,7 +186,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ffffff;
+    color: var(--inv-white);
     font-size: 1rem;
     box-shadow: 0 0 14px rgba(253, 212, 6, 0.25);
 }
@@ -201,7 +201,7 @@
     font-weight: 700;
     letter-spacing: 0.5px;
     margin: 0;
-    color: #ffffff;
+    color: var(--inv-white);
 }
 
 .app-shell__brand-subtitle {
@@ -619,7 +619,7 @@
     align-items: center;
     gap: 0.85rem;
     background: var(--brand-gradient);
-    color: #ffffff;
+    color: var(--inv-white);
     padding: 1.15rem 1.35rem;
 }
 
@@ -675,7 +675,7 @@
     font-weight: 600;
     letter-spacing: 0.02em;
     text-transform: capitalize;
-    color: #ffffff;
+    color: var(--inv-white);
     background: rgba(255, 255, 255, 0.18);
     border: 1px solid rgba(255, 255, 255, 0.38);
     backdrop-filter: blur(2px);
@@ -746,7 +746,7 @@
     width: 36px;
     height: 36px;
     background: var(--brand-gradient);
-    color: #ffffff;
+    color: var(--inv-white);
     border-radius: 50%;
     display: flex;
     align-items: center;

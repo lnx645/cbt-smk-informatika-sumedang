@@ -41,7 +41,7 @@ class SiswaKelasController extends Controller
                     'tahun_ajaran' => $e->tahunAjaran?->name,
                     'active' => $e->active,
                 ]),
-            'daftar_kelas' => Kelas::orderBy('nama')->get(['id', 'nama']),
+            'daftar_kelas' => Kelas::leaf()->orderBy('nama')->get(['id', 'nama']),
             'tahun_ajaran' => TahunAjaran::orderByDesc('active')
                 ->orderBy('name')
                 ->get(['id', 'name', 'active']),

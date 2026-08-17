@@ -157,12 +157,12 @@
 
 <style>
     .vanilla-date-picker input[readonly] {
-        background-color: #fff;
+        background-color: var(--inv-white);
         cursor: pointer;
     }
 
     .vanilla-date-picker input:focus {
-        box-shadow: 0 0 0 0.2rem rgba(13, 119, 211, 0.25);
+        box-shadow: var(--inv-focus-ring);
     }
 
     .vanilla-date-picker :global(.vc) {

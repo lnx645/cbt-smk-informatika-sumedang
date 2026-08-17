@@ -28,7 +28,7 @@
 // (base, hover, active, focus, disabled, checked) di-generate
 // sekaligus Ã¢â‚¬â€ tidak ada state yang bocor dari Bootstrap default.
 
-// Primary — Tut Wuri Biru Muda #0091D4, teks PUTIH (eksplisit, bukan color-contrast otomatis)
+// Primary — Brand blue $primary, teks PUTIH (eksplisit, bukan color-contrast otomatis)
 .btn-primary {
     @include button-variant(
         $background: $primary,
@@ -75,7 +75,7 @@
     }
 }
 
-// Success Ã¢â‚¬â€ Green #3fae66, teks putih
+// Success — $success (Olive #788C5D), teks putih
 .btn-success {
     @include button-variant(
         $background: $success,
@@ -97,7 +97,7 @@
     }
 }
 
-// Danger Ã¢â‚¬â€ Rose #d97a70, teks putih
+// Danger — $danger (Rose #C46686), teks putih
 .btn-danger {
     @include button-variant(
         $background: $danger,
@@ -119,7 +119,7 @@
     }
 }
 
-// Warning Ã¢â‚¬â€ Amber #e8b93e, teks GELAP (bukan putih!)
+// Warning — $warning (Amber #D4A27F), teks GELAP (bukan putih!)
 .btn-warning {
     @include button-variant(
         $background: $warning,
@@ -143,7 +143,7 @@
     }
 }
 
-// Info Ã¢â‚¬â€ Teal #5aa49e, teks putih
+// Info — $info (Cactus #BCD1CA), teks putih
 .btn-info {
     @include button-variant(
         $background: $info,
@@ -165,7 +165,7 @@
     }
 }
 
-// Dark — Charcoal #1e293b, teks putih
+// Dark — Charcoal $dark, teks putih
 .btn-dark {
     @include button-variant(
         $background: $dark,
@@ -183,7 +183,7 @@
     }
 }
 
-// Light — #f6f8fb, teks gelap
+// Light — $light (Ivory #FAF9F5), teks gelap
 .btn-light {
     @include button-variant(
         $background: $light,

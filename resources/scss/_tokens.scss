@@ -1,34 +1,31 @@
 // ==========================================
 // IFSU CBT DESIGN SYSTEM — DESIGN TOKENS
-// Anthropic / Claude color system
-// Exact brand values captured from live anthropic.com
+// Brand blue color system
 // ==========================================
 //
-// Palet resmi Anthropic / Claude (brand-atoms.com, dari anthropic.com live):
-//   - Canvas / Ivory Light  #FAF9F5 = latar aplikasi (warm paper)
-//   - Clay                  #D97757 = aksen/sekunder (Claude signature warm terracotta)
-//   - Accent                #C6613F = hover/primer yang lebih gelap
-//   - Slate Dark            #141413 = teks utama (ink)
-//   - Slate Medium          #3D3D3A = teks sekunder / body
-//   - Slate Light           #5E5D59 = teks teritori / muted
-//   - Olive                 #788C5D = sukses
-//   - Cactus                #BCD1CA = info
-//   - Kraft                 #D4A27F = peringatan
-//   - Fig                   #C46686 = error
-//   - Sky                   #6A9BCC = aksen biru utilitas
-//   - Cloud                 #B0AEA5 / #87867F / #D1CFC5 = netral abu-abu
+// Palet resmi brand:
+//   - Brand 50  #f0f5fa = latar lembut
+//   - Brand 500 #4182b3 = primary (exact)
+//   - Brand 700 #2b567a = primary-hover / teks di atas putih
+//   - Brand 950 #182d43 = paling gelap
 //
 
 // ── 2a. Raw Color Scales (Atomic Tokens) ───────────
 $white: #ffffff;
 $black: #000000;
 
-// Clay (Primary) — Claude signature warm terracotta
-$blue-50: tint-color(#D97757, 92%);
-$blue-100: tint-color(#D97757, 80%);
-$blue-400: tint-color(#D97757, 25%);
-$blue-500: #D97757; // PRIMARY — Claude Clay (exact)
-$blue-700: #C6613F; // Primary-hover — Anthropic Accent (exact)
+// Brand (Primary) — blue scale
+$blue-50: #f0f5fa;
+$blue-100: #dce9f4;
+$blue-200: #bfd7ea;
+$blue-300: #94bddb;
+$blue-400: #629dc8;
+$blue-500: #4182b3; // PRIMARY — Brand (exact)
+$blue-600: #326a96;
+$blue-700: #2b567a; // Primary-hover — Brand (exact)
+$blue-800: #265180;
+$blue-900: #244465;
+$blue-950: #182d43;
 
 // Slate (Netral teks & permukaan — semua nilai exak Anthropic)
 $slate-50: #FAF9F5; // Ivory Light (canvas)
@@ -38,12 +35,12 @@ $slate-500: #5E5D59; // Slate Light (text-tertiary)
 $slate-700: #3D3D3A; // Slate Medium (text-secondary / body)
 $slate-900: #141413; // Slate Dark (text-primary / ink)
 
-// Sky (Aksen biru utilitas)
-$sky-50: tint-color(#6A9BCC, 90%);
-$sky-100: tint-color(#6A9BCC, 70%);
-$sky-400: tint-color(#6A9BCC, 25%);
-$sky-500: #6A9BCC; // Anthropic Sky (exact)
-$sky-700: #4A7DB8;
+// Sky (Aksen biru utilitas — sejalan dengan brand blue)
+$sky-50: #f0f5fa;
+$sky-100: #dce9f4;
+$sky-400: #629dc8;
+$sky-500: #4182b3; // Brand (exact)
+$sky-700: #2b567a;
 
 // Green (Success — Olive)
 $green-50: tint-color(#788C5D, 90%);
@@ -89,7 +86,7 @@ $gray-900: #141413; // Slate Dark
 $light-bg: #FAF9F5; // Canvas — Anthropic Ivory Light (exact)
 
 // ── 2b. Semantic Colors ───────────────────────────
-$primary: $blue-500; // Clay
+$primary: $blue-500; // Brand
 $secondary: $slate-500; // Slate Light
 $success: $green-400; // Olive
 $info: $teal-400; // Cactus
@@ -98,9 +95,15 @@ $danger: $rose-400; // Fig
 
 $primary-50: $blue-50;
 $primary-100: $blue-100;
+$primary-200: $blue-200;
+$primary-300: $blue-300;
 $primary-400: $blue-400;
 $primary-500: $blue-500;
+$primary-600: $blue-600;
 $primary-700: $blue-700;
+$primary-800: $blue-800;
+$primary-900: $blue-900;
+$primary-950: $blue-950;
 
 $secondary-50: $slate-50;
 $secondary-100: $slate-100;
@@ -135,12 +138,12 @@ $danger-700: $rose-700;
 $light: $light-bg;
 $dark: $gray-800;
 
-// ── 2c. Brand Colors (Anthropic / Claude) ────────
-$tutwuri-blue: #D97757; // Clay — primadewi (sekarang primary brand)
-$tutwuri-gold: #D4A27F; // Kraft — aksen hangat (pengganti emas)
+// ── 2c. Brand Colors ─────────────────────────────
+$tutwuri-blue: $blue-500; // #4182b3 — primary brand
+$tutwuri-gold: $amber-400; // #D4A27F — aksen hangat
 $tutwuri-white: #FAF9F5; // Ivory Light — putih brand
-$brand-chat: $sky-500; // #6A9BCC
-$brand-sign: $blue-500; // Clay
+$brand-chat: $sky-500; // #4182b3
+$brand-sign: $blue-500; // #4182b3
 $brand-flex: #9c6242;
 $brand-capital: #33665e;
 $brand-expense: #4a3f7a;

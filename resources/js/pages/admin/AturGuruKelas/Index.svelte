@@ -515,7 +515,7 @@
         width: 20px;
         height: 20px;
         border-radius: 50%;
-        background: #fff;
+        background: var(--inv-white);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
         transition: transform 0.2s ease;
     }

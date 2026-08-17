@@ -30,7 +30,7 @@ class SiswaBulkSeeder extends Seeder
      */
     public function run(): void
     {
-        $kelases = Kelas::all();
+        $kelases = Kelas::leaf()->get();
         $tahunAjaranId = TahunAjaran::where('active', true)->value('id')
             ?? TahunAjaran::orderByDesc('id')->value('id');
 

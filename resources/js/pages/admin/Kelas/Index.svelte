@@ -122,28 +122,63 @@
         return Number.isNaN(n) ? null : n;
     }
 
+    function getDepth(id: number | null): number {
+        const list = kelas_list ?? [];
+        let depth = 0;
+        let cur = id;
+        while (cur != null) {
+            const node = list.find((k) => k.id === cur);
+            if (!node) break;
+            cur = (node.parent_id ?? null) as number | null;
+            depth++;
+        }
+        return Math.max(0, depth - 1);
+    }
+
+    function nextSiblingNumber(): number {
+        const list = kelas_list ?? [];
+        const siblings = list.filter(
+            (k) => (k.parent_id ?? null) === form.parent_id && k.id !== editingId,
+        );
+        let maxNum = 0;
+        let numbered = 0;
+        for (const s of siblings) {
+            const m = String(s.nama ?? '').match(/[- ](\d+)$/);
+            if (m) {
+                numbered++;
+                maxNum = Math.max(maxNum, Number(m[1]));
+            }
+        }
+        return maxNum > 0 ? maxNum + 1 : numbered + 1;
+    }
+
     function rebuildNama() {
         if (namaTouched) {
             return;
         }
-        const parent = (kelas_list ?? []).find((k) => k.id === form.parent_id);
-        const jurusan = (jurusans ?? []).find((j) => j.id === form.jurusan_id);
-        const parts: string[] = [];
-        if (parent) {
-            parts.push(parent.nama);
-        }
-        if (jurusan) {
-            parts.push(jurusan.kode || jurusan.name);
-        }
-        if (parts.length === 0) {
-            form.nama = form.ruangan ? `- ${form.ruangan}` : '';
+        const list = kelas_list ?? [];
+        const parent = list.find((k) => k.id === form.parent_id);
+        if (!parent) {
             return;
         }
-        let base = parts.join(' ');
-        if (form.ruangan) {
-            base += ` ${form.ruangan}`;
+        const jurusan = (jurusans ?? []).find((j) => j.id === form.jurusan_id);
+
+        if (getDepth(parent.id) === 0) {
+            const code = jurusan?.kode || jurusan?.name || '';
+            form.nama = [parent.nama, code].filter(Boolean).join('-');
+            return;
         }
-        form.nama = base;
+
+        if (editingId) {
+            const self = (kelas_list ?? []).find((k) => k.id === editingId);
+            const m = String(self?.nama ?? '').match(/-(\d+)$/);
+            if (m && (self?.parent_id ?? null) === form.parent_id) {
+                form.nama = `${parent.nama}-${m[1]}`;
+                return;
+            }
+        }
+
+        form.nama = `${parent.nama}-${nextSiblingNumber()}`;
     }
 
     function openCreate() {
@@ -188,9 +223,7 @@
         form.guru_id = extractId(value);
     }
 
-    function onRuanganChange() {
-        rebuildNama();
-    }
+    function onRuanganChange() {}
 
     function onNamaInput() {
         namaTouched = true;
@@ -245,6 +278,15 @@
                 class={`bi ${item.children && item.children.length ? 'bi-folder2' : 'bi-mortarboard-fill'} text-secondary`}
             ></i>
             <span class="fs-6 fw-bold text-body text-nowrap">{item.nama}</span>
+            {#if depth === 0}
+                <span class="badge text-bg-secondary text-xs fw-light"
+                    >Tingkat</span
+                >
+            {:else if depth === 1}
+                <span class="badge text-bg-info text-xs fw-light">Jurusan</span>
+            {:else}
+                <span class="badge text-bg-primary text-xs fw-light">Kelas</span>
+            {/if}
             {#if item.active}
                 <span class="badge text-bg-success text-xs fw-light">Aktif</span>
             {/if}
@@ -352,6 +394,10 @@
             {#if form.errors.nama}
                 <small class="text-danger">{form.errors.nama}</small>
             {/if}
+            <small class="text-secondary d-block mt-1">
+                Nama otomatis mengikuti struktur induk: <code>Tingkat</code>,
+                <code>Tingkat-Jurusan</code>, <code>Tingkat-Jurusan-Nomor</code>.
+            </small>
         </FormGroup>
 
         <FormGroup>
@@ -454,7 +500,7 @@
         width: 20px;
         height: 20px;
         border-radius: 50%;
-        background: #fff;
+        background: var(--inv-white);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
         transition: transform 0.2s ease;
     }

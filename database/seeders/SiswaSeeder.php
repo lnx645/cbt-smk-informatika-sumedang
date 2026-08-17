@@ -15,7 +15,7 @@ class SiswaSeeder extends Seeder
      */
     public function run(): void
     {
-        $kelases = Kelas::all();
+        $kelases = Kelas::leaf()->get();
         $tahunAjaranId = TahunAjaran::where('active', true)->first()?->id
             ?? TahunAjaran::orderBy('id')->value('id');
 

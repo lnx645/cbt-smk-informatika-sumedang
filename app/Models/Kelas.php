@@ -31,6 +31,11 @@ class Kelas extends Model
         return $this->hasMany(self::class, 'parent_id');
     }
 
+    public function scopeLeaf($query)
+    {
+        return $query->whereDoesntHave('children');
+    }
+
     public function siswas(): HasManyThrough
     {
         return $this->hasManyThrough(Siswa::class, SiswaKelas::class, 'kelas_id', 'nisn', 'id', 'siswa_nisn');
