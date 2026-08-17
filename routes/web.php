@@ -16,10 +16,10 @@ Route::middleware('guest')->group(function (): void {
     Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])->name('auth.google.callback');
 });
 
-Route::middleware(['auth',"app-only"])->prefix('app')->name("app.")->group(function (): void {
+Route::middleware(['auth', "app-only"])->prefix('app')->name("app.")->group(function (): void {
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::get("matpel/{matpel}/kelas-{id}/manage", KelasController::class)->name("kelas.room");
-Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('auth.logout');
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('auth.logout');
     Route::get('matpel-saya', [MataPelajaranGuruController::class, 'index'])->name('app.matpel');
 });
 

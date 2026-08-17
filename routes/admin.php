@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AkunAdminController;
 use App\Http\Controllers\Admin\AkunGuruController;
 use App\Http\Controllers\Admin\AkunSiswaController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -8,12 +9,19 @@ use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\MatpelController;
 use App\Http\Controllers\Admin\PengajarController;
+use App\Http\Controllers\Admin\ProfilController;
 use App\Http\Controllers\Admin\SiswaController;
 use App\Http\Controllers\Admin\SiswaKelasController;
 use App\Http\Controllers\Admin\TahunAjaranController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('', DashboardController::class)->name('index');
+Route::get('profil', [ProfilController::class, 'index'])->name('profil.index');
+Route::put('profil', [ProfilController::class, 'update'])->name('profil.update');
+Route::get('akun-admin', [AkunAdminController::class, 'index'])->name('akun-admin.index');
+Route::post('akun-admin', [AkunAdminController::class, 'store'])->name('akun-admin.store');
+Route::put('akun-admin/{user}', [AkunAdminController::class, 'update'])->name('akun-admin.update');
+Route::delete('akun-admin/{user}', [AkunAdminController::class, 'destroy'])->name('akun-admin.destroy');
 Route::get('kelas', [KelasController::class, 'index'])->name('kelas.index');
 Route::post('kelas', [KelasController::class, 'store'])->name('kelas.store');
 Route::put('kelas/{kelas}', [KelasController::class, 'update'])->name('kelas.update');

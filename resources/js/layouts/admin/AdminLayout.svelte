@@ -14,6 +14,8 @@
     import KelasController from '@/actions/App/Http/Controllers/Admin/KelasController';
     import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
     import SiswaController from '@/actions/App/Http/Controllers/Admin/SiswaController';
+    import ProfilController from '@/actions/App/Http/Controllers/Admin/ProfilController';
+    import AkunAdminController from '@/actions/App/Http/Controllers/Admin/AkunAdminController';
 
     let {
         children,
@@ -74,9 +76,14 @@
             section: 'Account',
             items: [
                 {
-                    href: '/manage/profile',
+                    href: ProfilController.index().url,
                     label: 'Profil',
                     icon: 'bi-person-circle',
+                },
+                {
+                    href: AkunAdminController.index().url,
+                    label: 'Akun Admin',
+                    icon: 'bi-shield-lock',
                 },
             ],
         },
