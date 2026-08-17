@@ -17,8 +17,8 @@
 
 .login-brand {
     position: relative;
-    /* Claude signature Clay gradient (exact Anthropic) */
-    background: linear-gradient(160deg, #D97757 0%, #C6613F 100%);
+    /* Brand blue gradient */
+    background: linear-gradient(160deg, var(--inv-primary-500) 0%, var(--inv-primary-700) 100%);
 }
 
 .login-logo {
@@ -30,8 +30,8 @@
 
 .brand-kicker {
     display: inline-block;
-    background-color: #D97757; /* Clay */
-    color: #ffffff;
+    background-color: var(--inv-primary-500);
+    color: var(--inv-white);
     font-size: 0.625rem;
     font-weight: 700;
     letter-spacing: 0.1em;
@@ -55,27 +55,27 @@
 }
 
 .remember-check .form-check-input:checked {
-    background-color: #D97757; /* Clay */
-    border-color: #D97757; /* Clay */
+    background-color: var(--inv-primary-500);
+    border-color: var(--inv-primary-500);
 }
 
 .divider-line {
     flex: 1;
     height: 1px;
-    background-color: #F0EEE6; /* Ivory Medium */
+    background-color: var(--inv-gray-50);
 }
 
 .google-btn {
-    background-color: #ffffff;
-    border: 1px solid #E8E6DC; /* Ivory Dark */
-    color: #3D3D3A; /* Slate Medium */
+    background-color: var(--inv-white);
+    border: 1px solid var(--inv-gray-100);
+    color: var(--inv-gray-800);
     border-radius: 8px;
     transition: all 0.2s ease;
 }
 
 .google-btn:hover {
-    background-color: #FAF9F5; /* Ivory Light */
-    border-color: #87867F; /* Cloud Dark */
+    background-color: var(--inv-gray-25);
+    border-color: var(--inv-gray-600);
 }
 
 .google-icon {

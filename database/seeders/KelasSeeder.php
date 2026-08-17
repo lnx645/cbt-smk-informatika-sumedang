@@ -17,14 +17,33 @@ class KelasSeeder extends Seeder
         $jurusans = Jurusan::all();
         $gurus = Guru::all();
 
-        foreach ($jurusans as $jurusan) {
-            foreach (['X', 'XI', 'XII'] as $tingkat) {
-                Kelas::factory()->create([
-                    'nama' => $tingkat.' '.$jurusan->kode,
+        foreach (['X', 'XI', 'XII'] as $tingkat) {
+            $root = Kelas::factory()->create([
+                'nama' => $tingkat,
+                'guru_id' => null,
+                'jurusan_id' => null,
+                'parent_id' => null,
+                'active' => true,
+            ]);
+
+            foreach ($jurusans as $jurusan) {
+                $parent = Kelas::factory()->create([
+                    'nama' => $tingkat.'-'.$jurusan->kode,
                     'guru_id' => $gurus->random()->id,
                     'jurusan_id' => $jurusan->id,
+                    'parent_id' => $root->id,
                     'active' => true,
                 ]);
+
+                foreach ([1, 2] as $nomor) {
+                    Kelas::factory()->create([
+                        'nama' => $parent->nama.'-'.$nomor,
+                        'guru_id' => $gurus->random()->id,
+                        'jurusan_id' => $jurusan->id,
+                        'parent_id' => $parent->id,
+                        'active' => true,
+                    ]);
+                }
             }
         }
     }

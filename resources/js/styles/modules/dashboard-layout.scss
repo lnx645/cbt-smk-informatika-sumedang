@@ -4,8 +4,8 @@
 
 .sidebar-link-active {
     background-color: rgba(255, 255, 255, 0.18);
-    /* Claude signature Clay accent (exact Anthropic) */
-    box-shadow: inset 3px 0 0 #D97757;
+    /* Brand blue accent */
+    box-shadow: inset 3px 0 0 var(--inv-primary-500);
 }
 
 .sidebar-label {
@@ -14,6 +14,6 @@
 }
 
 .dashboard-sidebar-badge {
-    background-color: #D97757; /* Clay */
-    color: #ffffff;
+    background-color: var(--inv-primary-500);
+    color: var(--inv-white);
 }

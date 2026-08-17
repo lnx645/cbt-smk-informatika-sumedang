@@ -98,27 +98,27 @@
 <style>
     .crud-pagination {
         padding: 0.75rem 1rem;
-        border-top: 1px solid #E8E6DC;
-        background: #fff;
+        border-top: 1px solid var(--inv-gray-100);
+        background: var(--inv-white);
     }
 
     .crud-pagination-list .page-link {
         border-radius: 8px;
         margin: 0 2px;
-        color: #5E5D59;
-        border-color: #E8E6DC;
+        color: var(--inv-gray-700);
+        border-color: var(--inv-gray-100);
         min-width: 34px;
         text-align: center;
     }
 
     .crud-pagination-list .page-link:hover {
-        background: #F0EEE6;
+        background: var(--inv-gray-50);
     }
 
     .crud-pagination-list .page-item.active .page-link {
         background: var(--bs-primary);
         border-color: var(--bs-primary);
-        color: #fff;
+        color: var(--inv-white);
     }
 
     .crud-pagination-list .page-item.active .page-link:hover {
@@ -126,6 +126,6 @@
     }
 
     .crud-pagination-list .page-item.disabled .page-link {
-        color: #B0AEA5;
+        color: var(--inv-gray-500);
     }
 </style>

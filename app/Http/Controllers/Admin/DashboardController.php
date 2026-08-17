@@ -71,7 +71,7 @@ class DashboardController extends Controller
             'guru_aktif' => Guru::where('is_aktif', true)->count(),
             'siswa' => Siswa::count(),
             'siswa_dengan_kelas' => $siswaDenganKelas,
-            'kelas' => Kelas::count(),
+            'kelas' => Kelas::leaf()->count(),
             'matpel' => Matpel::count(),
             'jurusan' => Jurusan::count(),
             'penugasan' => (clone $penugasan)->count(),
@@ -95,7 +95,7 @@ class DashboardController extends Controller
             'guru_l' => Guru::where('jenis_kelamin', 'L')->count(),
             'guru_p' => Guru::where('jenis_kelamin', 'P')->count(),
             'guru_dengan_penugasan' => (clone $penugasan)->distinct()->count('guru_id'),
-            'kelas_aktif' => Kelas::where('active', true)->count(),
+            'kelas_aktif' => Kelas::leaf()->where('active', true)->count(),
             'guru_dengan_akun' => User::whereNotNull('guru_id')->count(),
             'siswa_dengan_akun' => User::whereNotNull('nisn')->count(),
             'forum_aktif' => (clone $penugasan)->where('active_forum', true)->count(),
@@ -135,8 +135,11 @@ class DashboardController extends Controller
      */
     private function kelasPerJurusan(): array
     {
+        $parentIds = Kelas::whereNotNull('parent_id')->select('parent_id');
+
         return Jurusan::query()
             ->leftJoin('kelas', 'kelas.jurusan_id', '=', 'jurusans.id')
+            ->whereNotIn('kelas.id', $parentIds)
             ->selectRaw('jurusans.name, jurusans.kode, COUNT(DISTINCT kelas.id) as kelas')
             ->groupBy('jurusans.id', 'jurusans.name', 'jurusans.kode')
             ->orderByDesc('kelas')
@@ -156,7 +159,7 @@ class DashboardController extends Controller
      */
     private function siswaPerKelas(?int $tahunAjaranId): array
     {
-        return Kelas::query()
+        return Kelas::leaf()
             ->leftJoin('siswa_kelas', function ($join) use ($tahunAjaranId): void {
                 $join->on('siswa_kelas.kelas_id', '=', 'kelas.id')
                     ->where('siswa_kelas.active', true)
@@ -233,11 +236,11 @@ class DashboardController extends Controller
      */
     private function waliKelas(): array
     {
-        $dengan = Kelas::whereNotNull('guru_id')->count();
+        $dengan = Kelas::leaf()->whereNotNull('guru_id')->count();
 
         return [
             'dengan_walikelas' => $dengan,
-            'tanpa_walikelas' => max(Kelas::count() - $dengan, 0),
+            'tanpa_walikelas' => max(Kelas::leaf()->count() - $dengan, 0),
         ];
     }
 

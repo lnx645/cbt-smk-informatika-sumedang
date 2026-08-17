@@ -134,7 +134,7 @@
                                 <button
                                     type="button"
                                     class="btn border bg-transparent d-flex align-items-center pe-3"
-                                    style="color: #87867F; border-color: #E8E6DC;"
+                                    style="color: var(--inv-gray-600); border-color: var(--inv-gray-100);"
                                     onclick={() =>
                                         (passwordVisible = !passwordVisible)}
                                     aria-label={passwordVisible
@@ -177,7 +177,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-link p-0 small fw-semibold text-decoration-none"
-                                    style="color: #D97757"
+                                    style="color: var(--inv-primary-500)"
                                     >Lupa kata sandi?</button
                                 >
                             </Col>

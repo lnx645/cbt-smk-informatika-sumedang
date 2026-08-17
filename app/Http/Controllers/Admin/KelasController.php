@@ -9,6 +9,7 @@ use App\Models\Kelas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class KelasController extends Controller
@@ -17,18 +18,32 @@ class KelasController extends Controller
     {
         $kelas = Kelas::with(['jurusan', 'walikelas'])->get();
 
-        $buildTree = function ($parentId) use ($kelas, &$buildTree) {
+        $buildTree = function ($parentId, $depth = 0) use ($kelas, &$buildTree) {
             return $kelas
                 ->where('parent_id', $parentId)
                 ->sortBy('nama')
-                ->map(function ($item) use ($buildTree) {
+                ->map(function ($item) use ($buildTree, $depth) {
                     $node = $item->toArray();
-                    $node['children'] = $buildTree($item->id);
+                    $node['depth'] = $depth;
+                    $node['children'] = $buildTree($item->id, $depth + 1);
 
                     return $node;
                 })
                 ->values()
                 ->all();
+        };
+
+        $depthOf = [];
+        $getDepth = function (Kelas $k) use (&$getDepth, $kelas, &$depthOf) {
+            if (isset($depthOf[$k->id])) {
+                return $depthOf[$k->id];
+            }
+            if ($k->parent_id === null) {
+                return $depthOf[$k->id] = 0;
+            }
+            $parent = $kelas->firstWhere('id', $k->parent_id);
+
+            return $depthOf[$k->id] = $parent ? $getDepth($parent) + 1 : 0;
         };
 
         return inertia('admin/Kelas/Index', [
@@ -38,6 +53,7 @@ class KelasController extends Controller
                 'nama' => $k->nama,
                 'parent_id' => $k->parent_id,
                 'jurusan_id' => $k->jurusan_id,
+                'depth' => $getDepth($k),
             ]),
             'jurusans' => Jurusan::orderBy('name')->get(['id', 'name', 'kode']),
             'gurus' => Guru::orderBy('nama_lengkap')->get(['id', 'nama_lengkap']),
@@ -133,7 +149,14 @@ class KelasController extends Controller
         ]);
 
         return $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
+            'nama' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('kelas', 'nama')
+                    ->where(fn ($query) => $query->where('parent_id', $request->input('parent_id')))
+                    ->ignore($kelas?->id),
+            ],
             'deskripsi' => ['nullable', 'string'],
             'ruangan' => ['nullable', 'string', 'max:255'],
             'jurusan_id' => ['nullable', 'exists:jurusans,id'],

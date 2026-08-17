@@ -39,7 +39,7 @@ class JurusanController extends Controller
                 'id' => $jurusan->id,
                 'name' => $jurusan->name,
                 'kode' => $jurusan->kode,
-                'jumlah_kelas' => $jurusan->kelas()->count(),
+                'jumlah_kelas' => $jurusan->kelas()->leaf()->count(),
             ]);
 
         return Inertia::render('admin/Jurusan/Index', [
