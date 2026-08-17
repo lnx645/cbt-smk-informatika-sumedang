@@ -64,6 +64,7 @@ class GuruKelasController extends Controller
             'guru_id' => $guru->id,
             'nama' => $guru->nama_lengkap,
             'nip' => $guru->nip,
+            'foto_profil' => $guru->foto_profil,
             'kelas' => $kelasSaya,
             'daftar_kelas' => Kelas::orderBy('nama')->get(['id', 'nama']),
             'matpels' => Matpel::orderBy('name')->get(['id', 'name']),

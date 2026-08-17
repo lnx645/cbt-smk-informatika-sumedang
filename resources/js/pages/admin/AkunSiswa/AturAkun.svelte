@@ -10,6 +10,7 @@
     import AkunSiswaController from '@/actions/App/Http/Controllers/Admin/AkunSiswaController';
     import SiswaController from '@/actions/App/Http/Controllers/Admin/SiswaController';
     import PageHeader from '@/components/PageHeader.svelte';
+    import Avatar from '@/components/Avatar.svelte';
 
     type Siswa = {
         nisn: string;
@@ -62,21 +63,7 @@
                 .url,
         );
     }
-
-    const siswaInisial = $derived(
-        siswa?.nama_lengkap
-            ? siswa.nama_lengkap
-                  .split(',')[0]
-                  .split(' ')
-                  .slice(0, 2)
-                  .map((w: string) => w[0])
-                  .join('')
-                  .toUpperCase()
-            : '',
-    );
-</script>
-
-<div class="container-fluid py-4">
+</script><div class="container-fluid py-4">
     <PageHeader
         title="Atur Akun Peserta Didik"
         subtitle={`Kelola akun pengguna untuk ${siswa?.nama_lengkap ?? '-'}`}
@@ -102,12 +89,11 @@
     {#if siswa}
         <div class="card border rounded-1 shadow-sm mb-3 p-3">
             <div class="d-flex align-items-center gap-3">
-                <div
-                    class="rounded-circle bg-secondary-subtle text-secondary-emphasis d-flex align-items-center justify-content-center fw-semibold"
-                    style="width:56px;height:56px;font-size:1.1rem"
-                >
-                    {siswaInisial}
-                </div>
+                <Avatar
+                    src={siswa?.foto_profil}
+                    name={siswa?.nama_lengkap ?? ''}
+                    size={56}
+                />
                 <div>
                     <div class="fw-semibold text-body">{siswa.nama_lengkap}</div>
                     <div class="text-secondary small">

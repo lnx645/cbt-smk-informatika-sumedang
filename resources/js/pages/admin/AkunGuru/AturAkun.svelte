@@ -11,6 +11,7 @@
     import AkunGuruController from '@/actions/App/Http/Controllers/Admin/AkunGuruController';
     import PengajarController from '@/actions/App/Http/Controllers/Admin/PengajarController';
     import PageHeader from '@/components/PageHeader.svelte';
+    import Avatar from '@/components/Avatar.svelte';
 
     type Guru = {
         id: number;
@@ -60,21 +61,7 @@
             AkunGuruController.destroy({ guru: guru?.id as number }).url,
         );
     }
-
-    const guruInisial = $derived(
-        guru?.nama_lengkap
-            ? guru.nama_lengkap
-                  .split(',')[0]
-                  .split(' ')
-                  .slice(0, 2)
-                  .map((w: string) => w[0])
-                  .join('')
-                  .toUpperCase()
-            : '',
-    );
-</script>
-
-<div class="container-fluid py-4">
+</script><div class="container-fluid py-4">
     <PageHeader
         title="Atur Akun Guru"
         subtitle={`Kelola akun pengguna untuk ${guru?.nama_lengkap ?? '-'}`}
@@ -100,12 +87,11 @@
     {#if guru}
         <div class="card border rounded-1 shadow-sm mb-3 p-3">
             <div class="d-flex align-items-center gap-3">
-                <div
-                    class="rounded-circle bg-secondary-subtle text-secondary-emphasis d-flex align-items-center justify-content-center fw-semibold"
-                    style="width:56px;height:56px;font-size:1.1rem"
-                >
-                    {guruInisial}
-                </div>
+                <Avatar
+                    src={guru?.foto_profil}
+                    name={guru?.nama_lengkap ?? ''}
+                    size={56}
+                />
                 <div>
                     <div class="fw-semibold text-body">{guru.nama_lengkap}</div>
                     <div class="text-secondary small">

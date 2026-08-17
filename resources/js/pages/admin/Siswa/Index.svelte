@@ -8,6 +8,7 @@
     import SiswaKelasController from '@/actions/App/Http/Controllers/Admin/SiswaKelasController';
     import { Badge } from '@sveltestrap/sveltestrap';
     import { router } from '@inertiajs/svelte';
+    import Avatar from '@/components/Avatar.svelte';
 
     type SiswaItem = Record<string, unknown> & { id: string };
 
@@ -15,6 +16,8 @@
         siswa,
         filters: activeFilters = {},
         jenisKelaminOptions = [],
+        tahunAjaranOptions = [],
+        kelasOptions = [],
     }: {
         siswa: {
             data: SiswaItem[];
@@ -27,14 +30,22 @@
         };
         filters?: Record<string, string>;
         jenisKelaminOptions?: { value: string; label: string }[];
+        tahunAjaranOptions?: { id: number; name: string; active: boolean }[];
+        kelasOptions?: { id: number; nama: string }[];
     } = $props();
 
     const columns: CrudColumn[] = [
         { key: 'nisn', label: 'NISN', badge: true },
         { key: 'nis', label: 'NIS', badge: true, badgeColor: 'secondary' },
-        { key: 'nama_lengkap', label: 'Nama Lengkap' },
+        { key: 'nama_lengkap', label: 'Nama Lengkap', cell: namaCell },
         { key: 'jenis_kelamin', label: 'JK', center: true },
         { key: 'kelas', label: 'Kelas', cell: kelasCell },
+        {
+            key: 'tahun_ajaran',
+            label: 'Tahun Ajaran',
+            center: true,
+            cell: tahunAjaranCell,
+        },
         { key: 'punya_akun', label: 'Akun', center: true, cell: akunCell },
         { key: 'is_aktif', label: 'Status', center: true, cell: statusCell },
     ];
@@ -105,6 +116,17 @@
     {/if}
 {/snippet}
 
+{#snippet namaCell(item)}
+    <div class="d-flex align-items-center gap-2">
+        <Avatar
+            src={item.foto_profil as string | null}
+            name={item.nama_lengkap as string}
+            size={36}
+        />
+        <span class="fw-semibold">{item.nama_lengkap}</span>
+    </div>
+{/snippet}
+
 {#snippet akunCell(item)}
     {#if item.punya_akun}
         <Badge color="primary">
@@ -128,6 +150,16 @@
     {/if}
 {/snippet}
 
+{#snippet tahunAjaranCell(item)}
+    {#if item.tahun_ajaran}
+        <Badge color="light" pill class="text-muted border"
+            >{item.tahun_ajaran}</Badge
+        >
+    {:else}
+        <span class="text-muted">-</span>
+    {/if}
+{/snippet}
+
 <CrudManager
     title="Peserta Didik"
     subtitle="Kelola data peserta didik, akun, dan penempatan kelas."
@@ -141,8 +173,37 @@
     searchPlaceholder="Cari nama, NISN, atau NIS…"
     pagination={siswa}
     query={activeFilters}
-    only={['siswa']}
+    only={['siswa', 'kelasOptions', 'tahunAjaranOptions']}
+    onCreateSuccess={(created) => {
+        if (created?.nisn) {
+            router.visit(
+                SiswaKelasController.index({
+                    siswa: String(created.nisn),
+                }).url,
+            );
+        }
+    }}
     filters={[
+        {
+            name: 'tahun_ajaran',
+            label: 'Tahun Ajaran',
+            type: 'select',
+            placeholder: 'Tahun Aktif',
+            options: tahunAjaranOptions.map((t) => ({
+                value: String(t.id),
+                label: t.active ? `${t.name} (Aktif)` : t.name,
+            })),
+        },
+        {
+            name: 'kelas',
+            label: 'Kelas',
+            type: 'select',
+            placeholder: 'Semua Kelas',
+            options: kelasOptions.map((k) => ({
+                value: String(k.id),
+                label: k.nama,
+            })),
+        },
         {
             name: 'jenis_kelamin',
             label: 'Jenis Kelamin',
@@ -162,7 +223,7 @@
         },
         {
             name: 'punya_kelas',
-            label: 'Kelas',
+            label: 'Penempatan',
             type: 'select',
             placeholder: 'Semua',
             options: [

@@ -26,6 +26,7 @@ class SiswaKelasController extends Controller
             'siswa_nisn' => $siswa->nisn,
             'nama' => $siswa->nama_lengkap,
             'nis' => $siswa->nis,
+            'foto_profil' => $siswa->foto_profil,
             'kelas_saya' => SiswaKelas::where('siswa_nisn', $siswa->nisn)
                 ->with('kelas', 'tahunAjaran')
                 ->orderByDesc('active')
@@ -34,6 +35,7 @@ class SiswaKelasController extends Controller
                 ->map(fn (SiswaKelas $e) => [
                     'id' => $e->id,
                     'kelas_id' => $e->kelas_id,
+                    'pertama_masuk' => $e->pertama_masuk,
                     'nama_kelas' => $e->kelas?->nama,
                     'tahun_ajaran_id' => $e->tahun_ajaran_id,
                     'tahun_ajaran' => $e->tahunAjaran?->name,
@@ -115,10 +117,12 @@ class SiswaKelasController extends Controller
             'kelas_id' => ['required', 'exists:kelas,id', $existsRule],
             'tahun_ajaran_id' => ['required', 'exists:tahun_ajaran,id'],
             'active' => ['boolean'],
+            'pertama_masuk' => ['boolean'],
         ], [], [
             'kelas_id' => 'Kelas',
             'tahun_ajaran_id' => 'Tahun Ajaran',
             'active' => 'Aktif',
+            'pertama_masuk' => 'Pertama Masuk',
         ]);
 
         return [
@@ -126,6 +130,7 @@ class SiswaKelasController extends Controller
             'kelas_id' => $data['kelas_id'],
             'tahun_ajaran_id' => $data['tahun_ajaran_id'],
             'active' => (bool) ($data['active'] ?? true),
+            'pertama_masuk' => (bool) ($data['pertama_masuk'] ?? false),
         ];
     }
 }

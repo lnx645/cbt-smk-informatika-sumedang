@@ -25,6 +25,7 @@ class SiswaKelasFactory extends Factory
             'kelas_id' => Kelas::factory(),
             'tahun_ajaran_id' => TahunAjaran::where('active', true)->first()?->id ?? TahunAjaran::factory(),
             'active' => true,
+            'pertama_masuk' => false,
         ];
     }
 }

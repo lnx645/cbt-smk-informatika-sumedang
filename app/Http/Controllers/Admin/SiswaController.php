@@ -3,10 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Kelas;
 use App\Models\Siswa;
+use App\Models\SiswaKelas;
+use App\Models\TahunAjaran;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,8 +27,26 @@ class SiswaController extends Controller
         $isAktif = $request->query('is_aktif');
         $punyaKelas = $request->query('punya_kelas');
         $punyaAkun = $request->query('punya_akun');
+        $kelasId = $request->query('kelas');
+        $tahunAjaranParam = $request->query('tahun_ajaran');
 
-        $query = Siswa::query()->with('user', 'kelas');
+        $tahunAjaranId = $tahunAjaranParam
+            ? (int) $tahunAjaranParam
+            : TahunAjaran::where('active', true)->value('id');
+
+        $kelasFilter = function ($q) use ($tahunAjaranId, $kelasId) {
+            $q->where('tahun_ajaran_id', $tahunAjaranId);
+            if ($kelasId) {
+                $q->where('kelas_id', (int) $kelasId);
+            }
+        };
+
+        $query = Siswa::query()->with([
+            'user',
+            'siswaKelas' => fn ($q) => $q
+                ->with('kelas', 'tahunAjaran')
+                ->where('tahun_ajaran_id', $tahunAjaranId),
+        ]);
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama_lengkap', 'like', "%{$search}%")
@@ -39,10 +62,10 @@ class SiswaController extends Controller
         } elseif ($isAktif === '0') {
             $query->where('is_aktif', false);
         }
-        if ($punyaKelas === '1') {
-            $query->has('siswaKelas');
-        } elseif ($punyaKelas === '0') {
-            $query->doesntHave('siswaKelas');
+        if ($punyaKelas === '0') {
+            $query->whereDoesntHave('siswaKelas', $kelasFilter);
+        } else {
+            $query->whereHas('siswaKelas', $kelasFilter);
         }
         if ($punyaAkun === '1') {
             $query->has('user');
@@ -63,10 +86,11 @@ class SiswaController extends Controller
                 'alamat' => $item->alamat,
                 'foto_profil' => $item->foto_profil,
                 'is_aktif' => $item->is_aktif,
-                'kelas' => $item->kelas ? [
-                    'id' => $item->kelas->id,
-                    'nama' => $item->kelas->nama,
+                'kelas' => $item->siswaKelas->first()?->kelas ? [
+                    'id' => $item->siswaKelas->first()->kelas->id,
+                    'nama' => $item->siswaKelas->first()->kelas->nama,
                 ] : null,
+                'tahun_ajaran' => $item->siswaKelas->first()?->tahunAjaran?->name,
                 'punya_akun' => $item->user !== null,
             ]);
 
@@ -74,6 +98,19 @@ class SiswaController extends Controller
             ['value' => 'L', 'label' => 'Laki-laki'],
             ['value' => 'P', 'label' => 'Perempuan'],
         ];
+
+        $tahunAjaranOptions = TahunAjaran::orderByDesc('active')
+            ->orderBy('name')
+            ->get(['id', 'name', 'active']);
+
+        $kelasOptions = Kelas::whereIn(
+            'id',
+            SiswaKelas::where('tahun_ajaran_id', $tahunAjaranId)
+                ->distinct()
+                ->pluck('kelas_id'),
+        )
+            ->orderBy('nama')
+            ->get(['id', 'nama']);
 
         return Inertia::render('admin/Siswa/Index', [
             'siswa' => Inertia::merge($siswa),
@@ -83,8 +120,12 @@ class SiswaController extends Controller
                 'is_aktif' => $isAktif ?? '',
                 'punya_kelas' => $punyaKelas ?? '',
                 'punya_akun' => $punyaAkun ?? '',
+                'kelas' => $kelasId ?? '',
+                'tahun_ajaran' => $tahunAjaranParam ?? $tahunAjaranId,
             ],
             'jenisKelaminOptions' => $jenisKelaminOptions,
+            'tahunAjaranOptions' => $tahunAjaranOptions,
+            'kelasOptions' => $kelasOptions,
         ]);
     }
 
@@ -99,11 +140,21 @@ class SiswaController extends Controller
             $data['foto_profil'] = $request->file('foto_profil')->store('siswa', 'public');
         }
 
-        Siswa::create($data);
+        $siswa = Siswa::create($data);
+
+        $password = Str::password(10);
+        $email = $this->defaultAccountEmail($siswa->nisn);
+        $siswa->user()->create([
+            'name' => $siswa->nama_lengkap,
+            'email' => $email,
+            'password' => Hash::make($password),
+            'role' => 'siswa',
+            'nisn' => $siswa->nisn,
+        ]);
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => 'Peserta didik berhasil ditambahkan.',
+            'message' => "Peserta didik berhasil ditambahkan. Akun otomatis dibuat — Email: {$email}, Password: {$password}",
         ]);
 
         return Redirect::route('admin.siswa.index');
@@ -178,5 +229,15 @@ class SiswaController extends Controller
             'alamat' => 'Alamat',
             'is_aktif' => 'Aktif',
         ]);
+    }
+
+    /**
+     * Build the auto-generated account email from the configured template.
+     */
+    private function defaultAccountEmail(string $nisn): string
+    {
+        $template = config('services.default_account.email_prefix');
+
+        return str_replace('{nisn}', $nisn, $template);
     }
 }

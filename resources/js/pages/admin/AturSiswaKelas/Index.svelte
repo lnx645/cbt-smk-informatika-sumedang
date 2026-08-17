@@ -16,6 +16,7 @@
     import SiswaKelasController from '@/actions/App/Http/Controllers/Admin/SiswaKelasController';
     import Select from '@/components/Select.svelte';
     import PageHeader from '@/components/PageHeader.svelte';
+    import Avatar from '@/components/Avatar.svelte';
 
     interface KelasItem {
         id: number;
@@ -24,6 +25,7 @@
         tahun_ajaran_id: number | null;
         tahun_ajaran: string | null;
         active: boolean;
+        pertama_masuk?: boolean;
     }
 
     type SelectOption = { value: number | string; label: string };
@@ -32,6 +34,7 @@
         siswa_nisn: string;
         nama: string;
         nis: string | null;
+        foto_profil?: string | null;
         kelas_saya: KelasItem[];
         daftar_kelas: { id: number; nama: string }[];
         tahun_ajaran: { id: number; name: string; active: boolean }[];
@@ -42,6 +45,7 @@
         siswa_nisn,
         nama = '',
         nis = null,
+        foto_profil = null,
         kelas_saya = [],
         daftar_kelas = [],
         tahun_ajaran = [],
@@ -56,18 +60,6 @@
     );
 
     const hasClasses = $derived(kelas_saya.length > 0);
-
-    const siswaInisial = $derived(
-        nama
-            ? nama
-                  .split(',')[0]
-                  .split(' ')
-                  .slice(0, 2)
-                  .map((w: string) => w[0])
-                  .join('')
-                  .toUpperCase()
-            : '',
-    );
 
     function extractId(value: unknown): number | null {
         if (value === null || value === undefined || value === '') {
@@ -95,12 +87,14 @@
         kelas_id: null as number | null,
         tahun_ajaran_id: tahun_ajaran_aktif,
         active: true,
+        pertama_masuk: false,
     });
 
     function openCreate() {
         editingId = null;
         form.reset();
         form.active = true;
+        form.pertama_masuk = false;
         form.kelas_id = null;
         form.tahun_ajaran_id = tahun_ajaran_aktif;
         modalOpen = true;
@@ -112,6 +106,7 @@
         form.kelas_id = item.kelas_id;
         form.tahun_ajaran_id = item.tahun_ajaran_id;
         form.active = item.active;
+        form.pertama_masuk = item.pertama_masuk ?? false;
         modalOpen = true;
     }
 
@@ -185,12 +180,11 @@
     <div class="card border rounded-1 shadow-sm mb-3">
         <div class="card-body">
             <div class="d-flex align-items-center gap-3">
-                <div
-                    class="rounded-circle bg-secondary-subtle text-secondary-emphasis d-flex align-items-center justify-content-center fw-semibold"
-                    style="width:56px;height:56px;font-size:1.1rem"
-                >
-                    {siswaInisial}
-                </div>
+                <Avatar
+                    src={foto_profil}
+                    name={nama}
+                    size={56}
+                />
                 <div>
                     <div class="fw-semibold text-body fs-5">
                         {nama}
@@ -207,46 +201,50 @@
     <Card class="border rounded-1 shadow-sm">
         <CardBody class="py-5">
             {#if hasClasses}
-                <div class="row g-3 px-2">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
                     {#each kelas_saya as item (item.id)}
-                        <div class="col-12 col-md-6 col-xl-4">
-                            <div
-                                class="d-flex align-items-center gap-2 bg-white border rounded px-3 py-2 shadow-sm h-100"
+                        <div
+                            class="d-inline-flex align-items-center gap-2 bg-white border rounded px-3 py-2 shadow-sm"
+                        >
+                            <i
+                                class="bi bi-collection text-primary"
+                            ></i>
+                            <span class="text-sm fw-semibold"
+                                >{item.nama_kelas}</span
                             >
-                                <i
-                                    class="bi bi-collection text-primary fs-5"
-                                ></i>
-                                <div class="flex-grow-1">
-                                    <div
-                                        class="fw-semibold"
-                                        >{item.nama_kelas}</div
-                                    >
-                                    <div class="text-secondary small">
-                                        {item.tahun_ajaran ?? 'Tanpa tahun ajaran'}
-                                    </div>
-                                </div>
-                                {#if item.active}
-                                    <Badge color="success">Aktif</Badge>
-                                {:else}
-                                    <Badge color="secondary">Nonaktif</Badge>
-                                {/if}
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-secondary py-0 px-1"
-                                    onclick={() => openEdit(item)}
-                                    title="Edit"
+                            <span class="text-secondary small">
+                                {item.tahun_ajaran ?? 'Tanpa tahun ajaran'}
+                            </span>
+                            {#if item.active}
+                                <Badge color="success" class="ms-1"
+                                    >Aktif</Badge
                                 >
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-danger py-0 px-1"
-                                    onclick={() => confirmDelete(item)}
-                                    title="Hapus"
+                            {:else}
+                                <Badge color="secondary" class="ms-1"
+                                    >Nonaktif</Badge
                                 >
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
+                            {/if}
+                            {#if item.pertama_masuk}
+                                <Badge color="warning" class="ms-1"
+                                    >Pertama Masuk</Badge
+                                >
+                            {/if}
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary py-0 px-1"
+                                onclick={() => openEdit(item)}
+                                title="Edit"
+                            >
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-danger py-0 px-1"
+                                onclick={() => confirmDelete(item)}
+                                title="Hapus"
+                            >
+                                <i class="bi bi-trash"></i>
+                            </button>
                         </div>
                     {/each}
                 </div>
@@ -345,6 +343,23 @@
             </button>
             <Label for="active" class="crud-checkbox__label"
                 >Aktif</Label
+            >
+        </div>
+
+        <div class="crud-checkbox">
+            <!-- svelte-ignore a11y_consider_explicit_label -->
+            <button
+                type="button"
+                class="crud-toggle__track"
+                class:is-on={form.pertama_masuk}
+                role="switch"
+                aria-checked={form.pertama_masuk ? 'true' : 'false'}
+                onclick={() => (form.pertama_masuk = !form.pertama_masuk)}
+            >
+                <span class="crud-toggle__knob"></span>
+            </button>
+            <Label for="pertama_masuk" class="crud-checkbox__label"
+                >Pertama Masuk</Label
             >
         </div>
     </ModalBody>
