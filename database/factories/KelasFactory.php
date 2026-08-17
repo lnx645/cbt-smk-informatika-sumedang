@@ -19,6 +19,7 @@ class KelasFactory extends Factory
     {
         return [
             'nama' => fake()->randomElement(['X', 'XI', 'XII']).' '.fake()->randomElement(['A', 'B', 'C']),
+            'tingkat' => fake()->randomElement(['X', 'XI', 'XII']),
             'deskripsi' => fake()->sentence(),
             'guru_id' => null,
             'active' => true,

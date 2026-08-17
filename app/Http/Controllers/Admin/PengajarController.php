@@ -155,10 +155,10 @@ class PengajarController extends Controller
      */
     public function destroy(Guru $pengajar): RedirectResponse
     {
-        if ($pengajar->user || $pengajar->siswas()->exists() || $pengajar->kelas()->exists()) {
+        if ($pengajar->user || $pengajar->kelas()->exists()) {
             Inertia::flash('toast', [
                 'type' => 'error',
-                'message' => 'Pengajar tidak dapat dihapus karena masih memiliki user, siswa, atau kelas terkait.',
+                'message' => 'Pengajar tidak dapat dihapus karena masih memiliki user atau kelas terkait.',
             ]);
 
             return Redirect::route('admin.pengajar.index');

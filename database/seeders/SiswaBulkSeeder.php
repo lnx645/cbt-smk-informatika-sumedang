@@ -46,11 +46,7 @@ class SiswaBulkSeeder extends Seeder
         while ($created < $this->count) {
             $batch = min($chunk, $this->count - $created);
 
-            $siswas = Siswa::factory()->count($batch)->create([
-                'guru_id' => $this->withKelas && ! $kelases->isEmpty()
-                    ? $kelases->get($created % $kelases->count())->guru_id
-                    : null,
-            ]);
+            $siswas = Siswa::factory()->count($batch)->create();
 
             foreach ($siswas as $i => $siswa) {
                 if ($this->withKelas && ! $kelases->isEmpty()) {

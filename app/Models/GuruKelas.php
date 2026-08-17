@@ -20,7 +20,6 @@ class GuruKelas extends Model
         'matpel_id',
         'tahun_ajaran_id',
         'aktif',
-        'kode_undangan',
         'active_forum',
         'lihat_anggota_kelas',
     ];

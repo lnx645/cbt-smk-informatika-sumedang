@@ -216,7 +216,6 @@ return [
         'aktif' => 'Aktif',
         'active_forum' => 'Forum Aktif',
         'lihat_anggota_kelas' => 'Lihat Anggota Kelas',
-        'kode_undangan' => 'Kode Undangan',
     ],
 
 ];
