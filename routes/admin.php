@@ -8,12 +8,15 @@ use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\MatpelController;
 use App\Http\Controllers\Admin\PengajarController;
+use App\Http\Controllers\Admin\ProfilController;
 use App\Http\Controllers\Admin\SiswaController;
 use App\Http\Controllers\Admin\SiswaKelasController;
 use App\Http\Controllers\Admin\TahunAjaranController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('', DashboardController::class)->name('index');
+Route::get('profil', [ProfilController::class, 'index'])->name('profil.index');
+Route::put('profil', [ProfilController::class, 'update'])->name('profil.update');
 Route::get('kelas', [KelasController::class, 'index'])->name('kelas.index');
 Route::post('kelas', [KelasController::class, 'store'])->name('kelas.store');
 Route::put('kelas/{kelas}', [KelasController::class, 'update'])->name('kelas.update');
