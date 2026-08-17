@@ -20,6 +20,7 @@ class KelasSeeder extends Seeder
         foreach (['X', 'XI', 'XII'] as $tingkat) {
             $root = Kelas::factory()->create([
                 'nama' => $tingkat,
+                'tingkat' => $tingkat,
                 'guru_id' => null,
                 'jurusan_id' => null,
                 'parent_id' => null,

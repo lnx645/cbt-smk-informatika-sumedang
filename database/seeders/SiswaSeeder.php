@@ -23,9 +23,7 @@ class SiswaSeeder extends Seeder
             $jumlah = rand(4, 8);
 
             for ($i = 0; $i < $jumlah; $i++) {
-                $siswa = Siswa::factory()->create([
-                    'guru_id' => $kelas->guru_id,
-                ]);
+                $siswa = Siswa::factory()->create();
 
                 SiswaKelas::create([
                     'siswa_nisn' => $siswa->nisn,

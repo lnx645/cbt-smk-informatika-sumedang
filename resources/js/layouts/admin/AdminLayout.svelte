@@ -16,6 +16,7 @@
     import SiswaController from '@/actions/App/Http/Controllers/Admin/SiswaController';
     import ProfilController from '@/actions/App/Http/Controllers/Admin/ProfilController';
     import AkunAdminController from '@/actions/App/Http/Controllers/Admin/AkunAdminController';
+    import NaikKelasController from '@/actions/App/Http/Controllers/Admin/NaikKelasController';
 
     let {
         children,
@@ -68,6 +69,11 @@
                     href: KelasController.index().url,
                     label: 'Kelas',
                     icon: 'bi-collection-fill',
+                },
+                {
+                    href: NaikKelasController.index().url,
+                    label: 'Naik Kelas',
+                    icon: 'bi-arrow-up-circle-fill',
                 },
             ],
         },

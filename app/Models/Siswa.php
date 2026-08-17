@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 #[Table('siswa')]
-#[Fillable(['nisn', 'nis', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'alamat', 'foto_profil', 'is_aktif'])]
+#[Fillable(['nisn', 'nis', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'alamat', 'foto_profil', 'is_aktif', 'status'])]
 class Siswa extends Model
 {
     /** @use HasFactory<SiswaFactory> */
@@ -23,6 +23,10 @@ class Siswa extends Model
     public $incrementing = false;
 
     protected $keyType = 'string';
+
+    protected $casts = [
+        'status' => 'string',
+    ];
 
     public function user(): HasOne
     {

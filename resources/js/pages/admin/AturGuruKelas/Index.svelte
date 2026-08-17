@@ -30,7 +30,6 @@
         aktif: boolean;
         active_forum: boolean;
         lihat_anggota_kelas: boolean;
-        kode_undangan: string | null;
     }
 
     interface KelasItem {

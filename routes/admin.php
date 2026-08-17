@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\GuruKelasController;
 use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\MatpelController;
+use App\Http\Controllers\Admin\NaikKelasController;
 use App\Http\Controllers\Admin\PengajarController;
 use App\Http\Controllers\Admin\ProfilController;
 use App\Http\Controllers\Admin\SiswaController;
@@ -56,3 +57,6 @@ Route::get('siswa/{siswa}/kelas', [SiswaKelasController::class, 'index'])->name(
 Route::post('siswa/{siswa}/kelas', [SiswaKelasController::class, 'store'])->name('siswa.kelas.store');
 Route::put('siswa/{siswa}/kelas/{siswaKelas}', [SiswaKelasController::class, 'update'])->name('siswa.kelas.update');
 Route::delete('siswa/{siswa}/kelas/{siswaKelas}', [SiswaKelasController::class, 'destroy'])->name('siswa.kelas.destroy');
+Route::get('naik-kelas', [NaikKelasController::class, 'index'])->name('naik-kelas.index');
+Route::post('naik-kelas/preview', [NaikKelasController::class, 'preview'])->name('naik-kelas.preview');
+Route::post('naik-kelas', [NaikKelasController::class, 'execute'])->name('naik-kelas.execute');

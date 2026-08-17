@@ -12,7 +12,6 @@ use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -48,7 +47,6 @@ class GuruKelasController extends Controller
                         'aktif' => $e->aktif,
                         'active_forum' => $e->active_forum,
                         'lihat_anggota_kelas' => $e->lihat_anggota_kelas,
-                        'kode_undangan' => $e->kode_undangan,
                     ];
                 });
 
@@ -163,9 +161,6 @@ class GuruKelasController extends Controller
             'aktif' => (bool) ($data['aktif'] ?? true),
             'active_forum' => (bool) ($data['active_forum'] ?? false),
             'lihat_anggota_kelas' => (bool) ($data['lihat_anggota_kelas'] ?? false),
-            'kode_undangan' => $current
-                ? ($data['kode_undangan'] ?? $current->kode_undangan)
-                : Str::upper(Str::random(8)),
         ];
     }
 }

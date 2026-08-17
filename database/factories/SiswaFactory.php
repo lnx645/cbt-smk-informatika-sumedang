@@ -27,7 +27,7 @@ class SiswaFactory extends Factory
             'alamat' => fake()->address(),
             'foto_profil' => null,
             'is_aktif' => true,
-            'guru_id' => null,
+            'status' => 'aktif',
         ];
     }
 }

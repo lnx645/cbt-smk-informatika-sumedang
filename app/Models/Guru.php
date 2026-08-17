@@ -21,11 +21,6 @@ class Guru extends Model
         return $this->hasOne(User::class, 'guru_id');
     }
 
-    public function siswas(): HasMany
-    {
-        return $this->hasMany(Siswa::class, 'guru_id');
-    }
-
     public function kelas(): HasMany
     {
         return $this->hasMany(Kelas::class);
