@@ -6,6 +6,7 @@ use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\SiswaKelas;
 use App\Models\TahunAjaran;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class NaikKelasService
@@ -20,10 +21,12 @@ class NaikKelasService
         $assignments = SiswaKelas::query()
             ->where('tahun_ajaran_id', $sumber->id)
             ->where('active', true)
-            ->whereHas('kelas', fn ($q) => $q->leaf())
-            ->with(['kelas', 'siswa'])
+            ->whereIn('kelas_id', Kelas::leaf()->select('id'))
+            ->with(['kelas.parent.parent', 'siswa'])
             ->get()
             ->groupBy('kelas_id');
+
+        $plan = $this->kelasPlan($assignments->keys());
 
         $kelas = [];
         $ringkasan = ['naik' => 0, 'tinggal' => 0, 'lulus' => 0];
@@ -31,9 +34,8 @@ class NaikKelasService
         foreach ($assignments as $kelasId => $items) {
             /** @var SiswaKelas $first */
             $first = $items->first();
-            $kelasModel = $first->kelas;
-            $tingkat = $kelasModel->tingkatSekarang();
-            $targetModel = $kelasModel->promoteTarget();
+            $tingkat = $plan[$kelasId]['tingkat'];
+            $targetModel = $plan[$kelasId]['target'];
 
             if ($targetModel) {
                 $defaultStatus = 'naik';
@@ -47,7 +49,7 @@ class NaikKelasService
             }
 
             $kelas[] = [
-                'kelas_asal' => $kelasModel->nama,
+                'kelas_asal' => $first->kelas->nama,
                 'kelas_target' => $targetModel?->nama ?? ($tingkat === 'XII' ? 'LULUS' : null),
                 'tingkat' => $tingkat,
                 'siswa' => $items->map(fn (SiswaKelas $assignment) => [
@@ -79,17 +81,26 @@ class NaikKelasService
         return DB::transaction(function () use ($sumber, $target, $pilihan): array {
             $hasil = ['naik' => 0, 'tinggal' => 0, 'lulus' => 0];
 
+            $nisns = collect($pilihan)->pluck('nisn')->unique()->values()->all();
+
+            $assignments = SiswaKelas::query()
+                ->where('tahun_ajaran_id', $sumber->id)
+                ->where('active', true)
+                ->whereIn('siswa_nisn', $nisns)
+                ->whereIn('kelas_id', Kelas::leaf()->select('id'))
+                ->with(['kelas.parent.parent'])
+                ->orderBy('id')
+                ->get()
+                ->groupBy('siswa_nisn')
+                ->map->first();
+
+            $plan = $this->kelasPlan($assignments->pluck('kelas_id')->unique());
+
             foreach ($pilihan as $item) {
                 $nisn = $item['nisn'];
                 $status = $item['status'];
 
-                $assignment = SiswaKelas::query()
-                    ->where('siswa_nisn', $nisn)
-                    ->where('tahun_ajaran_id', $sumber->id)
-                    ->where('active', true)
-                    ->whereHas('kelas', fn ($q) => $q->leaf())
-                    ->with('kelas')
-                    ->first();
+                $assignment = $assignments->get($nisn);
 
                 if (! $assignment) {
                     continue;
@@ -105,7 +116,7 @@ class NaikKelasService
                     continue;
                 }
 
-                $targetKelas = $status === 'naik' ? $kelas->promoteTarget() : $kelas;
+                $targetKelas = $status === 'naik' ? $plan[$kelas->id]['target'] : $kelas;
 
                 if ($status === 'naik' && $targetKelas === null) {
                     $targetKelas = $kelas;
@@ -129,5 +140,33 @@ class NaikKelasService
 
             return $hasil;
         });
+    }
+
+    /**
+     * Hitung tingkat & kelas tujuan untuk setiap kelas sekali, lalu reuse.
+     *
+     * @param  Collection<int, int>  $kelasIds
+     * @return array<int, array{tingkat: ?string, target: ?Kelas}>
+     */
+    private function kelasPlan(Collection $kelasIds): array
+    {
+        if ($kelasIds->isEmpty()) {
+            return [];
+        }
+
+        $plan = [];
+
+        Kelas::query()
+            ->whereIn('id', $kelasIds)
+            ->with('parent.parent')
+            ->get()
+            ->each(function (Kelas $kelas) use (&$plan): void {
+                $plan[$kelas->id] = [
+                    'tingkat' => $kelas->tingkatSekarang(),
+                    'target' => $kelas->promoteTarget(),
+                ];
+            });
+
+        return $plan;
     }
 }
