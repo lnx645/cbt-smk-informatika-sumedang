@@ -145,7 +145,6 @@ class KelasController extends Controller
 
         $request->merge([
             'deskripsi' => $request->input('deskripsi') ?? '',
-            'ruangan' => $request->input('ruangan') ?? '',
         ]);
 
         return $request->validate([
@@ -158,7 +157,6 @@ class KelasController extends Controller
                     ->ignore($kelas?->id),
             ],
             'deskripsi' => ['nullable', 'string'],
-            'ruangan' => ['nullable', 'string', 'max:255'],
             'jurusan_id' => ['nullable', 'exists:jurusans,id'],
             'guru_id' => ['nullable', 'exists:gurus,id'],
             'parent_id' => ['nullable', 'exists:kelas,id'],
@@ -166,7 +164,6 @@ class KelasController extends Controller
         ], [], [
             'nama' => 'Nama Kelas',
             'deskripsi' => 'Deskripsi',
-            'ruangan' => 'Ruangan',
             'jurusan_id' => 'Jurusan',
             'guru_id' => 'Wali Kelas',
             'parent_id' => 'Kelas Induk',

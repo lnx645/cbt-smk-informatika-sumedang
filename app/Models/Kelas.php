@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-#[Fillable(['nama', 'tingkat', 'deskripsi', 'guru_id', 'active', 'parent_id', 'jurusan_id', 'ruangan'])]
+#[Fillable(['nama', 'tingkat', 'deskripsi', 'guru_id', 'active', 'parent_id', 'jurusan_id'])]
 class Kelas extends Model
 {
     /** @use HasFactory<KelasFactory> */

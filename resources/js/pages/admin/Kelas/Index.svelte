@@ -96,7 +96,6 @@
     const form = useForm({
         nama: '',
         deskripsi: '',
-        ruangan: '',
         jurusan_id: null as number | null,
         guru_id: null as number | null,
         parent_id: null as number | null,
@@ -189,7 +188,6 @@
         form.jurusan_id = null;
         form.guru_id = null;
         form.parent_id = null;
-        form.ruangan = '';
         modalOpen = true;
     }
 
@@ -199,7 +197,6 @@
         form.reset();
         form.nama = node.nama ?? '';
         form.deskripsi = node.deskripsi ?? '';
-        form.ruangan = node.ruangan ?? '';
         form.jurusan_id = node.jurusan?.id ?? null;
         form.guru_id = node.walikelas?.id ?? null;
         form.parent_id = node.parent_id ?? null;
@@ -222,8 +219,6 @@
     function onGuruChange(value: unknown) {
         form.guru_id = extractId(value);
     }
-
-    function onRuanganChange() {}
 
     function onNamaInput() {
         namaTouched = true;
@@ -296,10 +291,6 @@
                 {#if item.jurusan}<span
                         ><i class="bi bi-bookmark-fill"></i>
                         {item.jurusan.name}</span
-                    >{/if}
-                {#if item.ruangan}<span
-                        ><i class="bi bi-door-closed-fill"></i>
-                        R{item.ruangan}</span
                     >{/if}
                 {#if item.walikelas}<span
                         ><i class="bi bi-person-fill"></i>
@@ -408,16 +399,6 @@
                 placeholder="Pilih jurusan…"
                 getOptionValue={(item) => item.value}
                 onchange={onJurusanChange}
-            />
-        </FormGroup>
-
-        <FormGroup>
-            <Label for="ruangan">Ruangan</Label>
-            <Input
-                id="ruangan"
-                bind:value={form.ruangan}
-                oninput={onRuanganChange}
-                placeholder="Mis. Ruang 1"
             />
         </FormGroup>
 
