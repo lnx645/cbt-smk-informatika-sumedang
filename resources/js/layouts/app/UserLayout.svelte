@@ -56,6 +56,17 @@
 
         if (authUser?.guru || authUser?.role === 'guru') {
             items.push({
+                section: 'UJIAN',
+                items: [
+                    {
+                        href: '/guru/tugas-ujian',
+                        label: 'Kelola QUIZ',
+                        icon: 'bi-journal-text',
+                    },
+                ],
+            } as any);
+
+            items.push({
                 section: 'Akademik',
                 items: [
                     {
@@ -73,11 +84,7 @@
                         label: 'Tugas',
                         icon: 'bi-clipboard-check',
                     },
-                    {
-                        href: '/guru/tugas-ujian',
-                        label: 'Soal Ujian',
-                        icon: 'bi-journal-text',
-                    },
+
                     {
                         href: '/nilai',
                         label: 'Nilai Siswa',
@@ -89,6 +96,11 @@
 
         if (authUser?.siswa || authUser?.role === 'siswa') {
             items.push(
+                {
+                    href: '/guru/tugas-ujian',
+                    label: 'Ujian',
+                    icon: 'bi-journal-text',
+                },
                 {
                     href: MataPelajaranGuruController.index().url,
                     label: 'Mata Pelajaran',

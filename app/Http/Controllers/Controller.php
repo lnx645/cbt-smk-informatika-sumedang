@@ -22,13 +22,13 @@ abstract class Controller
         ]);
         $this->user = Auth::guard('web')->user();
 
-        // Cache hanya ID (scalar) karena config serializable_classes=false melarang
-        // unserialize objek model dari cache.
-        $tahunAjaranId = Cache::rememberForever(
-            'tahun-ajaran-aktif',
-            fn () => TahunAjaran::whereActive(true)->value('id'),
-        );
+        // // Cache hanya ID (scalar) karena config serializable_classes=false melarang
+        // // unserialize objek model dari cache.
+        // $tahunAjaranId = Cache::rememberForever(
+        //     'tahun-ajaran-aktif',
+        //     fn () => TahunAjaran::whereActive(true)->value('id'),
+        // );
 
-        $this->tahunAjaran = $tahunAjaranId ? TahunAjaran::find($tahunAjaranId) : null;
+        $this->tahunAjaran = TahunAjaran::whereActive(true)->first();
     }
 }
