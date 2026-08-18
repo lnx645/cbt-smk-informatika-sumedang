@@ -85,6 +85,7 @@ class MateriController extends BaseAppController implements HasMiddleware
             ]);
 
         return [
+            'guru_kelas_id' => $request->query('guru_kelas_id'),
             'materis' => $materis,
             'penugasan' => $penugasan,
             'katalogFilters' => $this->katalogFilters($guru),

@@ -111,10 +111,12 @@
         materis,
         penugasan = [],
         katalog = null,
+        guru_kelas_id = null,
         katalogFilters = { tahunAjaran: [], kelas: [], matpel: [] },
         filters = { guru_kelas_id: null, q: '' },
         editMateri = null,
     }: {
+        guru_kelas_id?: string | null;
         materis: PaginationMeta;
         penugasan: Penugasan[];
         katalog: KatalogMeta | null;
