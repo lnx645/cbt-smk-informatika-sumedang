@@ -56,18 +56,13 @@
 
         if (authUser?.guru || authUser?.role === 'guru') {
             items.push({
-                section: 'app',
+                section: 'Akademik',
                 items: [
                     {
                         href: MataPelajaranGuruController.index().url,
-                        label: 'Diskusi',
+                        label: 'Kelas Saya',
                         icon: 'bi-chat-dots',
                     },
-                ],
-            } satisfies AppShellNavSection as any);
-            items.push({
-                section: 'Akademik',
-                items: [
                     {
                         href: GuruMateriController.index().url,
                         label: 'Materi',
