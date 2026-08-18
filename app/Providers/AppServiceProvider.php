@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Guru;
 use App\Models\Siswa;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
                 ])->withSharedData();
             }
         });
+        Model::preventLazyLoading(! app()->isProduction());
         Relation::enforceMorphMap([
             'siswa' => Siswa::class,
             'guru' => Guru::class,

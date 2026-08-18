@@ -47,6 +47,6 @@ class GuruKelas extends Model
 
     public function tahunAjaran(): BelongsTo
     {
-        return $this->belongsTo(TahunAjaran::class)->where('active', true);
+        return $this->belongsTo(TahunAjaran::class);
     }
 }

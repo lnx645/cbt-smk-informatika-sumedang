@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TahunAjaran;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -67,6 +68,8 @@ class TahunAjaranController extends Controller
 
         TahunAjaran::create($data);
 
+        Cache::forget('tahun-ajaran-aktif');
+
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => 'Tahun ajaran berhasil ditambahkan.',
@@ -93,6 +96,8 @@ class TahunAjaranController extends Controller
         }
 
         $tahunAjaran->update($data);
+
+        Cache::forget('tahun-ajaran-aktif');
 
         Inertia::flash('toast', [
             'type' => 'success',

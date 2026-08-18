@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GuruKelas;
 use App\Models\Materi;
+use App\Models\Tugas;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -56,15 +57,48 @@ class DashboardController extends BaseAppController
             ])
             ->all();
 
-        $ringkasan = $scoped(Materi::query()->with('guruKelas.matpel'))
+        $ringkasan = Materi::query()
+            ->selectRaw('guru_kelas.matpel_id, matpels.name as matpel, count(*) as total')
+            ->join('guru_kelas', 'materis.guru_kelas_id', '=', 'guru_kelas.id')
+            ->join('matpels', 'guru_kelas.matpel_id', '=', 'matpels.id')
+            ->where('guru_kelas.aktif', true)
+            ->where('guru_kelas.tahun_ajaran_id', $this->tahunAjaran?->id)
+            ->when($kelas, fn ($q) => $q->where('guru_kelas.kelas_id', $kelas->id))
+            ->groupBy('guru_kelas.matpel_id', 'matpels.name')
+            ->orderBy('matpels.name')
             ->get()
-            ->groupBy(fn (Materi $materi): mixed => $materi->guruKelas?->matpel_id)
-            ->map(fn (Collection $group): array => [
-                'id' => $group->first()->guruKelas?->matpel_id,
-                'matpel' => $group->first()->guruKelas?->matpel?->name ?? 'Matpel',
-                'total' => $group->count(),
+            ->map(fn (object $row): array => [
+                'id' => (int) $row->matpel_id,
+                'matpel' => $row->matpel,
+                'total' => (int) $row->total,
             ])
-            ->values()
+            ->all();
+
+        $guruKelasIds = GuruKelas::where('kelas_id', $kelas?->id)
+            ->where('aktif', true)
+            ->where('tahun_ajaran_id', $this->tahunAjaran?->id)
+            ->pluck('id');
+
+        $tugasBelum = Tugas::query()
+            ->select(['id', 'guru_kelas_id', 'judul', 'deadline'])
+            ->whereIn('guru_kelas_id', $guruKelasIds)
+            ->where(fn ($q) => $q
+                ->whereNull('tanggal_terbit')
+                ->orWhere('tanggal_terbit', '<=', now()))
+            ->where(fn ($q) => $q
+                ->whereNull('deadline')
+                ->orWhere('deadline', '>', now()))
+            ->whereDoesntHave('pengumpulans', fn ($q) => $q->where('siswa_nisn', $siswa->nisn))
+            ->with(['guruKelas.matpel:id,name'])
+            ->orderBy('deadline')
+            ->take(5)
+            ->get()
+            ->map(fn (Tugas $tugas): array => [
+                'id' => $tugas->id,
+                'judul' => $tugas->judul,
+                'matpel' => $tugas->guruKelas?->matpel?->name,
+                'deadline' => $tugas->deadline?->translatedFormat('d M Y H:i'),
+            ])
             ->all();
 
         return [
@@ -74,6 +108,7 @@ class DashboardController extends BaseAppController
             'kutipan' => $this->kutipanAcak(),
             'materiTerbaru' => $materiTerbaru,
             'ringkasan' => $ringkasan,
+            'tugasBelum' => $tugasBelum,
         ];
     }
 

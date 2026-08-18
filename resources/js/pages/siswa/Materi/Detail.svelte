@@ -110,14 +110,6 @@
                     >
                 </div>
             </div>
-            {#if materi.file_name}
-                <a
-                    href={unduhUrl}
-                    class="btn btn-light detail-hero__download"
-                >
-                    <i class="bi bi-download me-2"></i>Unduh Berkas
-                </a>
-            {/if}
         </div>
     </div>
 
@@ -358,14 +350,6 @@
 
     .detail-hero__dot {
         opacity: 0.5;
-    }
-
-    .detail-hero__download {
-        position: relative;
-        z-index: 1;
-        flex-shrink: 0;
-        border: none;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
     }
 
     .detail-file-icon {

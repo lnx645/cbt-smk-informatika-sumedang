@@ -61,8 +61,10 @@ class MateriController extends BaseAppController implements HasMiddleware
                 'label' => ($gk->kelas?->nama ?? 'Kelas').' — '.($gk->matpel?->name ?? 'Matpel'),
             ]);
 
-        $materis = Materi::where('guru_id', $guru->id)
+        $materis = Materi::query()
+            ->select(['id', 'guru_id', 'guru_kelas_id', 'judul', 'deskripsi', 'file_name', 'file_size', 'created_at'])
             ->with(['guruKelas.kelas', 'guruKelas.matpel'])
+            ->where('guru_id', $guru->id)
             ->when($request->integer('guru_kelas_id'), fn ($q, $gkId) => $q->where('guru_kelas_id', $gkId))
             ->when($request->string('q')->toString(), fn ($q, $keyword) => $q->where(fn ($w) => $w
                 ->where('judul', 'like', "%{$keyword}%")
@@ -75,7 +77,6 @@ class MateriController extends BaseAppController implements HasMiddleware
                 'id' => $materi->id,
                 'judul' => $materi->judul,
                 'deskripsi' => $materi->deskripsi,
-                'konten' => $materi->konten,
                 'file_name' => $materi->file_name,
                 'file_size' => $materi->file_size,
                 'kelas' => $materi->guruKelas?->kelas?->nama,
@@ -235,13 +236,71 @@ class MateriController extends BaseAppController implements HasMiddleware
     }
 
     /**
-     * Simpan materi baru beserta berkasnya.
+     * Data materi milik guru untuk modal edit.
      */
-    public function store(Request $request): RedirectResponse
+    public function edit(Request $request, Materi $materi): Response
+    {
+        abort_unless($materi->guru_id === $request->user()->guru?->id, 404);
+
+        return Inertia::render('guru/Materi/Index', $this->indexData($request) + [
+            'editMateri' => [
+                'id' => $materi->id,
+                'guru_kelas_id' => $materi->guru_kelas_id,
+                'judul' => $materi->judul,
+                'deskripsi' => $materi->deskripsi,
+                'konten' => $materi->konten,
+                'file_name' => $materi->file_name,
+                'file_size' => $materi->file_size,
+            ],
+        ]);
+    }
+
+    /**
+     * Perbarui materi milik guru; berkas diganti hanya jika diunggah ulang.
+     */
+    public function update(Request $request, Materi $materi): RedirectResponse
+    {
+        if ($materi->guru_id !== $request->user()->guru?->id) {
+            Toast::error('Materi tidak ditemukan.');
+
+            return Redirect::back();
+        }
+
+        $data = $this->validateMateriData($request);
+
+        $file = $request->file('file');
+
+        if ($file) {
+            if ($materi->file_path) {
+                Storage::disk('public')->delete($materi->file_path);
+            }
+
+            $materi->file_path = $file->store('materi', 'public');
+            $materi->file_name = $file->getClientOriginalName();
+            $materi->file_size = $file->getSize();
+            $materi->mime_type = $file->getMimeType();
+        }
+
+        $materi->fill([
+            'guru_kelas_id' => $data['guru_kelas_id'],
+            'judul' => $data['judul'],
+            'deskripsi' => $data['deskripsi'] ?? null,
+            'konten' => $data['konten'] ?? null,
+        ])->save();
+
+        Toast::success('Materi "'.$materi->judul.'" berhasil diperbarui.');
+
+        return Redirect::back();
+    }
+
+    /**
+     * Validasi data materi untuk store/update.
+     */
+    private function validateMateriData(Request $request): array
     {
         $guru = $request->user()->guru;
 
-        $data = $request->validate([
+        return $request->validate([
             'guru_kelas_id' => [
                 'required',
                 Rule::exists('guru_kelas', 'id')
@@ -265,6 +324,16 @@ class MateriController extends BaseAppController implements HasMiddleware
             'konten' => 'Isi Materi',
             'file' => 'Berkas Materi',
         ]);
+    }
+
+    /**
+     * Simpan materi baru beserta berkasnya.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $guru = $request->user()->guru;
+
+        $data = $this->validateMateriData($request);
 
         $file = $request->file('file');
 

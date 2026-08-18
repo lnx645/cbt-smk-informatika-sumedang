@@ -13024,6 +13024,10 @@ textarea.form-control-lg {
   font-size: 1rem;
 }
 
+label {
+  font-size: 0.75rem;
+}
+
 .form-control,
 .form-select {
   background-color: #ffffff;
@@ -15284,10 +15288,6 @@ textarea.form-control-lg {
 
 body {
   font-family: var(--font-body);
-}
-
-.min-w-0 {
-  min-width: 0 !important;
 }
 
 /*# sourceMappingURL=app.css.map */

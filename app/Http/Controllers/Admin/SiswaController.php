@@ -32,7 +32,7 @@ class SiswaController extends Controller
 
         $tahunAjaranId = $tahunAjaranParam
             ? (int) $tahunAjaranParam
-            : TahunAjaran::where('active', true)->value('id');
+            : $this->tahunAjaran?->id;
 
         $kelasFilter = function ($q) use ($tahunAjaranId, $kelasId) {
             $q->where('tahun_ajaran_id', $tahunAjaranId);
@@ -41,8 +41,7 @@ class SiswaController extends Controller
             }
         };
 
-        $query = Siswa::query()->with([
-            'user',
+        $query = Siswa::query()->withExists('user')->with([
             'siswaKelas' => fn ($q) => $q
                 ->with('kelas', 'tahunAjaran')
                 ->where('tahun_ajaran_id', $tahunAjaranId),
@@ -86,12 +85,12 @@ class SiswaController extends Controller
                 'alamat' => $item->alamat,
                 'foto_profil' => $item->foto_profil,
                 'is_aktif' => $item->is_aktif,
-                'kelas' => $item->siswaKelas->first()?->kelas ? [
-                    'id' => $item->siswaKelas->first()->kelas->id,
-                    'nama' => $item->siswaKelas->first()->kelas->nama,
+                'kelas' => ($kelasSiswa = $item->siswaKelas->first())?->kelas ? [
+                    'id' => $kelasSiswa->kelas->id,
+                    'nama' => $kelasSiswa->kelas->nama,
                 ] : null,
-                'tahun_ajaran' => $item->siswaKelas->first()?->tahunAjaran?->name,
-                'punya_akun' => $item->user !== null,
+                'tahun_ajaran' => $kelasSiswa?->tahunAjaran?->name,
+                'punya_akun' => $item->user_exists,
             ]);
 
         $jenisKelaminOptions = [
