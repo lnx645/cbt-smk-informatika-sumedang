@@ -9,6 +9,8 @@
     import BrandIcon from './BrandIcon.svelte';
     import { Alert } from '@sveltestrap/sveltestrap';
     import MataPelajaranGuruController from '@/actions/App/Http/Controllers/MataPelajaranGuruController';
+    import GuruMateriController from '@/actions/App/Http/Controllers/Guru/MateriController';
+    import SiswaMateriController from '@/actions/App/Http/Controllers/Siswa/MateriController';
     import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
     let { children }: { children: Snippet } = $props();
     const authUser = $derived(
@@ -65,7 +67,7 @@
                 section: 'Akademik',
                 items: [
                     {
-                        href: '/guru/materi',
+                        href: GuruMateriController.index().url,
                         label: 'Materi',
                         icon: 'bi-journal-plus',
                     },
@@ -96,7 +98,7 @@
                     icon: 'bi-journal-bookmark',
                 },
                 {
-                    href: '/materi',
+                    href: SiswaMateriController.index().url,
                     label: 'Lihat Materi',
                     icon: 'bi-book-half',
                 },
