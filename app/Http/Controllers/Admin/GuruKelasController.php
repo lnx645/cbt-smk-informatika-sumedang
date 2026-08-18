@@ -69,7 +69,7 @@ class GuruKelasController extends Controller
             'tahun_ajaran' => TahunAjaran::orderByDesc('active')
                 ->orderBy('name')
                 ->get(['id', 'name', 'active']),
-            'tahun_ajaran_aktif' => TahunAjaran::where('active', true)->value('id'),
+            'tahun_ajaran_aktif' => $this->tahunAjaran?->id,
         ]);
     }
 

@@ -26,7 +26,7 @@ class DashboardController extends Controller
         $tahunAjaranParam = $request->input('tahun_ajaran');
 
         if ($tahunAjaranParam === null) {
-            $tahunAjaranId = TahunAjaran::where('active', true)->value('id');
+            $tahunAjaranId = $this->tahunAjaran?->id;
         } elseif ($tahunAjaranParam === '' || $tahunAjaranParam === 'all') {
             $tahunAjaranId = null;
         } else {

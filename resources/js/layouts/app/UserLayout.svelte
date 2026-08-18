@@ -10,7 +10,9 @@
     import { Alert } from '@sveltestrap/sveltestrap';
     import MataPelajaranGuruController from '@/actions/App/Http/Controllers/MataPelajaranGuruController';
     import GuruMateriController from '@/actions/App/Http/Controllers/Guru/MateriController';
+    import GuruTugasController from '@/actions/App/Http/Controllers/Guru/TugasController';
     import SiswaMateriController from '@/actions/App/Http/Controllers/Siswa/MateriController';
+    import SiswaTugasController from '@/actions/App/Http/Controllers/Siswa/TugasController';
     import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
     let { children }: { children: Snippet } = $props();
     const authUser = $derived(
@@ -72,7 +74,7 @@
                         icon: 'bi-journal-plus',
                     },
                     {
-                        href: '/guru/tugas-siswa',
+                        href: GuruTugasController.index().url,
                         label: 'Tugas',
                         icon: 'bi-clipboard-check',
                     },
@@ -104,7 +106,7 @@
                 },
 
                 {
-                    href: '/ujian',
+                    href: SiswaTugasController.index().url,
                     label: 'Tugas',
                     icon: 'bi-ui-checks-grid',
                 },

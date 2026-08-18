@@ -146,12 +146,8 @@ test('guru dapat mengunggah materi tanpa berkas dengan konten lengkap', function
             ->where('materi.file_name', null)
             ->missing('konten'));
 
-    $version = (new \Inertia\Middleware)->version(new \Illuminate\Http\Request);
-
     $this->actingAs($this->siswaAUser)
         ->get(route('app.siswa.materi.show', $materi), [
-            'X-Inertia' => 'true',
-            'X-Inertia-Version' => $version,
             'X-Inertia-Partial-Component' => 'siswa/Materi/Detail',
             'X-Inertia-Partial-Data' => 'konten',
         ])
@@ -524,6 +520,100 @@ test('guru tidak dapat menghapus materi milik guru lain', function (): void {
         ->assertRedirect();
 
     $this->assertDatabaseHas('materis', ['id' => $materi->id]);
+});
+
+test('guru dapat membuka data materi miliknya untuk diedit', function (): void {
+    $materi = Materi::factory()->create([
+        'guru_id' => $this->guru->id,
+        'guru_kelas_id' => $this->guruKelasA->id,
+        'judul' => 'Bab 1: Bilangan',
+        'konten' => '<p>Isi lama</p>',
+    ]);
+
+    $this->actingAs($this->guruUser)
+        ->get(route('app.guru.materi.edit', $materi))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('guru/Materi/Index')
+            ->where('editMateri.id', $materi->id)
+            ->where('editMateri.guru_kelas_id', $this->guruKelasA->id)
+            ->where('editMateri.judul', 'Bab 1: Bilangan')
+            ->where('editMateri.konten', '<p>Isi lama</p>'));
+});
+
+test('guru dapat memperbarui judul, deskripsi, dan konten materinya', function (): void {
+    $materi = Materi::factory()->create([
+        'guru_id' => $this->guru->id,
+        'guru_kelas_id' => $this->guruKelasA->id,
+        'judul' => 'Bab 1: Bilangan',
+    ]);
+
+    $this->actingAs($this->guruUser)
+        ->put(route('app.guru.materi.update', $materi), [
+            'guru_kelas_id' => $this->guruKelasA->id,
+            'judul' => 'Bab 1: Bilangan Bulat',
+            'deskripsi' => 'Deskripsi baru',
+            'konten' => '<h2 id="judul-1">Pengantar</h2>',
+        ])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('materis', [
+        'id' => $materi->id,
+        'judul' => 'Bab 1: Bilangan Bulat',
+        'deskripsi' => 'Deskripsi baru',
+        'konten' => '<h2 id="judul-1">Pengantar</h2>',
+    ]);
+});
+
+test('guru dapat mengganti berkas materi dan berkas lama dihapus', function (): void {
+    $materi = Materi::factory()->create([
+        'guru_id' => $this->guru->id,
+        'guru_kelas_id' => $this->guruKelasA->id,
+        'file_name' => 'lama.pdf',
+    ]);
+    Storage::disk('public')->put($materi->file_path, 'isi lama');
+
+    $file = UploadedFile::fake()->create('baru.pdf', 100, 'application/pdf');
+
+    $this->actingAs($this->guruUser)
+        ->put(route('app.guru.materi.update', $materi), [
+            'guru_kelas_id' => $this->guruKelasA->id,
+            'judul' => 'Bab 1: Bilangan',
+            'file' => $file,
+        ])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $materi->refresh();
+    $this->assertSame('baru.pdf', $materi->file_name);
+    Storage::disk('public')->assertMissing('materi/lama.pdf');
+    Storage::disk('public')->assertExists($materi->file_path);
+});
+
+test('guru tidak dapat mengedit materi milik guru lain', function (): void {
+    $guruLain = Guru::factory()->create();
+    $materi = Materi::factory()->create([
+        'guru_id' => $guruLain->id,
+        'guru_kelas_id' => $this->guruKelasA->id,
+        'judul' => 'Judul Asli',
+    ]);
+
+    $this->actingAs($this->guruUser)
+        ->get(route('app.guru.materi.edit', $materi))
+        ->assertNotFound();
+
+    $this->actingAs($this->guruUser)
+        ->put(route('app.guru.materi.update', $materi), [
+            'guru_kelas_id' => $this->guruKelasA->id,
+            'judul' => 'Judul Baru',
+        ])
+        ->assertRedirect();
+
+    $this->assertDatabaseHas('materis', [
+        'id' => $materi->id,
+        'judul' => 'Judul Asli',
+    ]);
 });
 
 test('halaman guru materi memblokir akses siswa', function (): void {

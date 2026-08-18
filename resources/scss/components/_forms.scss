@@ -1,4 +1,8 @@
-// â”€â”€ 7.4. Form Controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+﻿// 7.4. Form Controls
+label {
+    font-size: $font-size-sm;
+}
+
 .form-control,
 .form-select {
     background-color: $white;

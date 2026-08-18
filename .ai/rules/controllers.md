@@ -16,3 +16,6 @@ Use Toast::success() / Toast::error() / Toast::warning() / Toast::info() instead
 
 ## Resolve user via $request->user() in controller methods, not the constructor
 Laravel caches controller instances on Route objects, so `$this->user` captured in the base Controller constructor goes stale when the same app handles multiple requests (feature tests with several actingAs calls, long-running processes). Always resolve `$request->user()` (or its guru/siswa relations) inside each method instead of relying on the constructor-injected user. Also: `Storage::download()` returns StreamedResponse, not BinaryFileResponse.
+
+## Jangan pakai static cache di controller
+Jangan memoize query per-request dengan properti static di controller (mis. TahunAjaran aktif) — state static bertahan antar test dalam satu proses Pest dan merusak isolasi test (nilai dari test pertama bocor ke test berikutnya). Gunakan memoization per-instance (??=), atau Cache::remember dengan invalidation eksplisit jika perlu lintas request.

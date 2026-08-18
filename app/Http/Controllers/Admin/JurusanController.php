@@ -33,13 +33,14 @@ class JurusanController extends Controller
             $query->doesntHave('kelas');
         }
 
-        $jurusans = $query->orderBy('name')
+        $jurusans = $query->withCount(['kelas as jumlah_kelas' => fn ($q) => $q->leaf()])
+            ->orderBy('name')
             ->paginate(10)
             ->through(fn (Jurusan $jurusan) => [
                 'id' => $jurusan->id,
                 'name' => $jurusan->name,
                 'kode' => $jurusan->kode,
-                'jumlah_kelas' => $jurusan->kelas()->leaf()->count(),
+                'jumlah_kelas' => $jurusan->jumlah_kelas,
             ]);
 
         return Inertia::render('admin/Jurusan/Index', [

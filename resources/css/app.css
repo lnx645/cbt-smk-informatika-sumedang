@@ -13024,6 +13024,10 @@ textarea.form-control-lg {
   font-size: 1rem;
 }
 
+label {
+  font-size: 0.75rem;
+}
+
 .form-control,
 .form-select {
   background-color: #ffffff;

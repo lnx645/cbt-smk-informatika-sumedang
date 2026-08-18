@@ -21,11 +21,13 @@
     ];
 
     let {
+        id,
         value = '',
         placeholder = '',
         invalid = false,
         onchange,
     }: {
+        id?: string;
         value?: string;
         placeholder?: string;
         invalid?: boolean;
@@ -272,7 +274,7 @@
     ];
 </script>
 
-<div class={`rich-editor ${invalid ? 'is-invalid' : ''}`}>
+<div class={`rich-editor ${invalid ? 'is-invalid' : ''}`} id={id}>
     <div class="rich-editor__toolbar">
         {#each tools as tool (tool.command)}
             <button
