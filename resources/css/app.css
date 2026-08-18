@@ -15286,4 +15286,8 @@ body {
   font-family: var(--font-body);
 }
 
+.min-w-0 {
+  min-width: 0 !important;
+}
+
 /*# sourceMappingURL=app.css.map */

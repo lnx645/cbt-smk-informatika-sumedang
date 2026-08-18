@@ -22,7 +22,7 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::get('matpel/{matpel}/kelas-{id}/manage', KelasController::class)->name('kelas.room');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('auth.logout');
-    Route::get('matpel-saya', [MataPelajaranGuruController::class, 'index'])->name('app.matpel');
+    Route::get('matpel-saya', [MataPelajaranGuruController::class, 'index'])->name('matpel');
     Route::get('guru/materi', [GuruMateriController::class, 'index'])->name('guru.materi.index');
     Route::get('guru/materi/katalog', [GuruMateriController::class, 'katalog'])->name('guru.materi.katalog');
     Route::post('guru/materi', [GuruMateriController::class, 'store'])->name('guru.materi.store');

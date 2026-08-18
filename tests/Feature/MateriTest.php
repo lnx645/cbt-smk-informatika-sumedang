@@ -146,12 +146,8 @@ test('guru dapat mengunggah materi tanpa berkas dengan konten lengkap', function
             ->where('materi.file_name', null)
             ->missing('konten'));
 
-    $version = (new \Inertia\Middleware)->version(new \Illuminate\Http\Request);
-
     $this->actingAs($this->siswaAUser)
         ->get(route('app.siswa.materi.show', $materi), [
-            'X-Inertia' => 'true',
-            'X-Inertia-Version' => $version,
             'X-Inertia-Partial-Component' => 'siswa/Materi/Detail',
             'X-Inertia-Partial-Data' => 'konten',
         ])
