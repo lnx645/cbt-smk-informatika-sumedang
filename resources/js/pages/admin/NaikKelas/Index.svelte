@@ -8,20 +8,25 @@
     import { extractId } from '@/lib/utils';
     import type { SelectOption } from '@/types/models';
 
-    type SiswaItem = { nisn: string; nama: string; status: 'naik' | 'tinggal' | 'lulus' };
+    type Status = 'naik' | 'tinggal' | 'lulus';
+    type SiswaItem = { nisn: string; nama: string; status: Status };
     type KelasPreview = {
         kelas_asal: string;
         kelas_target: string | null;
+        kelas_target_id: number | null;
         tingkat: string | null;
         siswa: SiswaItem[];
     };
+    type KelasTujuanOption = { value: number; label: string; jurusan: string };
     type Ringkasan = { naik: number; tinggal: number; lulus: number };
     type Preview = {
         sumber: { id: number; name: string };
         target: { id: number; name: string };
         kelas: KelasPreview[];
         ringkasan: Ringkasan;
+        kelas_tujuan: Record<string, KelasTujuanOption[]>;
     };
+    type PilihanSiswa = { status: Status; kelas_target: number | null };
 
     let {
         tahun_ajaran = [],
@@ -41,7 +46,22 @@
         { value: 'lulus', label: 'Lulus' },
     ];
 
-    let pilihan = $state<Record<string, 'naik' | 'tinggal' | 'lulus'>>({});
+    const tujuanOptions = $derived<Record<string, KelasTujuanOption[]>>(
+        preview?.kelas_tujuan ?? {},
+    );
+
+    function kelompokTujuan(
+        tingkat: string,
+    ): Record<string, KelasTujuanOption[]> {
+        const grouped: Record<string, KelasTujuanOption[]> = {};
+        for (const opt of tujuanOptions[tingkat] ?? []) {
+            const key = opt.jurusan || 'Tanpa jurusan';
+            (grouped[key] ??= []).push(opt);
+        }
+        return grouped;
+    }
+
+    let pilihan = $state<Record<string, PilihanSiswa>>({});
     let processing = $state(false);
     let lastPreviewKey = $state<string | null>(null);
 
@@ -51,10 +71,10 @@
     });
 
     function initPilihan() {
-        const next: Record<string, 'naik' | 'tinggal' | 'lulus'> = {};
+        const next: Record<string, PilihanSiswa> = {};
         for (const k of preview?.kelas ?? []) {
             for (const s of k.siswa) {
-                next[s.nisn] = s.status;
+                next[s.nisn] = { status: s.status, kelas_target: k.kelas_target_id };
             }
         }
         pilihan = next;
@@ -75,10 +95,39 @@
         initPilihan();
     });
 
+    function statusOf(siswa: SiswaItem): Status {
+        return pilihan[siswa.nisn]?.status ?? siswa.status;
+    }
+
+    function setStatus(siswa: SiswaItem, status: Status) {
+        pilihan[siswa.nisn] = { status, kelas_target: pilihan[siswa.nisn]?.kelas_target ?? null };
+    }
+
+    function setKelasTujuan(siswa: SiswaItem, kelasTujuanId: number | null) {
+        pilihan[siswa.nisn] = {
+            status: statusOf(siswa),
+            kelas_target: kelasTujuanId,
+        };
+    }
+
+    function kelasTujuanLabel(nisn: string): string {
+        const id = pilihan[nisn]?.kelas_target;
+        if (!id) {
+            return '';
+        }
+        for (const list of Object.values(tujuanOptions)) {
+            const opt = list.find((o) => o.value === id);
+            if (opt) {
+                return opt.label;
+            }
+        }
+        return '';
+    }
+
     const ringkasan = $derived.by<Ringkasan>(() => {
         const r: Ringkasan = { naik: 0, tinggal: 0, lulus: 0 };
-        for (const status of Object.values(pilihan)) {
-            r[status]++;
+        for (const p of Object.values(pilihan)) {
+            r[p.status]++;
         }
         return r;
     });
@@ -91,9 +140,10 @@
     }
 
     async function prosesNaikKelas() {
-        const pilihanList = Object.entries(pilihan).map(([nisn, status]) => ({
+        const pilihanList = Object.entries(pilihan).map(([nisn, p]) => ({
             nisn,
-            status,
+            status: p.status,
+            kelas_target: p.status === 'naik' ? p.kelas_target : null,
         }));
 
         const ok = await confirm.show({
@@ -117,9 +167,7 @@
         });
     }
 
-    function badgeColor(
-        status: 'naik' | 'tinggal' | 'lulus',
-    ): 'success' | 'warning' | 'danger' {
+    function badgeColor(status: Status): 'success' | 'warning' | 'danger' {
         if (status === 'lulus') {
             return 'danger';
         }
@@ -220,7 +268,10 @@
                                     <tr>
                                         <th scope="col">NISN</th>
                                         <th scope="col">Nama</th>
-                                        <th scope="col" class="text-end">Status</th>
+                                        <th scope="col">Status</th>
+                                        {#if tujuanOptions[kelas.tingkat ?? '']?.length}
+                                            <th scope="col">Pindah ke Kelas</th>
+                                        {/if}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -229,31 +280,31 @@
                                             <td class="text-muted">
                                                 {siswa.nisn}
                                             </td>
-                                            <td>{siswa.nama}</td>
-                                            <td class="text-end">
+                                            <td>
+                                                {siswa.nama}
+                                                {#if kelasTujuanLabel(siswa.nisn)}
+                                                    <div class="small text-muted">
+                                                        <i class="bi bi-arrow-right-circle me-1"></i>
+                                                        {kelasTujuanLabel(siswa.nisn)}
+                                                    </div>
+                                                {/if}
+                                            </td>
+                                            <td>
                                                 <div
                                                     class="d-inline-flex align-items-center gap-2"
                                                 >
-                                                    <Badge
-                                                        color={badgeColor(
-                                                            pilihan[siswa.nisn] ??
-                                                                siswa.status,
-                                                        )}
-                                                    >
-                                                        {pilihan[siswa.nisn] ??
-                                                            siswa.status}
+                                                    <Badge color={badgeColor(statusOf(siswa))}>
+                                                        {statusOf(siswa)}
                                                     </Badge>
                                                     <select
                                                         class="form-select form-select-sm w-auto"
-                                                        value={pilihan[siswa.nisn] ??
-                                                            siswa.status}
+                                                        value={statusOf(siswa)}
                                                         onchange={(e) =>
-                                                            (pilihan[siswa.nisn] =
+                                                            setStatus(
+                                                                siswa,
                                                                 (e.currentTarget as HTMLSelectElement)
-                                                                    .value as
-                                                                    | 'naik'
-                                                                    | 'tinggal'
-                                                                    | 'lulus')}
+                                                                    .value as Status,
+                                                            )}
                                                     >
                                                         {#each statusOptions as opt (opt.value)}
                                                             <option
@@ -265,6 +316,42 @@
                                                     </select>
                                                 </div>
                                             </td>
+                                            {#if tujuanOptions[kelas.tingkat ?? '']?.length}
+                                                <td>
+                                                    {#if statusOf(siswa) === 'naik'}
+                                                        <select
+                                                            class="form-select form-select-sm w-auto"
+                                                            value={pilihan[siswa.nisn]
+                                                                ?.kelas_target ?? ''}
+                                                            onchange={(e) =>
+                                                                setKelasTujuan(
+                                                                    siswa,
+                                                                    Number(
+                                                                        (e.currentTarget as HTMLSelectElement)
+                                                                            .value,
+                                                                    ) || null,
+                                                                )}
+                                                        >
+                                                            <option value="">
+                                                                Kelas tujuan (otomatis)
+                                                            </option>
+                                                            {#each Object.entries(
+                                                                kelompokTujuan(kelas.tingkat ?? ''),
+                                                            ) as [jurusan, options] (jurusan)}
+                                                                <optgroup label={jurusan}>
+                                                                    {#each options as opt (opt.value)}
+                                                                        <option value={opt.value}>
+                                                                            {opt.label}
+                                                                        </option>
+                                                                    {/each}
+                                                                </optgroup>
+                                                            {/each}
+                                                        </select>
+                                                    {:else}
+                                                        <span class="text-muted">—</span>
+                                                    {/if}
+                                                </td>
+                                            {/if}
                                         </tr>
                                     {/each}
                                 </tbody>
