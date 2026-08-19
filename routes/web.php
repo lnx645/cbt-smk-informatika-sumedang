@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Guru\MateriController as GuruMateriController;
+use App\Http\Controllers\Guru\PenilaianController as GuruPenilaianController;
 use App\Http\Controllers\Guru\TugasController as GuruTugasController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LinkExternalController;
@@ -40,7 +41,11 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::delete('guru/tugas/{tugas}', [GuruTugasController::class, 'destroy'])->name('guru.tugas.destroy');
     Route::get('guru/tugas/{tugas}/unduh', [GuruTugasController::class, 'unduh'])->name('guru.tugas.unduh');
     Route::get('guru/tugas/{tugas}/pengumpulan', [GuruTugasController::class, 'pengumpulan'])->name('guru.tugas.pengumpulan');
+    Route::put('guru/tugas/{tugas}/nilai', [GuruTugasController::class, 'nilai'])->name('guru.tugas.nilai');
     Route::get('guru/tugas/{tugas}/pengumpulan/{pengumpulan}/unduh', [GuruTugasController::class, 'pengumpulanUnduh'])->name('guru.tugas.pengumpulan.unduh');
+    Route::get('guru/penilaian', [GuruPenilaianController::class, 'index'])->name('guru.penilaian.index');
+    Route::get('guru/penilaian/{penilaian}/{guruKelas}', [GuruPenilaianController::class, 'show'])->name('guru.penilaian.show');
+    Route::post('guru/penilaian/{penilaian}/{guruKelas}', [GuruPenilaianController::class, 'store'])->name('guru.penilaian.store');
     Route::get('materi', [SiswaMateriController::class, 'index'])->name('siswa.materi.index');
     Route::get('materi/{materi}', [SiswaMateriController::class, 'show'])->name('siswa.materi.show');
     Route::get('materi/{materi}/lihat', [SiswaMateriController::class, 'lihat'])->name('siswa.materi.lihat');

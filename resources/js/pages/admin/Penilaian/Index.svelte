@@ -1,83 +1,158 @@
 <script lang="ts">
-    import { useForm, router } from '@inertiajs/svelte';
+    import { router } from '@inertiajs/svelte';
+    import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
+    import PageHeader from '@/components/PageHeader.svelte';
     import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
     import DetailPenilaianController from '@/actions/App/Http/Controllers/Admin/DetailPenilaianController';
-    import {
-        Modal,
-        ModalHeader,
-        ModalBody,
-        ModalFooter,
-        FormGroup,
-        Label,
-        Input,
-        Button,
-    } from '@sveltestrap/sveltestrap';
+    import { confirm } from '@/lib/confirm.svelte';
 
-    const { penilaian } = $props();
-
-    const deletePenilaian = (id: number) => {
-        if (!confirm('Yakin hapus penilaian ini?')) return;
-        router.delete(
-            PenilaianController.destroy({ penilaian: id }).url,
-        );
+    type PenilaianItem = {
+        id: number;
+        nama: string;
+        deskripsi: string | null;
+        tipe: string;
+        nilai_maks: number;
+        bobot: number;
+        aktif: boolean;
+        sumber: 'manual' | 'tugas';
     };
+
+    let { penilaian }: { penilaian: PenilaianItem[] } = $props();
+
+    async function deletePenilaian(item: PenilaianItem) {
+        const ok = await confirm.show({
+            title: 'Hapus Penilaian',
+            message: `Penilaian "${item.nama}" akan dihapus permanen. Lanjutkan?`,
+            confirmText: 'Ya, Hapus',
+            color: 'danger',
+        });
+        if (!ok) return;
+        router.delete(
+            PenilaianController.destroy({ penilaian: item.id }).url,
+        );
+    }
 </script>
 
-<h1 class="h4 fw-semibold mb-3">Daftar Penilaian</h1>
-<table class="table table-hover">
-    <thead>
-        <tr>
-            <th>Nama</th>
-            <th>Deskripsi</th>
-            <th>Tipe</th>
-            <th>Nilai Maks</th>
-            <th>Bobot</th>
-            <th>Aktif</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-    <tbody>
-        {#each penilaian as p}
-            <tr>
-                <td>{p.nama}</td>
-                <td>{p.deskripsi}</td>
-                <td>{p.tipe}</td>
-                <td>{p.nilai_maks}</td>
-                <td>{p.bobot}</td>
-                <td>{p.aktif ? 'Ya' : 'Tidak'}</td>
-                <td class="d-flex gap-2">
-                    <a
-                        href={DetailPenilaianController.filterSiswa({
-                            penilaian: p.id,
-                        }).url}
-                        class="btn btn-sm btn-outline-primary"
-                        >Input Nilai</a
-                    >
-                    <a
-                        href={PenilaianController.show({
-                            penilaian: p.id,
-                        }).url}
-                        class="btn btn-sm btn-outline-secondary"
-                        >Lihat</a
-                    >
-                    <a
-                        href={PenilaianController.edit({
-                            penilaian: p.id,
-                        }).url}
-                        class="btn btn-sm btn-outline-success">Edit</a
-                    >
-                    <button
-                        class="btn btn-sm btn-outline-danger"
-                        on:click={() => deletePenilaian(p.id)}
-                        >Hapus</button
-                    >
-                </td>
-            </tr>
-        {/each}
-    </tbody>
-</table>
+<div class="container-fluid px-0">
+    <PageHeader
+        title="Penilaian"
+        subtitle="Kelola jenis penilaian dan nilai siswa."
+    >
+        {#snippet actions()}
+            <Button
+                color="primary"
+                onclick={() =>
+                    router.visit(PenilaianController.create().url)}
+            >
+                <i class="bi bi-plus-lg me-1"></i>Tambah Penilaian
+            </Button>
+        {/snippet}
+    </PageHeader>
 
-<a
-    href={PenilaianController.create().url}
-    class="btn btn-primary mt-3">Tambah Penilaian</a
->
+    <Card class="border rounded-1 shadow-none">
+        <CardBody class="p-3">
+            {#if penilaian.length === 0}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-clipboard-x display-5 d-block mb-2"></i>
+                    <div>Belum ada penilaian.</div>
+                </div>
+            {:else}
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Nama</th>
+                                <th>Deskripsi</th>
+                                <th>Tipe</th>
+                                <th>Nilai Maks</th>
+                                <th>Bobot</th>
+                                <th>Aktif</th>
+                                <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {#each penilaian as p (p.id)}
+                                <tr>
+                                    <td class="fw-semibold">{p.nama}</td>
+                                    <td class="text-muted small">
+                                        {p.deskripsi ?? '—'}
+                                    </td>
+                                    <td>
+                                        <Badge
+                                            color={
+                                                p.sumber === 'tugas'
+                                                    ? 'info'
+                                                    : 'light'
+                                            }
+                                            pill
+                                        >
+                                            {p.sumber === 'tugas'
+                                                ? 'Dari Tugas'
+                                                : p.tipe}
+                                        </Badge>
+                                    </td>
+                                    <td>{p.nilai_maks}</td>
+                                    <td>{p.bobot}</td>
+                                    <td>
+                                        {#if p.aktif}
+                                            <Badge color="success" pill
+                                                >Aktif</Badge
+                                            >
+                                        {:else}
+                                            <Badge color="secondary" pill
+                                                >Nonaktif</Badge
+                                            >
+                                        {/if}
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        <a
+                                            href={DetailPenilaianController.filterSiswa(
+                                                {
+                                                    penilaian: p.id,
+                                                },
+                                            ).url}
+                                            class="btn btn-sm btn-outline-primary"
+                                        >
+                                            <i
+                                                class="bi bi-clipboard2-data me-1"
+                                            ></i>
+                                            Input Nilai
+                                        </a>
+                                        <a
+                                            href={PenilaianController.show(
+                                                {
+                                                    penilaian: p.id,
+                                                },
+                                            ).url}
+                                            class="btn btn-sm btn-outline-secondary"
+                                        >
+                                            Lihat
+                                        </a>
+                                        <a
+                                            href={PenilaianController.edit(
+                                                {
+                                                    penilaian: p.id,
+                                                },
+                                            ).url}
+                                            class="btn btn-sm btn-outline-success"
+                                        >
+                                            Edit
+                                        </a>
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick={() =>
+                                                deletePenilaian(p)}
+                                        >
+                                            Hapus
+                                        </button>
+                                    </td>
+                                </tr>
+                            {/each}
+                        </tbody>
+                    </table>
+                </div>
+            {/if}
+        </CardBody>
+    </Card>
+</div>

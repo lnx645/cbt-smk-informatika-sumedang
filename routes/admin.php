@@ -69,26 +69,24 @@ use App\Http\Controllers\Admin\PenilaianController;
 
 // Master Penilaian CRUD (admin only)
 Route::get('penilaian', [PenilaianController::class, 'index'])
-    ->name('admin.penilaian.index');
+    ->name('penilaian.index');
 Route::get('penilaian/create', [PenilaianController::class, 'create'])
-    ->name('admin.penilaian.create');
+    ->name('penilaian.create');
 Route::post('penilaian', [PenilaianController::class, 'store'])
-    ->name('admin.penilaian.store');
+    ->name('penilaian.store');
 Route::get('penilaian/{penilaian}', [PenilaianController::class, 'show'])
-    ->name('admin.penilaian.show');
+    ->name('penilaian.show');
 Route::get('penilaian/{penilaian}/edit', [PenilaianController::class, 'edit'])
-    ->name('admin.penilaian.edit');
+    ->name('penilaian.edit');
 Route::put('penilaian/{penilaian}', [PenilaianController::class, 'update'])
-    ->name('admin.penilaian.update');
+    ->name('penilaian.update');
 Route::delete('penilaian/{penilaian}', [PenilaianController::class, 'destroy'])
-    ->name('admin.penilaian.destroy');
+    ->name('penilaian.destroy');
 
 // Detail nilai per siswa (admin only)
-Route::get('penilaian/{penilaian}/siswa', [DetailPenilaianController::class, 'filterSiswa'])
-    ->name('admin.penilaian.siswa.filter');
-Route::get('penilaian/{penilaian}/siswa/{siswa}', [DetailPenilaianController::class, 'detail'])
-    ->name('admin.penilaian.siswa.detail');
-Route::post('penilaian/{penilaian}/siswa/{siswa}', [DetailPenilaianController::class, 'storeNilai'])
-    ->name('admin.penilaian.siswa.store');
-Route::put('penilaian/{penilaian}/siswa/{siswa}', [DetailPenilaianController::class, 'updateNilai'])
-    ->name('admin.penilaian.siswa.update');
+Route::get('penilaian/{penilaian}/penugasan', [DetailPenilaianController::class, 'filterSiswa'])
+    ->name('penilaian.penugasan.filter');
+Route::get('penilaian/{penilaian}/penugasan/{guruKelas}/siswa/{siswa}', [DetailPenilaianController::class, 'detail'])
+    ->name('penilaian.penugasan.detail');
+Route::post('penilaian/{penilaian}/penugasan/{guruKelas}/siswa/{siswa}', [DetailPenilaianController::class, 'storeNilai'])
+    ->name('penilaian.penugasan.store');

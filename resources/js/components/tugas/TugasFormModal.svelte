@@ -184,6 +184,30 @@
                     </div>
                 {/if}
             </div>
+            <div class="col-md-6">
+                <label for="{idPrefix}-poin" class="form-label text-xs"
+                    >Poin Maksimal</label
+                >
+                <input
+                    id="{idPrefix}-poin"
+                    type="number"
+                    min="1"
+                    max="1000"
+                    class="form-control {form.errors.poin
+                        ? 'is-invalid'
+                        : ''}"
+                    value={form.poin}
+                    oninput={(e) =>
+                        (form.poin = Number(
+                            (e.currentTarget as HTMLInputElement).value,
+                        ))}
+                />
+                {#if form.errors.poin}
+                    <div class="invalid-feedback">
+                        {form.errors.poin}
+                    </div>
+                {/if}
+            </div>
             <div class="col-12">
                 <label for="{idPrefix}-file" class="form-label text-xs"
                     >Berkas Tugas <span class="text-muted fw-normal"

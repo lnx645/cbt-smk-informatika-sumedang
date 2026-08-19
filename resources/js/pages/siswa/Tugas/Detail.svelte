@@ -30,6 +30,7 @@
         file_name: string | null;
         file_size: number;
         mime_type: string | null;
+        poin: number;
         status: keyof typeof STATUS_TUGAS_INFO;
     };
 
@@ -40,6 +41,7 @@
         jawaban_teks: string | null;
         submitted_at: string;
         terlambat: boolean;
+        nilai: number | null;
     };
 
     let {
@@ -256,6 +258,24 @@
                                     >Dikumpulkan {pengumpulan.submitted_at}</span
                                 >
                             </div>
+                            {#if pengumpulan.nilai !== null}
+                                <div
+                                    class="d-flex align-items-center gap-2 mt-2"
+                                >
+                                    <Badge color="success" pill>
+                                        <i
+                                            class="bi bi-check2-circle me-1"
+                                        ></i>
+                                        Nilai: {pengumpulan.nilai}/{tugas.poin}
+                                    </Badge>
+                                </div>
+                            {:else}
+                                <div class="text-muted small mt-2">
+                                    <i class="bi bi-hourglass me-1"></i>
+                                    Belum dinilai — tunggu guru menilai
+                                    jawabanmu.
+                                </div>
+                            {/if}
                             <div
                                 class="small d-flex align-items-center gap-2"
                             >

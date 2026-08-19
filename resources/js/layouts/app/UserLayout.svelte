@@ -10,6 +10,7 @@
     import { Alert } from '@sveltestrap/sveltestrap';
     import MataPelajaranGuruController from '@/actions/App/Http/Controllers/MataPelajaranGuruController';
     import GuruMateriController from '@/actions/App/Http/Controllers/Guru/MateriController';
+    import GuruPenilaianController from '@/actions/App/Http/Controllers/Guru/PenilaianController';
     import GuruTugasController from '@/actions/App/Http/Controllers/Guru/TugasController';
     import SiswaMateriController from '@/actions/App/Http/Controllers/Siswa/MateriController';
     import SiswaTugasController from '@/actions/App/Http/Controllers/Siswa/TugasController';
@@ -75,8 +76,8 @@
                     },
 
                     {
-                        href: '/nilai',
-                        label: 'Nilai Siswa',
+                        href: GuruPenilaianController.index().url,
+                        label: 'Penilaian',
                         icon: 'bi-award',
                     },
                 ],

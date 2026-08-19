@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 #[Table('tugases')]
-#[Fillable(['guru_id', 'guru_kelas_id', 'judul', 'deskripsi', 'tanggal_terbit', 'deadline', 'jenis_pengumpulan', 'file_path', 'file_name', 'file_size', 'mime_type'])]
+#[Fillable(['guru_id', 'guru_kelas_id', 'judul', 'deskripsi', 'tanggal_terbit', 'deadline', 'jenis_pengumpulan', 'file_path', 'file_name', 'file_size', 'mime_type', 'poin', 'penilaian_id'])]
 class Tugas extends Model
 {
     /** @use HasFactory<TugasFactory> */
@@ -21,6 +21,7 @@ class Tugas extends Model
     protected $casts = [
         'tanggal_terbit' => 'datetime',
         'deadline' => 'datetime',
+        'poin' => 'integer',
     ];
 
     public function guru(): BelongsTo
@@ -31,6 +32,11 @@ class Tugas extends Model
     public function guruKelas(): BelongsTo
     {
         return $this->belongsTo(GuruKelas::class);
+    }
+
+    public function penilaian(): BelongsTo
+    {
+        return $this->belongsTo(Penilaian::class);
     }
 
     public function pengumpulans(): HasMany

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\BaseAppController;
+use App\Models\DetailPenilaian;
 use App\Models\GuruKelas;
 use App\Models\SiswaKelas;
 use App\Models\Tugas;
@@ -44,9 +45,9 @@ class TugasController extends BaseAppController implements HasMiddleware
         $guruKelasIds = $this->guruKelasIdsSiswa($siswa->nisn);
 
         $tugases = Tugas::query()
-            ->select(['id', 'guru_kelas_id', 'judul', 'deskripsi', 'tanggal_terbit', 'deadline', 'jenis_pengumpulan', 'file_name', 'file_size'])
+            ->select(['id', 'guru_kelas_id', 'judul', 'deskripsi', 'tanggal_terbit', 'deadline', 'jenis_pengumpulan', 'file_name', 'file_size', 'poin'])
             ->with(['guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name', 'guruKelas.guru:id,nama_lengkap'])
-            ->with(['pengumpulans' => fn ($q) => $q->where('siswa_nisn', $siswa->nisn)->select(['id', 'tugas_id', 'file_name', 'submitted_at'])])
+            ->with(['pengumpulans' => fn ($q) => $q->where('siswa_nisn', $siswa->nisn)->select(['id', 'tugas_id', 'file_name', 'submitted_at', 'nilai'])])
             ->whereIn('guru_kelas_id', $guruKelasIds)
             ->where(fn ($q) => $q
                 ->whereNull('tanggal_terbit')
@@ -67,6 +68,8 @@ class TugasController extends BaseAppController implements HasMiddleware
                     'deadline_at' => $tugas->deadline?->toIso8601String(),
                     'jenis_pengumpulan' => $tugas->jenis_pengumpulan,
                     'file_name' => $tugas->file_name,
+                    'poin' => $tugas->poin,
+                    'nilai' => $pengumpulan?->nilai,
                     'status' => $this->statusUntukSiswa($tugas, $pengumpulan),
                     'submitted_at' => $pengumpulan?->submitted_at?->translatedFormat('d M Y H:i'),
                 ];
@@ -106,6 +109,7 @@ class TugasController extends BaseAppController implements HasMiddleware
                 'file_name' => $tugas->file_name,
                 'file_size' => $tugas->file_size,
                 'mime_type' => $tugas->mime_type,
+                'poin' => $tugas->poin,
                 'status' => $this->statusUntukSiswa($tugas, $pengumpulan),
             ],
             'pengumpulan' => $pengumpulan ? [
@@ -115,6 +119,7 @@ class TugasController extends BaseAppController implements HasMiddleware
                 'jawaban_teks' => $pengumpulan->jawaban_teks,
                 'submitted_at' => $pengumpulan->submitted_at?->translatedFormat('d M Y H:i'),
                 'terlambat' => $tugas->deadline !== null && $pengumpulan->submitted_at->gt($tugas->deadline),
+                'nilai' => $pengumpulan->nilai,
             ] : null,
         ]);
     }
@@ -165,6 +170,14 @@ class TugasController extends BaseAppController implements HasMiddleware
             ->first();
 
         if ($pengumpulan) {
+            if ($pengumpulan->nilai !== null) {
+                $pengumpulan->nilai = null;
+                if ($tugas->penilaian_id) {
+                    DetailPenilaian::where('penilaian_id', $tugas->penilaian_id)
+                        ->where('siswa_nisn', $siswa->nisn)
+                        ->delete();
+                }
+            }
             if ($file) {
                 if ($pengumpulan->file_path) {
                     Storage::disk('public')->delete($pengumpulan->file_path);

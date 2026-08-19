@@ -11,6 +11,12 @@ class Penilaian extends Model
 
     protected $table = 'penilaian';
 
+    protected $casts = [
+        'nilai_maks' => 'float',
+        'bobot' => 'float',
+        'aktif' => 'boolean',
+    ];
+
     protected $fillable = [
         'nama',
         'deskripsi',
@@ -18,6 +24,7 @@ class Penilaian extends Model
         'nilai_maks',
         'bobot',
         'aktif',
+        'sumber',
     ];
 
     /**

@@ -11,8 +11,14 @@ class DetailPenilaian extends Model
 
     protected $table = 'detail_penilaian';
 
+    protected $casts = [
+        'nilai' => 'float',
+    ];
+
     protected $fillable = [
         'penilaian_id',
+        'guru_kelas_id',
+        'tahun_ajaran_id',
         'siswa_nisn',
         'guru_id',
         'nilai',
@@ -26,6 +32,22 @@ class DetailPenilaian extends Model
     public function penilaian()
     {
         return $this->belongsTo(Penilaian::class);
+    }
+
+    /**
+     * Penugasan guru-kelas-matpel yang menilai.
+     */
+    public function guruKelas()
+    {
+        return $this->belongsTo(GuruKelas::class);
+    }
+
+    /**
+     * Tahun ajaran nilai ini tercatat.
+     */
+    public function tahunAjaran()
+    {
+        return $this->belongsTo(TahunAjaran::class);
     }
 
     /**

@@ -9,6 +9,7 @@ export type TugasFormState = {
     tanggal_terbit: string;
     deadline: string;
     jenis_pengumpulan: JenisPengumpulan;
+    poin: number;
     file: File | null;
     errors: Record<string, string>;
     processing: boolean;

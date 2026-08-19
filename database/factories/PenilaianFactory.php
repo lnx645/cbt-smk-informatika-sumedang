@@ -29,6 +29,7 @@ class PenilaianFactory extends Factory
             'nilai_maks' => fake()->numberBetween(100, 1000),
             'bobot' => fake()->numberBetween(1, 100),
             'aktif' => fake()->boolean(),
+            'sumber' => 'manual',
         ];
     }
 }

@@ -19,7 +19,7 @@ class PenilaianController extends Controller
      */
     public function index(Request $request): Response
     {
-        $penilaian = Penilaian::orderBy('nama')->get(['id', 'nama', 'deskripsi', 'tipe', 'nilai_maks', 'bobot', 'aktif']);
+        $penilaian = Penilaian::orderBy('nama')->get(['id', 'nama', 'deskripsi', 'tipe', 'nilai_maks', 'bobot', 'aktif', 'sumber']);
 
         return Inertia::render('admin/Penilaian/Index', [
             'penilaian' => $penilaian,
@@ -46,12 +46,13 @@ class PenilaianController extends Controller
             'nilai_maks' => ['required', 'numeric', 'min:0'],
             'bobot' => ['required', 'numeric', 'min:0'],
             'aktif' => ['boolean'],
+            'sumber' => ['prohibited'],
         ]);
 
         Penilaian::create($data);
         Toast::success('Penilaian berhasil ditambahkan.');
 
-        return Redirect::back();
+        return Redirect::route('admin.penilaian.index');
     }
 
     /**
@@ -89,6 +90,7 @@ class PenilaianController extends Controller
             'nilai_maks' => ['required', 'numeric', 'min:0'],
             'bobot' => ['required', 'numeric', 'min:0'],
             'aktif' => ['boolean'],
+            'sumber' => ['prohibited'],
         ]);
 
         $penilaian->update($data);

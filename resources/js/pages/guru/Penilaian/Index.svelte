@@ -1,0 +1,181 @@
+<script lang="ts">
+    import { Badge, Card, CardBody } from '@sveltestrap/sveltestrap';
+    import PageHeader from '@/components/PageHeader.svelte';
+    import PenilaianController from '@/actions/App/Http/Controllers/Guru/PenilaianController';
+
+    type PenilaianItem = {
+        id: number;
+        nama: string;
+        deskripsi: string | null;
+        tipe: string;
+        nilai_maks: number;
+        sumber: 'manual' | 'tugas';
+    };
+
+    type Penugasan = { value: number; label: string };
+
+    let {
+        penilaian,
+        penugasan,
+    }: { penilaian: PenilaianItem[]; penugasan: Penugasan[] } = $props();
+
+    let penilaianId = $state<number | null>(null);
+    let penugasanId = $state<number | null>(null);
+    let errorPesan = $state('');
+
+    function lanjut() {
+        if (!penilaianId) {
+            errorPesan = 'Pilih jenis penilaian dulu.';
+            return;
+        }
+        if (!penugasanId) {
+            errorPesan = 'Pilih kelas & mata pelajaran dulu.';
+            return;
+        }
+        errorPesan = '';
+        window.location.href = PenilaianController.show({
+            penilaian: penilaianId,
+            guruKelas: penugasanId,
+        }).url;
+    }
+</script>
+
+<div class="container-fluid px-0">
+    <PageHeader
+        title="Penilaian"
+        subtitle="Input nilai ulangan harian, PTS, sikap, dan jenis penilaian lainnya."
+    />
+
+    <div class="row g-3">
+        <div class="col-12 col-xl-7">
+            <Card class="border rounded-1 shadow-none">
+                <CardBody class="p-3">
+                    <div class="fw-semibold mb-3">Pilih Penilaian</div>
+                    {#if penilaian.length === 0}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-clipboard-x display-5 d-block mb-2"></i>
+                            <div>
+                                Belum ada jenis penilaian aktif dari
+                                admin.
+                            </div>
+                        </div>
+                    {:else}
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Nama</th>
+                                        <th>Tipe</th>
+                                        <th class="text-end">Nilai Maks</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {#each penilaian as p (p.id)}
+                                        <tr>
+                                            <td>
+                                                <div class="fw-semibold"
+                                                    >{p.nama}</div
+                                                >
+                                                {#if p.deskripsi}
+                                                    <div
+                                                        class="text-muted small text-truncate"
+                                                        style="max-width: 300px"
+                                                    >
+                                                        {p.deskripsi}
+                                                    </div>
+                                                {/if}
+                                            </td>
+                                            <td>
+                                                <Badge
+                                                    color={
+                                                        p.sumber ===
+                                                        'tugas'
+                                                            ? 'info'
+                                                            : 'light'
+                                                    }
+                                                    pill
+                                                >
+                                                    {p.sumber === 'tugas'
+                                                        ? 'Dari Tugas'
+                                                        : p.tipe}
+                                                </Badge>
+                                            </td>
+                                            <td class="text-end text-nowrap"
+                                                >{p.nilai_maks}</td
+                                            >
+                                            <td class="text-end">
+                                                <input
+                                                    type="radio"
+                                                    class="form-check-input"
+                                                    name="pilih-penilaian"
+                                                    value={p.id}
+                                                    checked={penilaianId ===
+                                                        p.id}
+                                                    onchange={() => {
+                                                        penilaianId = p.id;
+                                                        errorPesan = '';
+                                                    }}
+                                                />
+                                            </td>
+                                        </tr>
+                                    {/each}
+                                </tbody>
+                            </table>
+                        </div>
+                    {/if}
+                </CardBody>
+            </Card>
+        </div>
+
+        <div class="col-12 col-xl-5">
+            <Card class="border rounded-1 shadow-none">
+                <CardBody class="p-3">
+                    <div class="fw-semibold mb-3">
+                        Pilih Kelas &amp; Mata Pelajaran
+                    </div>
+                    <select
+                        class="form-select"
+                        value={penugasanId ?? ''}
+                        onchange={(e) => {
+                            penugasanId = Number(
+                                (e.currentTarget as HTMLSelectElement)
+                                    .value,
+                            ) || null;
+                            errorPesan = '';
+                        }}
+                    >
+                        <option value="">
+                            -- Pilih kelas &amp; matpel --
+                        </option>
+                        {#each penugasan as g (g.value)}
+                            <option value={g.value}>{g.label}</option>
+                        {/each}
+                    </select>
+                    {#if penugasan.length === 0}
+                        <div class="text-muted small mt-2">
+                            Kamu belum punya penugasan aktif di tahun
+                            ajaran ini.
+                        </div>
+                    {/if}
+
+                    {#if errorPesan}
+                        <div class="invalid-feedback d-block mt-2">
+                            {errorPesan}
+                        </div>
+                    {/if}
+
+                    <button
+                        type="button"
+                        class="btn btn-primary mt-3 w-100"
+                        onclick={lanjut}
+                        disabled={penilaian.length === 0}
+                    >
+                        <i class="bi bi-clipboard2-data me-1"></i>
+                        Lanjut Input Nilai
+                    </button>
+                </CardBody>
+            </Card>
+        </div>
+    </div>
+</div>
