@@ -122,6 +122,43 @@ test('jurusan yang tidak ada ditolak', function (): void {
         ->assertSessionHasErrors('jurusan_id');
 });
 
+test('nama kelas harus unik di tingkat root (induk null)', function (): void {
+    $admin = User::factory()->create(['role' => 'admin']);
+    Kelas::factory()->create(['nama' => 'X']);
+
+    $this->actingAs($admin)
+        ->post(route('admin.kelas.store'), [
+            'nama' => 'X',
+        ])
+        ->assertSessionHasErrors('nama');
+});
+
+test('kelas tidak boleh menjadi induk bagi dirinya sendiri', function (): void {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $kelas = Kelas::factory()->create(['nama' => 'X-RPL-1']);
+
+    $this->actingAs($admin)
+        ->put(route('admin.kelas.update', $kelas), [
+            'nama' => 'X-RPL-1',
+            'parent_id' => $kelas->id,
+        ])
+        ->assertSessionHasErrors('parent_id');
+});
+
+test('kelas tidak boleh menjadi induk bagi turunannya', function (): void {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $root = Kelas::factory()->create(['nama' => 'X']);
+    $jurusan = Kelas::factory()->create(['nama' => 'X-RPL', 'parent_id' => $root->id]);
+    $kelas = Kelas::factory()->create(['nama' => 'X-RPL-1', 'parent_id' => $jurusan->id]);
+
+    $this->actingAs($admin)
+        ->put(route('admin.kelas.update', $jurusan), [
+            'nama' => 'X-RPL',
+            'parent_id' => $kelas->id,
+        ])
+        ->assertSessionHasErrors('parent_id');
+});
+
 test('kelas yang dihapus ikut menghapus anaknya', function (): void {
     $admin = User::factory()->create(['role' => 'admin']);
     $root = Kelas::factory()->create(['nama' => 'X']);

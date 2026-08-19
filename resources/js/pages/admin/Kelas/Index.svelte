@@ -36,6 +36,10 @@
 
     let editingId = $state<number | null>(null);
     let modalOpen = $state(false);
+    let query = $state('');
+    let collapsed = $state(new Set<number>());
+
+    const hasQuery = $derived(query.trim().length > 0);
 
     const parentGroups = $derived.by(() => {
         const list = kelas_list ?? [];
@@ -90,6 +94,76 @@
 
         return groups;
     });
+
+    function nodeMatches(node: Record<string, any>): boolean {
+        const q = query.trim().toLowerCase();
+        return (
+            String(node.nama ?? '').toLowerCase().includes(q) ||
+            String(node.jurusan?.name ?? '').toLowerCase().includes(q) ||
+            String(node.walikelas?.nama_lengkap ?? '').toLowerCase().includes(q)
+        );
+    }
+
+    const filteredTree = $derived.by(() => {
+        if (!hasQuery) {
+            return kelas_parent;
+        }
+        const filter = (nodes: Record<string, any>[]): Record<string, any>[] =>
+            nodes
+                .map((node) => {
+                    const children = filter(node.children ?? []);
+                    if (!nodeMatches(node) && !children.length) {
+                        return null;
+                    }
+                    return {
+                        ...node,
+                        children: nodeMatches(node)
+                            ? (node.children ?? [])
+                            : children,
+                    };
+                })
+                .filter((n): n is Record<string, any> => n !== null);
+        return filter(kelas_parent);
+    });
+
+    const matchCount = $derived.by(() => {
+        if (!hasQuery) {
+            return 0;
+        }
+        let count = 0;
+        const walk = (nodes: Record<string, any>[]) => {
+            for (const node of nodes) {
+                if (nodeMatches(node)) {
+                    count++;
+                }
+                walk(node.children ?? []);
+            }
+        };
+        walk(kelas_parent);
+        return count;
+    });
+
+    const totalKelas = $derived((kelas_list ?? []).length);
+
+    function totalSiswa(node: Record<string, any>): number {
+        let total = node.siswa_count ?? 0;
+        for (const child of node.children ?? []) {
+            total += totalSiswa(child);
+        }
+        return total;
+    }
+
+    function isCollapsed(id: number): boolean {
+        return !hasQuery && collapsed.has(id);
+    }
+
+    function toggleCollapsed(id: number) {
+        if (collapsed.has(id)) {
+            collapsed.delete(id);
+        } else {
+            collapsed.add(id);
+        }
+    }
 
     let namaTouched = $state(false);
 
@@ -184,6 +258,7 @@
         editingId = null;
         namaTouched = false;
         form.reset();
+        form.clearErrors();
         form.active = false;
         form.jurusan_id = null;
         form.guru_id = null;
@@ -195,6 +270,7 @@
         editingId = node.id;
         namaTouched = false;
         form.reset();
+        form.clearErrors();
         form.nama = node.nama ?? '';
         form.deskripsi = node.deskripsi ?? '';
         form.jurusan_id = node.jurusan?.id ?? null;
@@ -253,11 +329,17 @@
 
     function confirmDelete(node: Record<string, any>) {
         const count = countDescendants(node);
-        const message =
-            count > 0
-                ? `Hapus kelas "${node.nama}" beserta ${count} anak kelas terkait?`
-                : `Hapus kelas "${node.nama}"?`;
-        if (!confirm(message)) {
+        const siswa = totalSiswa(node);
+        const parts = [`Hapus kelas "${node.nama}"?`];
+        if (count > 0) {
+            parts.push(`Kelas beserta ${count} kelas terkait akan ikut terhapus.`);
+        }
+        if (siswa > 0) {
+            parts.push(
+                `Kelas ini memiliki ${siswa} siswa — penghapusan akan ditolak.`,
+            );
+        }
+        if (!confirm(parts.join('\n'))) {
             return;
         }
         router.delete(KelasController.destroy({ kelas: node.id }).url);
@@ -267,8 +349,21 @@
 {#snippet node(item, depth)}
     <li>
         <div
-            class="d-flex flex-wrap align-items-center gap-2 px-2 py-2 rounded"
+            class="d-flex flex-wrap align-items-center gap-2 px-2 py-2 rounded kelas-row"
         >
+            {#if item.children && item.children.length}
+                <button
+                    type="button"
+                    class="btn btn-sm btn-link p-0 text-secondary kelas-toggle"
+                    class:is-open={!isCollapsed(item.id)}
+                    onclick={() => toggleCollapsed(item.id)}
+                    title={isCollapsed(item.id) ? 'Perluas' : 'Ciutkan'}
+                >
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            {:else}
+                <span class="kelas-toggle kelas-toggle--empty"></span>
+            {/if}
             <i
                 class={`bi ${item.children && item.children.length ? 'bi-folder2' : 'bi-mortarboard-fill'} text-secondary`}
             ></i>
@@ -284,7 +379,17 @@
             {/if}
             {#if item.active}
                 <span class="badge text-bg-success text-xs fw-light">Aktif</span>
+            {:else}
+                <span class="badge text-bg-secondary text-xs fw-light"
+                    >Nonaktif</span
+                >
             {/if}
+            <span
+                class="badge text-bg-light border text-xs fw-light text-nowrap"
+                title="Jumlah siswa"
+            >
+                <i class="bi bi-people-fill"></i> {totalSiswa(item)} siswa
+            </span>
             <span
                 class="d-flex flex-wrap text-xs align-items-center gap-2 text-secondary small"
             >
@@ -316,8 +421,8 @@
                 </button>
             </span>
         </div>
-        {#if item.children && item.children.length}
-            <ul class="list-unstyled ps-3">
+        {#if item.children && item.children.length && !isCollapsed(item.id)}
+            <ul class="list-unstyled ps-4">
                 {#each item.children as child (child.id)}
                     {@render node(child, depth + 1)}
                 {/each}
@@ -328,18 +433,56 @@
 
 <div class="container-fluid px-0">
     <div class="d-flex align-items-center justify-content-between mb-3">
-        <h1 class="h4 fw-semibold mb-0">Kelas</h1>
+        <div>
+            <h1 class="h4 fw-semibold mb-1">Kelas</h1>
+            <span class="text-secondary small">
+                {totalKelas} kelas · {kelas_parent.length} tingkat
+            </span>
+        </div>
         <Button color="primary" size="sm" onclick={openCreate}>
             <i class="bi bi-plus-lg me-1"></i> Tambah
         </Button>
     </div>
 
-    {#if kelas_parent.length}
+    <div class="input-group mb-3 kelas-search">
+        <span class="input-group-text bg-white">
+            <i class="bi bi-search"></i>
+        </span>
+        <input
+            type="search"
+            class="form-control"
+            placeholder="Cari nama kelas, jurusan, atau wali kelas…"
+            bind:value={query}
+        />
+        {#if hasQuery}
+            <button
+                type="button"
+                class="btn btn-outline-secondary"
+                onclick={() => (query = '')}
+                title="Hapus pencarian"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+        {/if}
+    </div>
+
+    {#if filteredTree.length}
         <ul class="list-unstyled bg-white border rounded p-2 mb-0">
-            {#each kelas_parent as parent (parent.id)}
+            {#each filteredTree as parent (parent.id)}
                 {@render node(parent, 0)}
             {/each}
         </ul>
+        {#if hasQuery}
+            <div class="text-secondary small mt-2">
+                {matchCount} hasil ditemukan untuk
+                "<strong>{query.trim()}</strong>"
+            </div>
+        {/if}
+    {:else if hasQuery}
+        <div class="text-center text-secondary py-5 border rounded bg-light">
+            Tidak ada kelas yang cocok dengan pencarian
+            "<strong>{query.trim()}</strong>".
+        </div>
     {:else}
         <div class="text-center text-secondary py-5 border rounded bg-light">
             Belum ada data kelas.
@@ -372,6 +515,13 @@
                     </optgroup>
                 {/each}
             </select>
+            {#if form.errors.parent_id}
+                <small class="text-danger">{form.errors.parent_id}</small>
+            {/if}
+            <small class="text-secondary d-block mt-1">
+                Struktur: <code>Tingkat</code> → <code>Tingkat-Jurusan</code> →
+                <code>Tingkat-Jurusan-Nomor</code>.
+            </small>
         </FormGroup>
 
         <FormGroup>
@@ -386,8 +536,7 @@
                 <small class="text-danger">{form.errors.nama}</small>
             {/if}
             <small class="text-secondary d-block mt-1">
-                Nama otomatis mengikuti struktur induk: <code>Tingkat</code>,
-                <code>Tingkat-Jurusan</code>, <code>Tingkat-Jurusan-Nomor</code>.
+                Nama otomatis mengikuti struktur induk di atas.
             </small>
         </FormGroup>
 
@@ -400,6 +549,9 @@
                 getOptionValue={(item) => item.value}
                 onchange={onJurusanChange}
             />
+            {#if form.errors.jurusan_id}
+                <small class="text-danger">{form.errors.jurusan_id}</small>
+            {/if}
         </FormGroup>
 
         <FormGroup>
@@ -411,6 +563,9 @@
                 getOptionValue={(item) => item.value}
                 onchange={onGuruChange}
             />
+            {#if form.errors.guru_id}
+                <small class="text-danger">{form.errors.guru_id}</small>
+            {/if}
         </FormGroup>
 
         <FormGroup>
@@ -447,6 +602,31 @@
 </Modal>
 
 <style>
+    .kelas-search {
+        max-width: 420px;
+    }
+
+    .kelas-toggle {
+        width: 22px;
+        height: 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.15s ease;
+    }
+
+    .kelas-toggle.is-open {
+        transform: rotate(90deg);
+    }
+
+    .kelas-toggle--empty {
+        visibility: hidden;
+    }
+
+    .kelas-row:hover {
+        background: var(--bs-gray-100);
+    }
+
     .crud-checkbox {
         display: flex;
         align-items: center;
