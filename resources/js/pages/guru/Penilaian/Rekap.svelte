@@ -316,6 +316,8 @@
         background-color: #fff;
         box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.08);
         white-space: nowrap;
+        text-transform: none;
+        letter-spacing: 0;
     }
 
     :global(.rekap-table .rekap-sticky) {
