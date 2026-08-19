@@ -56,17 +56,6 @@
 
         if (authUser?.guru || authUser?.role === 'guru') {
             items.push({
-                section: 'UJIAN',
-                items: [
-                    {
-                        href: '/guru/tugas-ujian',
-                        label: 'Kelola QUIZ',
-                        icon: 'bi-journal-text',
-                    },
-                ],
-            } as any);
-
-            items.push({
                 section: 'Akademik',
                 items: [
                     {
@@ -96,11 +85,6 @@
 
         if (authUser?.siswa || authUser?.role === 'siswa') {
             items.push(
-                {
-                    href: '/guru/tugas-ujian',
-                    label: 'Ujian',
-                    icon: 'bi-journal-text',
-                },
                 {
                     href: MataPelajaranGuruController.index().url,
                     label: 'Mata Pelajaran',

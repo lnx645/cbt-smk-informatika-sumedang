@@ -21,9 +21,12 @@
     let {
         children,
         tahunAjaranAktif,
-    }: { children: Snippet; tahunAjaranAktif: { name: string } } = $props();
+    }: { children: Snippet; tahunAjaranAktif: { name: string } } =
+        $props();
 
-    const authUser = $derived((usePage().props.auth as any)?.user ?? null);
+    const authUser = $derived(
+        (usePage().props.auth as any)?.user ?? null,
+    );
 
     const user = $derived<AppShellUser>({
         name: authUser?.name ?? 'Administrator',
@@ -46,25 +49,13 @@
                     href: PengajarController.index().url,
                     label: 'Pengajar',
                     icon: 'bi-people-fill',
-                    badge: '482',
                 },
                 {
                     href: SiswaController.index().url,
                     label: 'Peserta Didik',
                     icon: 'bi-mortarboard-fill',
                 },
-                {
-                    href: '/manage/ujian',
-                    label: 'Ujian',
-                    icon: 'bi-clipboard-check',
-                    badge: '3',
-                },
-                {
-                    href: '/manage/bank-soal',
-                    label: 'Bank Soal',
-                    icon: 'bi-question-circle-fill',
-                    badge: '120',
-                },
+
                 {
                     href: KelasController.index().url,
                     label: 'Kelas',

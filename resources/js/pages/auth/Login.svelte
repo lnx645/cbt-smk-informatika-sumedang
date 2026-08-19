@@ -47,11 +47,17 @@
                         alt="Lambang Tut Wuri Handayani"
                     />
                     <div>
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <span class="lh-1 fw-bold fs-5">{appName}</span>
+                        <div
+                            class="d-flex align-items-center gap-2 mb-1"
+                        >
+                            <span class="lh-1 fw-bold fs-5"
+                                >{appName}</span
+                            >
                         </div>
-                        <div class="brand-title fs-6 fw-normal opacity-75">
-                            Account Gate Smk Informatika Sumedang
+                        <div
+                            class="brand-title fs-6 fw-normal opacity-75"
+                        >
+                            LMSSmk Informatika Sumedang
                         </div>
                     </div>
                 </div>
@@ -65,11 +71,9 @@
                         class="img-fluid user-select-none rounded-circle mb-4 border border-4 border-warning shadow"
                         style="width: 140px; height: 140px; object-fit: cover;pointer-events:none;"
                     />
-                    <p
-                        class={`quote-text mb-0 fw-medium quote-text`}
-                    >
-                        "Ing Ngarso Sung Tulodo,<br />Ing Madya Mangun Karso,<br
-                        />Tut Wuri Handayani"
+                    <p class={`quote-text mb-0 fw-medium quote-text`}>
+                        "Ing Ngarso Sung Tulodo,<br />Ing Madya Mangun
+                        Karso,<br />Tut Wuri Handayani"
                     </p>
                 </div>
 
@@ -87,7 +91,8 @@
 
                     <h2 class="h4 mb-1 fw-bold">Masuk</h2>
                     <p class="text-muted mb-4 small">
-                        Silakan masuk untuk melanjutkan ke halaman ujian.
+                        Silakan masuk untuk melanjutkan ke halaman
+                        ujian.
                     </p>
 
                     <form onsubmit={submit}>
@@ -128,7 +133,9 @@
                                     bind:value={form.password}
                                     invalid={!!form.errors.password}
                                     id="password"
-                                    type={passwordVisible ? 'text' : 'password'}
+                                    type={passwordVisible
+                                        ? 'text'
+                                        : 'password'}
                                     placeholder="Masukkan kata sandi"
                                 />
                                 <button
@@ -136,7 +143,8 @@
                                     class="btn border bg-transparent d-flex align-items-center pe-3"
                                     style="color: var(--inv-gray-600); border-color: var(--inv-gray-100);"
                                     onclick={() =>
-                                        (passwordVisible = !passwordVisible)}
+                                        (passwordVisible =
+                                            !passwordVisible)}
                                     aria-label={passwordVisible
                                         ? 'Sembunyikan kata sandi'
                                         : 'Tampilkan kata sandi'}
@@ -197,7 +205,9 @@
 
                     <div class="d-flex align-items-center gap-3 my-4">
                         <span class="divider-line"></span>
-                        <span class="text-muted small text-nowrap">atau</span>
+                        <span class="text-muted small text-nowrap"
+                            >atau</span
+                        >
                         <span class="divider-line"></span>
                     </div>
 

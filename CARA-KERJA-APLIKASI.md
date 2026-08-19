@@ -1,6 +1,6 @@
-# Cara Kerja Aplikasi CBT SMK Informatika Sumedang
+# Cara Kerja Aplikasi LMS SMK Informatika Sumedang
 
-Aplikasi ini adalah sistem **Computer Based Test (CBT)** berbasis web untuk lingkungan
+Aplikasi ini adalah sistem **Computer Based Test (LMS)** berbasis web untuk lingkungan
 SMK (Sekolah Menengah Kejuruan), khususnya jurusan informatika. Dibangun dengan
 **Laravel 12 + Inertia.js v3 + Svelte 5 + PostgreSQL**, dengan antarmuka admin
 menggunakan komponen dari **Sveltestrap**.
@@ -11,11 +11,11 @@ menggunakan komponen dari **Sveltestrap**.
 
 Sistem mengenal tiga peran utama (disimpan pada kolom `role` di tabel `users`):
 
-| Role    | Keterangan                                              |
-| ------- | ------------------------------------------------------- |
-| `admin` | Mengelola data master (jurusan, kelas, tahun ajaran).   |
-| `guru`  | Mengelola materi, tugas, soal ujian, dan nilai.         |
-| `siswa` | Mengikuti pembelajaran, tugas, dan ujian.               |
+| Role    | Keterangan                                            |
+| ------- | ----------------------------------------------------- |
+| `admin` | Mengelola data master (jurusan, kelas, tahun ajaran). |
+| `guru`  | Mengelola materi, tugas, soal ujian, dan nilai.       |
+| `siswa` | Mengikuti pembelajaran, tugas, dan ujian.             |
 
 Setiap `user` memiliki relasi one-to-one ke `siswa` (melalui `nisn`) atau `guru`
 (melalui `guru_id`).
@@ -25,20 +25,23 @@ Setiap `user` memiliki relasi one-to-one ke `siswa` (melalui `nisn`) atau `guru`
 ## 2. Struktur Data Master
 
 ### Jurusan
+
 - Model: `App\Models\Jurusan` (tabel `jurusans`).
 - Memiliki banyak `Kelas` (`hasMany`) dan banyak `Siswa` secara tidak langsung
   melalui kelas (`hasManyThrough` via `Kelas`).
 
 ### Kelas
+
 - Model: `App\Models\Kelas` (tabel `kelas`).
 - Relasi penting:
-  - `jurusan()` → `BelongsTo` ke `Jurusan` (`jurusan_id`).
-  - `walikelas()` → `BelongsTo` ke `Guru` (`guru_id`), yaitu guru yang menjadi
-    wali kelas.
-  - `siswas()` → `hasManyThrough` ke `Siswa` melalui pivot `siswa_kelas`.
-  - `parent()` / `children()` → hierarki kelas (mis. kelas induk & sub-kelas).
+    - `jurusan()` → `BelongsTo` ke `Jurusan` (`jurusan_id`).
+    - `walikelas()` → `BelongsTo` ke `Guru` (`guru_id`), yaitu guru yang menjadi
+      wali kelas.
+    - `siswas()` → `hasManyThrough` ke `Siswa` melalui pivot `siswa_kelas`.
+    - `parent()` / `children()` → hierarki kelas (mis. kelas induk & sub-kelas).
 
 ### Tahun Ajaran
+
 - Model: `App\Models\TahunAjaran` (tabel `tahun_ajaran`).
 - Kolom: `name` (contoh: `2024/2025`) dan `active` (boolean).
 - **Hanya boleh ada satu tahun ajaran yang aktif.** Saat menyimpan Entri dengan
@@ -56,9 +59,9 @@ Setiap `user` memiliki relasi one-to-one ke `siswa` (melalui `nisn`) atau `guru`
 Hubungan kelas dan jurusan diraih melalui **tabel pivot `siswa_kelas`**:
 
 - Tabel `siswa_kelas` menyimpan:
-  - `siswa_nisn` → FK ke `siswa.nisn`
-  - `kelas_id` → FK ke `kelas.id`
-  - `active` → boolean, menandai kelas yang sedang diikuti siswa tersebut.
+    - `siswa_nisn` → FK ke `siswa.nisn`
+    - `kelas_id` → FK ke `kelas.id`
+    - `active` → boolean, menandai kelas yang sedang diikuti siswa tersebut.
 - `Siswa::siswaKelas()` → `hasMany` (riwayat seluruh kelas yang pernah diikuti).
 - `Siswa::kelas()` → `hasOneThrough` melalui `siswa_kelas` **yang `active = true`**,
   sehingga `siswa.kelas` langsung mengembalikan kelas aktif beserta
@@ -77,7 +80,7 @@ Hubungan kelas dan jurusan diraih melalui **tabel pivot `siswa_kelas`**:
 3. Sistem menonaktifkan tahun ajaran lain, lalu menyimpan yang baru sebagai aktif.
 4. Middleware Inertia menyuntikkan `tahunAjaranAktif` ke semua halaman.
 5. Di sidebar (footer), semua pengguna melihat info
-   *"Tahun Ajaran Aktif: <nama>"* (atau peringatan kuning jika belum ada yang aktif).
+   _"Tahun Ajaran Aktif: <nama>"_ (atau peringatan kuning jika belum ada yang aktif).
 6. Jika **tidak ada** tahun ajaran aktif, maka pada tampilan siswa akan muncul
    banner informasi: **"Tahun Pelajaran Baru Belum dimulai"**.
 
