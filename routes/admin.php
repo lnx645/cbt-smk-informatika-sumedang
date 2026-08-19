@@ -60,3 +60,35 @@ Route::delete('siswa/{siswa}/kelas/{siswaKelas}', [SiswaKelasController::class, 
 Route::get('naik-kelas', [NaikKelasController::class, 'index'])->name('naik-kelas.index');
 Route::post('naik-kelas/preview', [NaikKelasController::class, 'preview'])->name('naik-kelas.preview');
 Route::post('naik-kelas', [NaikKelasController::class, 'execute'])->name('naik-kelas.execute');
+
+// -------------------------------------------------------------------
+// Penilaian (Assessment) Feature
+// -------------------------------------------------------------------
+use App\Http\Controllers\Admin\DetailPenilaianController;
+use App\Http\Controllers\Admin\PenilaianController;
+
+// Master Penilaian CRUD (admin only)
+Route::get('penilaian', [PenilaianController::class, 'index'])
+    ->name('admin.penilaian.index');
+Route::get('penilaian/create', [PenilaianController::class, 'create'])
+    ->name('admin.penilaian.create');
+Route::post('penilaian', [PenilaianController::class, 'store'])
+    ->name('admin.penilaian.store');
+Route::get('penilaian/{penilaian}', [PenilaianController::class, 'show'])
+    ->name('admin.penilaian.show');
+Route::get('penilaian/{penilaian}/edit', [PenilaianController::class, 'edit'])
+    ->name('admin.penilaian.edit');
+Route::put('penilaian/{penilaian}', [PenilaianController::class, 'update'])
+    ->name('admin.penilaian.update');
+Route::delete('penilaian/{penilaian}', [PenilaianController::class, 'destroy'])
+    ->name('admin.penilaian.destroy');
+
+// Detail nilai per siswa (admin only)
+Route::get('penilaian/{penilaian}/siswa', [DetailPenilaianController::class, 'filterSiswa'])
+    ->name('admin.penilaian.siswa.filter');
+Route::get('penilaian/{penilaian}/siswa/{siswa}', [DetailPenilaianController::class, 'detail'])
+    ->name('admin.penilaian.siswa.detail');
+Route::post('penilaian/{penilaian}/siswa/{siswa}', [DetailPenilaianController::class, 'storeNilai'])
+    ->name('admin.penilaian.siswa.store');
+Route::put('penilaian/{penilaian}/siswa/{siswa}', [DetailPenilaianController::class, 'updateNilai'])
+    ->name('admin.penilaian.siswa.update');

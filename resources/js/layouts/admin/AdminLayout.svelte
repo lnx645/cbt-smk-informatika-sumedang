@@ -17,6 +17,7 @@
     import ProfilController from '@/actions/App/Http/Controllers/Admin/ProfilController';
     import AkunAdminController from '@/actions/App/Http/Controllers/Admin/AkunAdminController';
     import NaikKelasController from '@/actions/App/Http/Controllers/Admin/NaikKelasController';
+import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
 
     let {
         children,
@@ -60,6 +61,11 @@
                     href: KelasController.index().url,
                     label: 'Kelas',
                     icon: 'bi-collection-fill',
+                },
+                {
+                    href: PenilaianController.index().url,
+                    label: 'Penilaian',
+                    icon: 'bi-card-checklist',
                 },
                 {
                     href: NaikKelasController.index().url,
