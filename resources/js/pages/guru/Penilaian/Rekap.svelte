@@ -151,19 +151,19 @@
                 {#if guruKelasInfo && kolom && siswas}
                     <div class="col-md-7">
                         <div class="d-flex flex-wrap gap-2">
-                            <Badge color="primary" pill class="px-3 py-2">
+                            <Badge color="primary" pill>
                                 <i class="bi bi-people me-1"></i>{guruKelasInfo.kelas ?? 'Kelas'}
                             </Badge>
-                            <Badge color="info" pill class="px-3 py-2">
+                            <Badge color="info" pill>
                                 <i class="bi bi-book me-1"></i>{guruKelasInfo.matpel ?? 'Matpel'}
                             </Badge>
-                            <Badge color="secondary" pill class="px-3 py-2">
+                            <Badge color="secondary" pill>
                                 <i class="bi bi-person-lines-fill me-1"></i>{siswas.length} siswa
                             </Badge>
-                            <Badge color="secondary" pill class="px-3 py-2">
+                            <Badge color="secondary" pill>
                                 <i class="bi bi-clipboard-check me-1"></i>{kolom.length} jenis penilaian
                             </Badge>
-                            <Badge color={terisi() === 100 ? 'success' : 'light'} pill class="px-3 py-2">
+                            <Badge color={terisi() === 100 ? 'success' : 'light'} pill>
                                 <i class="bi bi-percent me-1"></i>{terisi()}% terisi
                             </Badge>
                         </div>
