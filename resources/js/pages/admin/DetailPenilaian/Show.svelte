@@ -10,6 +10,7 @@
     } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
     import Avatar from '@/components/Avatar.svelte';
+    import NilaiSlider from '@/components/NilaiSlider.svelte';
     import DetailPenilaianController from '@/actions/App/Http/Controllers/Admin/DetailPenilaianController';
     import { useForm, router } from '@inertiajs/svelte';
 
@@ -77,19 +78,7 @@
         return predikat(detail.nilai, penilaian.nilai_maks || 100);
     };
 
-    const nilaiSlider = (): number =>
-        form.nilai === '' ? 0 : Number(form.nilai);
-
     const nilaiMaks = () => Number(penilaian?.nilai_maks ?? 0);
-
-    function onSliderInput(e: Event) {
-        form.nilai = Number((e.currentTarget as HTMLInputElement).value);
-    }
-
-    function onNumberInput(e: Event) {
-        const raw = (e.currentTarget as HTMLInputElement).value;
-        form.nilai = raw === '' ? '' : Number(raw);
-    }
 
     function backUrl() {
         const url = new URL(
@@ -212,47 +201,15 @@
                         }}
                         novalidate
                     >
-                        <FormGroup>
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <Label for="nilai" class="fw-semibold mb-0">Nilai</Label>
-                                <span class="fw-bold fs-5 {form.errors.nilai ? 'text-danger' : 'text-primary'}">
-                                    {form.nilai === '' ? '—' : form.nilai}
-                                    <span class="text-muted fs-6 fw-normal">
-                                        / {penilaian?.nilai_maks}
-                                    </span>
-                                </span>
-                            </div>
-                            <input
-                                id="nilai-range"
-                                type="range"
-                                class="form-range"
-                                min="0"
-                                max={nilaiMaks()}
-                                step="0.1"
-                                value={nilaiSlider()}
-                                oninput={onSliderInput}
-                                disabled={form.processing}
-                            />
-                            <Input
-                                id="nilai"
-                                type="number"
-                                min="0"
-                                max={penilaian?.nilai_maks}
-                                step="0.1"
-                                class={form.errors.nilai ? 'is-invalid' : ''}
-                                value={form.nilai}
-                                oninput={onNumberInput}
-                                disabled={form.processing}
-                                placeholder="Isi nilai…"
-                            />
-                            {#if form.errors.nilai}
-                                <small class="text-danger d-block mt-1">
-                                    {form.errors.nilai}
-                                </small>
-                            {/if}
-                        </FormGroup>
+                        <NilaiSlider
+                            value={form.nilai}
+                            max={nilaiMaks()}
+                            error={form.errors.nilai}
+                            disabled={form.processing}
+                            onchange={(v) => (form.nilai = v)}
+                        />
 
-                        <FormGroup>
+                        <FormGroup class="mt-3">
                             <Label for="keterangan" class="fw-semibold">
                                 Keterangan <span class="text-muted fw-normal">(opsional)</span>
                             </Label>
