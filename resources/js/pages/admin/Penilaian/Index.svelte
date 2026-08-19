@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { router } from '@inertiajs/svelte';
+    import { inertia, router } from '@inertiajs/svelte';
     import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
     import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
@@ -107,6 +107,7 @@
                                     </td>
                                     <td class="text-end text-nowrap">
                                         <a
+                                            use:inertia
                                             href={DetailPenilaianController.filterSiswa(
                                                 {
                                                     penilaian: p.id,
@@ -120,6 +121,7 @@
                                             Input Nilai
                                         </a>
                                         <a
+                                            use:inertia
                                             href={PenilaianController.show(
                                                 {
                                                     penilaian: p.id,

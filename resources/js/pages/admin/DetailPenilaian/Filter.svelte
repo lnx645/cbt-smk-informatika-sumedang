@@ -3,7 +3,7 @@
     import PageHeader from '@/components/PageHeader.svelte';
     import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
     import DetailPenilaianController from '@/actions/App/Http/Controllers/Admin/DetailPenilaianController';
-    import { router } from '@inertiajs/svelte';
+    import { inertia, router } from '@inertiajs/svelte';
 
     interface Penugasan {
         value: number;
@@ -127,6 +127,7 @@
                                 >
                                 <td class="text-end">
                                     <a
+                                        use:inertia
                                         href={DetailPenilaianController.detail(
                                             {
                                                 penilaian: penilaian.id,
