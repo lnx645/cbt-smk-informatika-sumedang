@@ -37,11 +37,13 @@
 
     function changePenugasan(event: Event) {
         const value = (event.currentTarget as HTMLSelectElement).value;
-        const url = router.url({
-            ...window.location,
-            search: value ? `guru_kelas_id=${value}` : '',
-        });
-        router.visit(url);
+        const url = new URL(window.location.href);
+        if (value) {
+            url.searchParams.set('guru_kelas_id', value);
+        } else {
+            url.searchParams.delete('guru_kelas_id');
+        }
+        router.visit(url.pathname + url.search);
     }
 </script>
 
