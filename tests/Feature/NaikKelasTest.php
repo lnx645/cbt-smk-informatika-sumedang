@@ -428,3 +428,64 @@ test('tingkatBerikutnya mengembalikan null untuk XII', function (): void {
     expect(Kelas::tingkatBerikutnya('XII'))->toBeNull();
     expect(Kelas::tingkatBerikutnya('X'))->toBe('XI');
 });
+
+test('tingkatSekarang memakai nama saat root tidak punya tingkat (data riil)', function (): void {
+    $jurusan = Jurusan::firstOrCreate(
+        ['kode' => 'RPL'],
+        ['name' => 'Jurusan RPL'],
+    );
+
+    $rootXI = Kelas::factory()->create([
+        'nama' => 'XI',
+        'tingkat' => null,
+        'parent_id' => null,
+        'jurusan_id' => null,
+        'guru_id' => null,
+    ]);
+
+    $nodeJurusan = Kelas::factory()->create([
+        'nama' => 'XI-RPL',
+        'tingkat' => null,
+        'parent_id' => $rootXI->id,
+        'jurusan_id' => $jurusan->id,
+        'guru_id' => null,
+    ]);
+
+    $kelasXI = Kelas::factory()->create([
+        'nama' => 'XI-RPL-1',
+        'tingkat' => null,
+        'parent_id' => $nodeJurusan->id,
+        'jurusan_id' => $jurusan->id,
+        'guru_id' => Guru::factory()->create()->id,
+    ]);
+
+    expect($kelasXI->tingkatSekarang())->toBe('XI');
+    expect(Kelas::tingkatBerikutnya($kelasXI->tingkatSekarang()))->toBe('XII');
+});
+
+test('preview kelas tujuan tidak menampilkan kelas asal saat root XI tingkat null (data riil)', function (): void {
+    $admin = buatAdmin();
+
+    $sumber = TahunAjaran::factory()->create(['name' => '2025/2026', 'active' => true]);
+    $target = TahunAjaran::factory()->create(['name' => '2026/2027', 'active' => false]);
+
+    $kelasX = buatHierarkiKelas('X', 'RPL');
+    $kelasXI = buatHierarkiKelas('XI', 'RPL');
+    Kelas::query()->where('nama', 'XI')->whereNull('parent_id')->update(['tingkat' => null]);
+
+    $siswa = Siswa::factory()->create();
+    daftarkanSiswa($siswa, $kelasX, $sumber);
+
+    $this->actingAs($admin)
+        ->post(route('admin.naik-kelas.preview'), [
+            'tahun_ajaran_sumber' => $sumber->id,
+            'tahun_ajaran_target' => $target->id,
+        ])
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('admin/NaikKelas/Index')
+            ->where('preview.kelas.0.kelas_target_id', $kelasXI->id)
+            ->has('preview.kelas_tujuan.X', 1)
+            ->where('preview.kelas_tujuan.X.0.value', $kelasXI->id)
+            ->where('preview.kelas_tujuan.X.0.label', $kelasXI->nama));
+});
