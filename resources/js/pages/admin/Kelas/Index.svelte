@@ -37,7 +37,7 @@
     let editingId = $state<number | null>(null);
     let modalOpen = $state(false);
     let query = $state('');
-    let collapsed = $state(new Set<number>());
+    let collapsedMap = $state<Record<number, boolean>>({});
 
     const hasQuery = $derived(query.trim().length > 0);
 
@@ -154,15 +154,11 @@
     }
 
     function isCollapsed(id: number): boolean {
-        return !hasQuery && collapsed.has(id);
+        return !hasQuery && collapsedMap[id] === true;
     }
 
     function toggleCollapsed(id: number) {
-        if (collapsed.has(id)) {
-            collapsed.delete(id);
-        } else {
-            collapsed.add(id);
-        }
+        collapsedMap = { ...collapsedMap, [id]: !collapsedMap[id] };
     }
 
     let namaTouched = $state(false);
