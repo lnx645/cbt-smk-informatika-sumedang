@@ -12,7 +12,7 @@
     import Avatar from '@/components/Avatar.svelte';
     import NilaiSlider from '@/components/NilaiSlider.svelte';
     import DetailPenilaianController from '@/actions/App/Http/Controllers/Admin/DetailPenilaianController';
-    import { useForm, router } from '@inertiajs/svelte';
+    import { useForm, router, inertia } from '@inertiajs/svelte';
 
     interface Penilaian {
         id: number;
