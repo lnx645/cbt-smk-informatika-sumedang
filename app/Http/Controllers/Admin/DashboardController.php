@@ -58,7 +58,7 @@ class DashboardController extends Controller
     private function kpiStats(?int $tahunAjaranId): array
     {
         $penugasanBase = GuruKelas::query()
-            ->when($tahunAjaranId, fn($query) => $query->where('tahun_ajaran_id', $tahunAjaranId));
+            ->when($tahunAjaranId, fn ($query) => $query->where('tahun_ajaran_id', $tahunAjaranId));
 
         // Menggunakan true/false untuk PostgreSQL
         $penugasanStats = (clone $penugasanBase)
@@ -67,7 +67,7 @@ class DashboardController extends Controller
 
         $siswaDenganKelas = SiswaKelas::query()
             ->where('active', true)
-            ->when($tahunAjaranId, fn($query) => $query->where('tahun_ajaran_id', $tahunAjaranId))
+            ->when($tahunAjaranId, fn ($query) => $query->where('tahun_ajaran_id', $tahunAjaranId))
             ->distinct('siswa_nisn')
             ->count('siswa_nisn');
 
@@ -92,7 +92,7 @@ class DashboardController extends Controller
     private function statsTambahan(?int $tahunAjaranId): array
     {
         $penugasan = GuruKelas::query()
-            ->when($tahunAjaranId, fn($query) => $query->where('tahun_ajaran_id', $tahunAjaranId));
+            ->when($tahunAjaranId, fn ($query) => $query->where('tahun_ajaran_id', $tahunAjaranId));
 
         $penugasanStats = (clone $penugasan)
             ->selectRaw('COUNT(DISTINCT guru_id) as guru_dengan_penugasan, SUM(CASE WHEN active_forum = true THEN 1 ELSE 0 END) as forum_aktif')
@@ -127,13 +127,13 @@ class DashboardController extends Controller
             ->leftJoin('siswa_kelas', function ($join) use ($tahunAjaranId): void {
                 $join->on('siswa_kelas.kelas_id', '=', 'kelas.id')
                     ->where('siswa_kelas.active', true)
-                    ->when($tahunAjaranId, fn($query) => $query->where('siswa_kelas.tahun_ajaran_id', $tahunAjaranId));
+                    ->when($tahunAjaranId, fn ($query) => $query->where('siswa_kelas.tahun_ajaran_id', $tahunAjaranId));
             })
             ->selectRaw('jurusans.name, jurusans.kode, COUNT(DISTINCT siswa_kelas.siswa_nisn) as siswa')
             ->groupBy('jurusans.id', 'jurusans.name', 'jurusans.kode')
             ->orderByDesc('siswa')
             ->get()
-            ->map(fn(object $row): array => [
+            ->map(fn (object $row): array => [
                 'name' => $row->name,
                 'kode' => $row->kode,
                 'siswa' => (int) $row->siswa,
@@ -157,7 +157,7 @@ class DashboardController extends Controller
             ->groupBy('jurusans.id', 'jurusans.name', 'jurusans.kode')
             ->orderByDesc('kelas')
             ->get()
-            ->map(fn(object $row): array => [
+            ->map(fn (object $row): array => [
                 'name' => $row->name,
                 'kode' => $row->kode,
                 'kelas' => (int) $row->kelas,
@@ -176,7 +176,7 @@ class DashboardController extends Controller
             ->leftJoin('siswa_kelas', function ($join) use ($tahunAjaranId): void {
                 $join->on('siswa_kelas.kelas_id', '=', 'kelas.id')
                     ->where('siswa_kelas.active', true)
-                    ->when($tahunAjaranId, fn($query) => $query->where('siswa_kelas.tahun_ajaran_id', $tahunAjaranId));
+                    ->when($tahunAjaranId, fn ($query) => $query->where('siswa_kelas.tahun_ajaran_id', $tahunAjaranId));
             })
             ->selectRaw('kelas.nama, COUNT(DISTINCT siswa_kelas.siswa_nisn) as siswa')
             ->havingRaw('COUNT(DISTINCT siswa_kelas.siswa_nisn) > 0')
@@ -184,7 +184,7 @@ class DashboardController extends Controller
             ->orderByDesc('siswa')
             ->orderBy('kelas.nama')
             ->get()
-            ->map(fn(object $row): array => [
+            ->map(fn (object $row): array => [
                 'nama' => $row->nama,
                 'siswa' => (int) $row->siswa,
             ])
@@ -201,7 +201,7 @@ class DashboardController extends Controller
         return Matpel::query()
             ->leftJoin('guru_kelas', function ($join) use ($tahunAjaranId): void {
                 $join->on('guru_kelas.matpel_id', '=', 'matpels.id')
-                    ->when($tahunAjaranId, fn($query) => $query->where('guru_kelas.tahun_ajaran_id', $tahunAjaranId));
+                    ->when($tahunAjaranId, fn ($query) => $query->where('guru_kelas.tahun_ajaran_id', $tahunAjaranId));
             })
             ->selectRaw('matpels.name, COUNT(guru_kelas.id) as penugasan')
             ->groupBy('matpels.id', 'matpels.name')
@@ -209,7 +209,7 @@ class DashboardController extends Controller
             ->orderBy('matpels.name')
             ->limit(5)
             ->get()
-            ->map(fn(object $row): array => [
+            ->map(fn (object $row): array => [
                 'name' => $row->name,
                 'penugasan' => (int) $row->penugasan,
             ])
@@ -226,7 +226,7 @@ class DashboardController extends Controller
         return Guru::query()
             ->leftJoin('guru_kelas', function ($join) use ($tahunAjaranId): void {
                 $join->on('guru_kelas.guru_id', '=', 'gurus.id')
-                    ->when($tahunAjaranId, fn($query) => $query->where('guru_kelas.tahun_ajaran_id', $tahunAjaranId));
+                    ->when($tahunAjaranId, fn ($query) => $query->where('guru_kelas.tahun_ajaran_id', $tahunAjaranId));
             })
             ->selectRaw('gurus.nama_lengkap, COUNT(guru_kelas.id) as penugasan')
             ->havingRaw('COUNT(guru_kelas.id) > 0')
@@ -235,7 +235,7 @@ class DashboardController extends Controller
             ->orderBy('gurus.nama_lengkap')
             ->limit(5)
             ->get()
-            ->map(fn(object $row): array => [
+            ->map(fn (object $row): array => [
                 'nama' => $row->nama_lengkap,
                 'penugasan' => (int) $row->penugasan,
             ])
@@ -272,7 +272,7 @@ class DashboardController extends Controller
             ->orderByDesc('penugasan')
             ->orderBy('tahun_ajaran.name')
             ->get()
-            ->map(fn(object $row): array => [
+            ->map(fn (object $row): array => [
                 'name' => $row->name,
                 'active' => (bool) $row->active,
                 'penugasan' => (int) $row->penugasan,
