@@ -2,23 +2,15 @@
     import { router } from '@inertiajs/svelte';
     import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
+    import EmptyState from '@/components/EmptyState.svelte';
     import PenilaianController from '@/actions/App/Http/Controllers/Guru/PenilaianController';
-
-    type PenilaianItem = {
-        id: number;
-        nama: string;
-        deskripsi: string | null;
-        tipe: string;
-        nilai_maks: number;
-        sumber: 'manual' | 'tugas';
-    };
-
-    type Penugasan = { value: number; label: string };
+    import type { PenilaianItem, PenugasanOption } from '@/types/models';
 
     let {
         penilaian,
         penugasan,
-    }: { penilaian: PenilaianItem[]; penugasan: Penugasan[] } = $props();
+    }: { penilaian: PenilaianItem[]; penugasan: PenugasanOption[] } =
+        $props();
 
     let penilaianId = $state<number | null>(null);
     let penugasanId = $state<number | null>(null);
@@ -64,13 +56,10 @@
                 <CardBody class="p-3">
                     <div class="fw-semibold mb-3">Pilih Penilaian</div>
                     {#if penilaian.length === 0}
-                        <div class="text-center text-muted py-4">
-                            <i class="bi bi-clipboard-x display-5 d-block mb-2"></i>
-                            <div>
-                                Belum ada jenis penilaian aktif dari
-                                admin.
-                            </div>
-                        </div>
+                        <EmptyState
+                            icon="bi-clipboard-x"
+                            message="Belum ada jenis penilaian aktif dari admin."
+                        />
                     {:else}
                         <div class="table-responsive">
                             <table class="table align-middle mb-0">

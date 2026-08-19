@@ -7,17 +7,7 @@
         ModalHeader,
     } from '@sveltestrap/sveltestrap';
     import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
-
-    type PenilaianItem = {
-        id: number;
-        nama: string;
-        deskripsi: string | null;
-        tipe: string;
-        nilai_maks: number;
-        bobot: number;
-        aktif: boolean;
-        sumber: 'manual' | 'tugas';
-    };
+    import type { PenilaianItem } from '@/types/models';
 
     let {
         open,

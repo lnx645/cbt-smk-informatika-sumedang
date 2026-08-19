@@ -5,19 +5,9 @@
     import PenilaianEditModal from '@/components/penilaian/PenilaianEditModal.svelte';
     import { Card, CardBody, CardHeader, Table } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
+    import type { PenilaianItem } from '@/types/models';
 
-    type PenilaianProps = {
-        id: number;
-        nama: string;
-        deskripsi: string | null;
-        tipe: string;
-        nilai_maks: number;
-        bobot: number;
-        aktif: boolean;
-        sumber: 'manual' | 'tugas';
-    };
-
-    let { penilaian }: { penilaian: PenilaianProps } = $props();
+    let { penilaian }: { penilaian: PenilaianItem } = $props();
 
     let editOpen = $state(false);
 </script>

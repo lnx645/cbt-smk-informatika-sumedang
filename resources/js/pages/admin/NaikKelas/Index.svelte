@@ -5,8 +5,9 @@
     import PageHeader from '@/components/PageHeader.svelte';
     import NaikKelasController from '@/actions/App/Http/Controllers/Admin/NaikKelasController';
     import { confirm } from '@/lib/confirm.svelte';
+    import { extractId } from '@/lib/utils';
+    import type { SelectOption } from '@/types/models';
 
-    type SelectOption = { value: number | string; label: string };
     type SiswaItem = { nisn: string; nama: string; status: 'naik' | 'tinggal' | 'lulus' };
     type KelasPreview = {
         kelas_asal: string;
@@ -39,21 +40,6 @@
         { value: 'tinggal', label: 'Tinggal' },
         { value: 'lulus', label: 'Lulus' },
     ];
-
-    function extractId(value: unknown): number | null {
-        if (value === null || value === undefined || value === '') {
-            return null;
-        }
-        if (typeof value === 'object') {
-            const obj = value as Record<string, unknown>;
-            if (obj.value !== undefined && obj.value !== null && obj.value !== '') {
-                return Number(obj.value);
-            }
-            return null;
-        }
-        const n = Number(value);
-        return Number.isNaN(n) ? null : n;
-    }
 
     let pilihan = $state<Record<string, 'naik' | 'tinggal' | 'lulus'>>({});
     let processing = $state(false);

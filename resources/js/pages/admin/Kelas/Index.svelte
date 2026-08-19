@@ -11,9 +11,16 @@
         Button,
     } from '@sveltestrap/sveltestrap';
     import Select from '@/components/Select.svelte';
+    import EmptyState from '@/components/EmptyState.svelte';
+    import ToggleSwitch from '@/components/ToggleSwitch.svelte';
     import KelasController from '@/actions/App/Http/Controllers/Admin/KelasController';
-
-    type SelectOption = { value: number | string; label: string };
+    import { extractId } from '@/lib/utils';
+    import type {
+        GuruRef,
+        KelasListRow,
+        KelasTreeNode,
+        SelectOption,
+    } from '@/types/models';
 
     let {
         kelas_parent = [],
@@ -21,10 +28,10 @@
         jurusans = [],
         gurus = [],
     }: {
-        kelas_parent?: Record<string, any>[];
-        kelas_list?: Record<string, any>[];
-        jurusans?: Record<string, any>[];
-        gurus?: Record<string, any>[];
+        kelas_parent?: KelasTreeNode[];
+        kelas_list?: KelasListRow[];
+        jurusans?: { id: number; name: string; kode: string | null }[];
+        gurus?: GuruRef[];
     } = $props();
 
     const jurusanOptions = $derived<SelectOption[]>(
@@ -43,9 +50,9 @@
 
     const parentGroups = $derived.by(() => {
         const list = kelas_list ?? [];
-        const childrenOf = new Map<number | null, Record<string, any>[]>();
+        const childrenOf = new Map<number | null, KelasListRow[]>();
         for (const k of list) {
-            const pid = (k.parent_id ?? null) as number | null;
+            const pid = k.parent_id;
             if (!childrenOf.has(pid)) {
                 childrenOf.set(pid, []);
             }
@@ -71,7 +78,7 @@
         const groups: { label: string; options: SelectOption[] }[] = [];
         for (const root of roots) {
             const options: SelectOption[] = [];
-            const walk = (node: Record<string, any>, depth: number) => {
+            const walk = (node: KelasListRow, depth: number) => {
                 if (excluded.has(node.id)) {
                     return;
                 }
@@ -95,7 +102,7 @@
         return groups;
     });
 
-    function nodeMatches(node: Record<string, any>): boolean {
+    function nodeMatches(node: KelasTreeNode): boolean {
         const q = query.trim().toLowerCase();
         return (
             String(node.nama ?? '').toLowerCase().includes(q) ||
@@ -108,7 +115,7 @@
         if (!hasQuery) {
             return kelas_parent;
         }
-        const filter = (nodes: Record<string, any>[]): Record<string, any>[] =>
+        const filter = (nodes: KelasTreeNode[]): KelasTreeNode[] =>
             nodes
                 .map((node) => {
                     const children = filter(node.children ?? []);
@@ -122,7 +129,7 @@
                             : children,
                     };
                 })
-                .filter((n): n is Record<string, any> => n !== null);
+                .filter((n): n is KelasTreeNode => n !== null);
         return filter(kelas_parent);
     });
 
@@ -131,7 +138,7 @@
             return 0;
         }
         let count = 0;
-        const walk = (nodes: Record<string, any>[]) => {
+        const walk = (nodes: KelasTreeNode[]) => {
             for (const node of nodes) {
                 if (nodeMatches(node)) {
                     count++;
@@ -171,25 +178,6 @@
         parent_id: null as number | null,
         active: false,
     });
-
-    function extractId(value: unknown): number | null {
-        if (value === null || value === undefined || value === '') {
-            return null;
-        }
-        if (typeof value === 'object') {
-            const obj = value as Record<string, unknown>;
-            if (
-                obj.value !== undefined &&
-                obj.value !== null &&
-                obj.value !== ''
-            ) {
-                return Number(obj.value);
-            }
-            return null;
-        }
-        const n = Number(value);
-        return Number.isNaN(n) ? null : n;
-    }
 
     function getDepth(id: number | null): number {
         const list = kelas_list ?? [];
@@ -262,7 +250,7 @@
         modalOpen = true;
     }
 
-    function openEdit(node: Record<string, any>) {
+    function openEdit(node: KelasTreeNode) {
         editingId = node.id;
         namaTouched = false;
         form.reset();
@@ -312,7 +300,7 @@
         }
     }
 
-    function countDescendants(node: Record<string, any>): number {
+    function countDescendants(node: KelasTreeNode): number {
         if (!node.children || !node.children.length) {
             return 0;
         }
@@ -323,7 +311,7 @@
         return total;
     }
 
-    function confirmDelete(node: Record<string, any>) {
+    function confirmDelete(node: KelasTreeNode) {
         const count = countDescendants(node);
         const siswa = totalSiswa(node);
         const parts = [`Hapus kelas "${node.nama}"?`];
@@ -342,7 +330,7 @@
     }
 </script>
 
-{#snippet node(item, depth)}
+{#snippet node(item: KelasTreeNode, depth: number)}
     <li>
         <div
             class="d-flex flex-wrap align-items-center gap-2 px-2 py-2 rounded kelas-row"
@@ -475,14 +463,18 @@
             </div>
         {/if}
     {:else if hasQuery}
-        <div class="text-center text-secondary py-5 border rounded bg-light">
-            Tidak ada kelas yang cocok dengan pencarian
-            "<strong>{query.trim()}</strong>".
-        </div>
+        <EmptyState
+            icon="bi-search"
+            message={`Tidak ada kelas yang cocok dengan pencarian "${query.trim()}".`}
+            variant="card"
+        />
     {:else}
-        <div class="text-center text-secondary py-5 border rounded bg-light">
-            Belum ada data kelas.
-        </div>
+        <EmptyState
+            icon="bi-inbox"
+            message="Belum ada data kelas."
+            hint="Mulai dengan membuat kelas Tingkat (X, XI, XII)."
+            variant="card"
+        />
     {/if}
 </div>
 
@@ -570,19 +562,11 @@
         </FormGroup>
 
         <FormGroup check>
-            <div class="crud-checkbox">
-                <button
-                    type="button"
-                    class="crud-toggle__track"
-                    class:is-on={form.active}
-                    role="switch"
-                    aria-checked={form.active ? 'true' : 'false'}
-                    onclick={() => (form.active = !form.active)}
-                >
-                    <span class="crud-toggle__knob"></span>
-                </button>
-                <Label for="active" class="crud-checkbox__label">Aktif</Label>
-            </div>
+            <ToggleSwitch
+                checked={form.active}
+                label="Aktif"
+                onchange={(v) => (form.active = v)}
+            />
         </FormGroup>
     </ModalBody>
     <ModalFooter>
@@ -621,48 +605,5 @@
 
     .kelas-row:hover {
         background: var(--bs-gray-100);
-    }
-
-    .crud-checkbox {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-    }
-
-    .crud-checkbox__label {
-        margin: 0;
-        cursor: pointer;
-    }
-
-    .crud-toggle__track {
-        position: relative;
-        width: 46px;
-        height: 26px;
-        border-radius: 999px;
-        border: none;
-        background: var(--bs-secondary);
-        cursor: pointer;
-        padding: 0;
-        transition: background 0.2s ease;
-    }
-
-    .crud-toggle__track.is-on {
-        background: var(--bs-success);
-    }
-
-    .crud-toggle__knob {
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: var(--inv-white);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-        transition: transform 0.2s ease;
-    }
-
-    .crud-toggle__track.is-on .crud-toggle__knob {
-        transform: translateX(20px);
     }
 </style>

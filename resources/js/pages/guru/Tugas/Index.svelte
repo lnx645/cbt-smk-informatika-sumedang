@@ -20,8 +20,8 @@
     } from '@/lib/tugas';
     import type { JenisPengumpulan } from '@/lib/tugas';
     import TugasController from '@/actions/App/Http/Controllers/Guru/TugasController';
+    import type { PaginationMeta, PenugasanOption } from '@/types/models';
 
-    type Penugasan = { value: number; label: string };
     type TugasItem = {
         id: number;
         judul: string;
@@ -52,15 +52,6 @@
         file_name: string | null;
         file_size: number;
     };
-    type PaginationMeta = {
-        data: TugasItem[];
-        current_page: number;
-        last_page: number;
-        total: number;
-        per_page: number;
-        from?: number | null;
-        to?: number | null;
-    };
 
     let {
         tugases,
@@ -68,8 +59,8 @@
         filters = { guru_kelas_id: null, q: '' },
         editTugas = null,
     }: {
-        tugases: PaginationMeta;
-        penugasan: Penugasan[];
+        tugases: PaginationMeta & { data: TugasItem[] };
+        penugasan: PenugasanOption[];
         filters: { guru_kelas_id: number | null; q: string };
         editTugas: EditTugas | null;
     } = $props();

@@ -20,6 +20,9 @@
     import Select from '@/components/Select.svelte';
     import PageHeader from '@/components/PageHeader.svelte';
     import Avatar from '@/components/Avatar.svelte';
+    import ToggleSwitch from '@/components/ToggleSwitch.svelte';
+    import { extractId } from '@/lib/utils';
+    import type { SelectOption } from '@/types/models';
 
     interface MatpelItem {
         id: number;
@@ -34,8 +37,6 @@
         nama_kelas: string;
         matpels: MatpelItem[];
     }
-
-    type SelectOption = { value: number | string; label: string };
 
     interface Props {
         guru_id: number;
@@ -72,25 +73,6 @@
     );
 
     const hasClasses = $derived(kelas.length > 0);
-
-    function extractId(value: unknown): number | null {
-        if (value === null || value === undefined || value === '') {
-            return null;
-        }
-        if (typeof value === 'object') {
-            const obj = value as Record<string, unknown>;
-            if (
-                obj.value !== undefined &&
-                obj.value !== null &&
-                obj.value !== ''
-            ) {
-                return Number(obj.value);
-            }
-            return null;
-        }
-        const n = Number(value);
-        return Number.isNaN(n) ? null : n;
-    }
 
     const validMatpels = (item: KelasItem) =>
         item.matpels.filter(
@@ -396,23 +378,14 @@
             {/if}
         </FormGroup>
 
-        <div class="crud-checkbox mb-2">
-            <!-- svelte-ignore a11y_consider_explicit_label -->
-            <button
-                type="button"
-                class="crud-toggle__track"
-                class:is-on={form.aktif}
-                role="switch"
-                aria-checked={form.aktif ? 'true' : 'false'}
-                onclick={() => (form.aktif = !form.aktif)}
-            >
-                <span class="crud-toggle__knob"></span>
-            </button>
-            <Label for="aktif" class="crud-checkbox__label"
-                >Aktif</Label
-            >
-    </div>
-</ModalBody>
+        <div class="mb-2">
+            <ToggleSwitch
+                checked={form.aktif}
+                label="Aktif"
+                onchange={(v) => (form.aktif = v)}
+            />
+        </div>
+    </ModalBody>
     <ModalFooter>
         <Button
             color="secondary"
@@ -428,49 +401,3 @@
         </Button>
     </ModalFooter>
 </Modal>
-
-<style>
-    .crud-checkbox {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-    }
-
-    .crud-checkbox__label {
-        margin-bottom: 0;
-        font-weight: 500;
-        cursor: pointer;
-    }
-
-    .crud-toggle__track {
-        position: relative;
-        width: 46px;
-        height: 26px;
-        border-radius: 999px;
-        border: none;
-        background: var(--bs-secondary);
-        cursor: pointer;
-        padding: 0;
-        transition: background 0.2s ease;
-    }
-
-    .crud-toggle__track.is-on {
-        background: var(--bs-success);
-    }
-
-    .crud-toggle__knob {
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: var(--inv-white);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-        transition: transform 0.2s ease;
-    }
-
-    .crud-toggle__track.is-on .crud-toggle__knob {
-        transform: translateX(20px);
-    }
-</style>

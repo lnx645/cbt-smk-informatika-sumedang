@@ -17,11 +17,9 @@
     import SiswaTugasController from '@/actions/App/Http/Controllers/Siswa/TugasController';
     import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
     let { children }: { children: Snippet } = $props();
-    const authUser = $derived(
-        (usePage().props.auth as any)?.user ?? null,
-    );
+    const authUser = $derived(usePage().props.auth?.user ?? null);
     const tahunAjaranAktif = $derived(
-        (usePage().props as any).tahunAjaranAktif ?? null,
+        usePage().props.tahunAjaranAktif ?? null,
     );
     const showTahunAjaranInfo = $derived(
         !!authUser?.siswa && !tahunAjaranAktif,
@@ -37,7 +35,7 @@
               : 'Pengguna Aktif',
         homeHref: '/',
     });
-    const navItems = $derived.by<AppShellNavItem[]>(() => {
+    const navItems = $derived.by<(AppShellNavItem | AppShellNavSection)[]>(() => {
         if (!authUser?.gate_access) {
             return [
                 {
@@ -48,7 +46,7 @@
             ];
         }
 
-        const items: AppShellNavItem[] = [
+        const items: (AppShellNavItem | AppShellNavSection)[] = [
             {
                 href: DashboardController().url,
                 label: 'Dashboard',
@@ -82,7 +80,7 @@
                         icon: 'bi-award',
                     },
                 ],
-            } satisfies AppShellNavSection as any);
+            } satisfies AppShellNavSection);
         }
 
         if (authUser?.siswa || authUser?.role === 'siswa') {
