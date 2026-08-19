@@ -4,13 +4,25 @@
     import {
         FormGroup,
         Label,
-        Button,
         Input,
+        Button,
+        Card,
+        CardBody,
     } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
 
-    // Receive existing penilaian data via props
-    let { penilaian }: { penilaian: any } = $props();
+    type PenilaianProps = {
+        id: number;
+        nama: string;
+        deskripsi: string | null;
+        tipe: string;
+        nilai_maks: number;
+        bobot: number;
+        aktif: boolean;
+        sumber: 'manual' | 'tugas';
+    };
+
+    let { penilaian }: { penilaian: PenilaianProps } = $props();
 
     const form = useForm({
         nama: penilaian?.nama ?? '',
@@ -22,142 +34,206 @@
     });
 
     function handleSubmit() {
-        form.put(
-            PenilaianController.update({ penilaian: penilaian.id })
-                .url,
-            {
-                onSuccess: () =>
-                    router.visit(PenilaianController.index().url),
-            },
-        );
+        form.put(PenilaianController.update({ penilaian: penilaian.id }).url, {
+            onSuccess: () => router.visit(PenilaianController.index().url),
+        });
     }
 </script>
 
-<PageHeader title="Edit Penilaian" subtitle="Ubah data penilaian" />
-
-<form on:submit|preventDefault={handleSubmit} class="mt-4">
-    <FormGroup>
-        <Label for="nama" class="text-xs">Nama Penilaian</Label>
-        <Input
-            id="nama"
-            type="text"
-            bind:value={form.nama}
-            placeholder="Contoh: Ulangan Harian"
-            disabled={form.processing}
-        />
-        {#if form.errors.nama}
-            <small class="text-danger d-block mt-1"
-                >{form.errors.nama}</small
+<div class="container-fluid px-0">
+    <PageHeader
+        title="Edit Penilaian"
+        subtitle="Ubah data jenis penilaian."
+    >
+        {#snippet actions()}
+            <Button
+                color="outline-secondary"
+                size="sm"
+                onclick={() => router.visit(PenilaianController.index().url)}
             >
-        {/if}
-    </FormGroup>
+                <i class="bi bi-arrow-left me-1"></i>Kembali
+            </Button>
+        {/snippet}
+    </PageHeader>
 
-    <FormGroup>
-        <Label for="deskripsi" class="text-xs">Deskripsi</Label>
-        <Input
-            id="deskripsi"
-            type="text"
-            bind:value={form.deskripsi}
-            placeholder="Optional"
-            disabled={form.processing}
-        />
-        {#if form.errors.deskripsi}
-            <small class="text-danger d-block mt-1"
-                >{form.errors.deskripsi}</small
-            >
-        {/if}
-    </FormGroup>
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-8 col-xxl-7">
+            <Card class="border rounded-1 shadow-none">
+                <CardBody class="p-4">
+                    <form on:submit|preventDefault={handleSubmit} novalidate>
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <FormGroup>
+                                    <Label for="nama" class="fw-semibold">
+                                        Nama Penilaian
+                                        <span class="text-danger">*</span>
+                                    </Label>
+                                    <Input
+                                        id="nama"
+                                        type="text"
+                                        bind:value={form.nama}
+                                        placeholder="Contoh: Ulangan Harian, PTS, PAS"
+                                        disabled={form.processing}
+                                    />
+                                    {#if form.errors.nama}
+                                        <small class="text-danger d-block mt-1">
+                                            {form.errors.nama}
+                                        </small>
+                                    {/if}
+                                </FormGroup>
+                            </div>
 
-    <FormGroup>
-        <Label for="tipe" class="text-xs">Tipe</Label>
-        <select
-            id="tipe"
-            bind:value={form.tipe}
-            class="form-select"
-            disabled={form.processing}
-        >
-            <option value="" disabled>Pilih tipe</option>
-            <option value="kognitif">Kognitif</option>
-            <option value="sikap">Sikap</option>
-            <option value="tugas">Tugas</option>
-            <option value="cbt">CBT</option>
-        </select>
-        {#if form.errors.tipe}
-            <small class="text-danger d-block mt-1"
-                >{form.errors.tipe}</small
-            >
-        {/if}
-    </FormGroup>
+                            <div class="col-12">
+                                <FormGroup>
+                                    <Label for="deskripsi" class="fw-semibold">
+                                        Deskripsi
+                                    </Label>
+                                    <Input
+                                        id="deskripsi"
+                                        type="text"
+                                        bind:value={form.deskripsi}
+                                        placeholder="Opsional — misal: Penilaian tengah semester ganjil"
+                                        disabled={form.processing}
+                                    />
+                                    {#if form.errors.deskripsi}
+                                        <small class="text-danger d-block mt-1">
+                                            {form.errors.deskripsi}
+                                        </small>
+                                    {/if}
+                                </FormGroup>
+                            </div>
 
-    <FormGroup>
-        <Label for="nilai_maks" class="text-xs">Nilai Maksimum</Label>
-        <Input
-            id="nilai_maks"
-            type="number"
-            min="0"
-            bind:value={form.nilai_maks}
-            placeholder="0"
-            disabled={form.processing}
-        />
-        {#if form.errors.nilai_maks}
-            <small class="text-danger d-block mt-1"
-                >{form.errors.nilai_maks}</small
-            >
-        {/if}
-    </FormGroup>
+                            <div class="col-12 col-md-6">
+                                <FormGroup>
+                                    <Label for="tipe" class="fw-semibold">
+                                        Tipe
+                                        <span class="text-danger">*</span>
+                                    </Label>
+                                    <select
+                                        id="tipe"
+                                        bind:value={form.tipe}
+                                        class="form-select"
+                                        disabled={form.processing || penilaian?.sumber === 'tugas'}
+                                    >
+                                        <option value="" disabled>Pilih tipe</option>
+                                        <option value="kognitif">Kognitif</option>
+                                        <option value="sikap">Sikap</option>
+                                        <option value="tugas">Tugas</option>
+                                        <option value="cbt">CBT</option>
+                                    </select>
+                                    {#if penilaian?.sumber === 'tugas'}
+                                        <small class="text-muted d-block mt-1">
+                                            Penilaian dari tugas guru — tipe tidak bisa diubah.
+                                        </small>
+                                    {/if}
+                                    {#if form.errors.tipe}
+                                        <small class="text-danger d-block mt-1">
+                                            {form.errors.tipe}
+                                        </small>
+                                    {/if}
+                                </FormGroup>
+                            </div>
 
-    <FormGroup>
-        <Label for="bobot" class="text-xs">Bobot (%)</Label>
-        <Input
-            id="bobot"
-            type="number"
-            min="0"
-            max="100"
-            bind:value={form.bobot}
-            placeholder="0"
-            disabled={form.processing}
-        />
-        {#if form.errors.bobot}
-            <small class="text-danger d-block mt-1"
-                >{form.errors.bobot}</small
-            >
-        {/if}
-    </FormGroup>
+                            <div class="col-12 col-md-6">
+                                <FormGroup>
+                                    <Label for="nilai_maks" class="fw-semibold">
+                                        Nilai Maksimum
+                                        <span class="text-danger">*</span>
+                                    </Label>
+                                    <Input
+                                        id="nilai_maks"
+                                        type="number"
+                                        min="0"
+                                        bind:value={form.nilai_maks}
+                                        placeholder="Contoh: 100"
+                                        disabled={form.processing || penilaian?.sumber === 'tugas'}
+                                    />
+                                    <small class="text-muted d-block mt-1">
+                                        Batas maksimal nilai yang bisa dimasukkan guru.
+                                    </small>
+                                    {#if form.errors.nilai_maks}
+                                        <small class="text-danger d-block mt-1">
+                                            {form.errors.nilai_maks}
+                                        </small>
+                                    {/if}
+                                </FormGroup>
+                            </div>
 
-    <FormGroup class="d-flex align-items-center gap-2">
-        <Input
-            id="aktif"
-            type="checkbox"
-            bind:checked={form.aktif}
-            disabled={form.processing}
-        />
-        <Label for="aktif" class="mb-0">Aktif</Label>
-        {#if form.errors.aktif}
-            <small class="text-danger d-block mt-1"
-                >{form.errors.aktif}</small
-            >
-        {/if}
-    </FormGroup>
+                            <div class="col-12 col-md-6">
+                                <FormGroup>
+                                    <Label for="bobot" class="fw-semibold">
+                                        Bobot (%)
+                                    </Label>
+                                    <Input
+                                        id="bobot"
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        bind:value={form.bobot}
+                                        placeholder="0"
+                                        disabled={form.processing}
+                                    />
+                                    <small class="text-muted d-block mt-1">
+                                        Persentase pengaruh ke nilai akhir — 0 jika tidak digunakan.
+                                    </small>
+                                    {#if form.errors.bobot}
+                                        <small class="text-danger d-block mt-1">
+                                            {form.errors.bobot}
+                                        </small>
+                                    {/if}
+                                </FormGroup>
+                            </div>
 
-    <div class="d-flex justify-content-end mt-3">
-        <Button
-            color="secondary"
-            outline
-            size="sm"
-            on:click={() =>
-                router.visit(PenilaianController.index().url)}
-            disabled={form.processing}
-        >
-            <i class="bi bi-arrow-left me-1"></i> Kembali
-        </Button>
-        <Button
-            color="primary"
-            size="sm"
-            class="ms-2"
-            type="submit"
-            disabled={form.processing}
-        >
-            {form.processing ? 'Menyimpan...' : 'Simpan Perubahan'}
-        </Button>
+                            <div class="col-12 col-md-6">
+                                <FormGroup class="d-flex align-items-start gap-2 pt-4">
+                                    <Input
+                                        id="aktif"
+                                        type="checkbox"
+                                        bind:checked={form.aktif}
+                                        disabled={form.processing}
+                                        class="mt-1"
+                                    />
+                                    <div>
+                                        <Label for="aktif" class="fw-semibold mb-0">
+                                            Aktif
+                                        </Label>
+                                        <small class="text-muted d-block">
+                                            Nonaktifkan agar jenis penilaian ini tidak tampil
+                                            di menu guru.
+                                        </small>
+                                    </div>
+                                    {#if form.errors.aktif}
+                                        <small class="text-danger d-block mt-1">
+                                            {form.errors.aktif}
+                                        </small>
+                                    {/if}
+                                </FormGroup>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 border-top pt-3 mt-4">
+                            <Button
+                                color="secondary"
+                                outline
+                                size="sm"
+                                onclick={() => router.visit(PenilaianController.index().url)}
+                                disabled={form.processing}
+                            >
+                                Batal
+                            </Button>
+                            <Button
+                                color="primary"
+                                size="sm"
+                                type="submit"
+                                disabled={form.processing}
+                            >
+                                <i class="bi bi-check-lg me-1"></i>
+                                {form.processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                            </Button>
+                        </div>
+                    </form>
+                </CardBody>
+            </Card>
+        </div>
     </div>
-</form>
+</div>
