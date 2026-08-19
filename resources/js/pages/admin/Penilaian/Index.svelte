@@ -1,6 +1,7 @@
 <script lang="ts">
     import { useForm, router } from '@inertiajs/svelte';
     import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
+    import DetailPenilaianController from '@/actions/App/Http/Controllers/Admin/DetailPenilaianController';
     import {
         Modal,
         ModalHeader,
@@ -46,10 +47,17 @@
                 <td>{p.aktif ? 'Ya' : 'Tidak'}</td>
                 <td class="d-flex gap-2">
                     <a
-                        href={PenilaianController.show({
+                        href={DetailPenilaianController.filterSiswa({
                             penilaian: p.id,
                         }).url}
                         class="btn btn-sm btn-outline-primary"
+                        >Input Nilai</a
+                    >
+                    <a
+                        href={PenilaianController.show({
+                            penilaian: p.id,
+                        }).url}
+                        class="btn btn-sm btn-outline-secondary"
                         >Lihat</a
                     >
                     <a

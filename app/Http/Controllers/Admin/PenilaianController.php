@@ -51,7 +51,7 @@ class PenilaianController extends Controller
         Penilaian::create($data);
         Toast::success('Penilaian berhasil ditambahkan.');
 
-        return Redirect::route('admin.penilaian.index');
+        return Redirect::back();
     }
 
     /**

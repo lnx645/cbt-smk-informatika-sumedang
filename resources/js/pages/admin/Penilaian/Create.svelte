@@ -121,7 +121,7 @@
 
     <FormGroup>
         <Input
-            type="checkbox"
+            type="radio"
             id="aktif"
             bind:value={form.aktif}
             disabled={form.processing}

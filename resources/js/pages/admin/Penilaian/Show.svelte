@@ -1,6 +1,7 @@
 <script lang="ts">
   import { router } from '@inertiajs/svelte';
   import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
+  import DetailPenilaianController from '@/actions/App/Http/Controllers/Admin/DetailPenilaianController';
   import { Card, CardBody, CardHeader, Table } from '@sveltestrap/sveltestrap';
   import PageHeader from '@/components/PageHeader.svelte';
 
@@ -26,6 +27,9 @@
       </tbody>
     </Table>
     <div class="d-flex justify-content-end mt-3">
+      <button class="btn btn-sm btn-success me-2" on:click={() => router.visit(DetailPenilaianController.filterSiswa({ penilaian: penilaian.id }).url)}>
+        <i class="bi bi-pencil-square me-1"></i> Input Nilai
+      </button>
       <button class="btn btn-sm btn-secondary me-2" on:click={() => router.visit(PenilaianController.edit({ penilaian: penilaian.id }).url)}>
         <i class="bi bi-pencil me-1"></i> Edit
       </button>
