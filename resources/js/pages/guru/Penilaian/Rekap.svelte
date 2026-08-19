@@ -192,18 +192,18 @@
                         <table class="table table-striped table-hover align-middle mb-0 rekap-table">
                             <thead>
                                 <tr>
-                                    <th class="rekap-sticky text-muted" style="width: 2.5rem; left: 0">No</th>
-                                    <th class="rekap-sticky" style="min-width: 13rem; left: 2.5rem">Nama Siswa</th>
-                                    <th class="text-muted" style="width: 6rem">NISN</th>
+                                    <th class="rekap-sticky text-muted" style="width: 2rem; left: 0">No</th>
+                                    <th class="rekap-sticky" style="min-width: 11rem; left: 2rem">Nama Siswa</th>
+                                    <th class="text-muted" style="width: 5rem">NISN</th>
                                     {#each kolom as k (k.id)}
-                                        <th class="text-end" style="min-width: 9rem">
-                                            <div class="fw-semibold">{k.nama}</div>
-                                            <div class="text-muted fw-normal small">maks {k.nilai_maks ?? '—'}</div>
+                                        <th class="text-end" style="min-width: 8rem">
+                                            {k.nama}
+                                            <span class="text-muted fw-normal small">maks {k.nilai_maks ?? '—'}</span>
                                         </th>
                                     {/each}
-                                    <th class="text-end" style="min-width: 8rem">
+                                    <th class="text-end" style="min-width: 7rem">
                                         Rata-rata
-                                        <div class="text-muted fw-normal small">nilai akhir</div>
+                                        <span class="text-muted fw-normal small">akhir</span>
                                     </th>
                                 </tr>
                             </thead>
@@ -211,7 +211,7 @@
                                 {#each siswas as siswa, i (siswa.nisn)}
                                     <tr>
                                         <td class="rekap-sticky text-muted" style="left: 0">{i + 1}</td>
-                                        <td class="rekap-sticky fw-semibold" style="left: 2.5rem">
+                                        <td class="rekap-sticky fw-semibold" style="left: 2rem">
                                             {siswa.nama}
                                         </td>
                                         <td class="text-muted small">{siswa.nisn}</td>
@@ -219,11 +219,11 @@
                                             <td class="text-end text-nowrap">
                                                 {#if n !== null}
                                                     {@const p = predikat(n, kolom[j].nilai_maks)}
-                                                    <div class="fw-semibold">{n}</div>
+                                                    <span class="fw-semibold">{n}</span>
                                                     {#if p}
-                                                        <div class="small {p.kelas}" title={p.label}>
-                                                            Predikat {p.huruf}
-                                                        </div>
+                                                        <span class="small {p.kelas}" title={p.label}>
+                                                            {p.huruf}
+                                                        </span>
                                                     {/if}
                                                 {:else}
                                                     <span class="text-muted">—</span>
@@ -233,14 +233,11 @@
                                         <td class="text-end text-nowrap">
                                             {#if siswa.rata_rata !== null}
                                                 {@const p = predikat(siswa.rata_rata, 100)}
-                                                <Badge color="success" pill class="px-3 py-2">
-                                                    <i class="bi bi-calculator me-1"></i>
-                                                    {siswa.rata_rata}
-                                                </Badge>
+                                                <span class="fw-bold text-success">{siswa.rata_rata}</span>
                                                 {#if p}
-                                                    <div class="small {p.kelas} mt-1">
+                                                    <span class="small {p.kelas}" title={p.label}>
                                                         {p.huruf} · {p.label}
-                                                    </div>
+                                                    </span>
                                                 {/if}
                                             {:else}
                                                 <span class="text-muted">—</span>
@@ -252,7 +249,7 @@
                             <tfoot class="table-light fw-semibold">
                                 <tr>
                                     <td class="rekap-sticky text-muted" style="left: 0"></td>
-                                    <td class="rekap-sticky" style="left: 2.5rem">Rata-rata kelas</td>
+                                    <td class="rekap-sticky" style="left: 2rem">Rata-rata kelas</td>
                                     <td></td>
                                     {#each kolom as k, j (k.id)}
                                         <td class="text-end text-nowrap">
@@ -303,6 +300,13 @@
     :global(.rekap-table) {
         min-width: max-content;
         width: 100%;
+        font-size: 0.8125rem;
+    }
+
+    :global(.rekap-table td),
+    :global(.rekap-table th) {
+        padding: 0.35rem 0.5rem;
+        font-variant-numeric: tabular-nums;
     }
 
     :global(.rekap-table thead th) {
@@ -332,10 +336,5 @@
 
     :global(.rekap-table tfoot .rekap-sticky) {
         background-color: #f8f9fa;
-    }
-
-    :global(.rekap-table td),
-    :global(.rekap-table th) {
-        font-variant-numeric: tabular-nums;
     }
 </style>
