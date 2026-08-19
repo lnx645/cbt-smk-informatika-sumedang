@@ -121,6 +121,7 @@ classDiagram
         +parent(): BelongsTo
         +children(): HasMany
         +tingkatSekarang(): ?string
+        +tingkatDariNama(nama): ?string
         +tingkatBerikutnya(?string): ?string
         +promoteTarget(): ?self
         +scopeLeaf(query)
@@ -201,7 +202,9 @@ sequenceDiagram
    `kelas_id` berupa kelas **leaf** (rombel tanpa anak).
 2. Kelompokkan per `kelas_id`.
 3. Untuk setiap kelas asal:
-   - `tingkat` = tingkat root (X / XI / XII) dari rantai `parent`
+   - `tingkat` = tingkat root (X / XI / XII) dari rantai `parent`;
+     bila root tidak memiliki tingkat, dipakai **prefiks nama kelas**
+     (lihat §9 Perbaikan Klasifikasi Tingkat)
    - `target otomatis` = `promoteTarget()`: ganti awalan tingkat pada
      nama kelas (X-RPL-10 → XI-RPL-10), cari kelas dengan nama itu
    - `status default`:
@@ -267,3 +270,109 @@ Aturan penting:
 
 Tidak ada perubahan skema untuk fitur ini — cukup logika service dan
 tampilan preview.
+
+## 9. Perbaikan: Klasifikasi Tingkat Saat Root Kelas Tidak Lengkap
+
+### 9.1 Masalah yang Ditemukan
+
+Saat diuji dengan data riil, pilihan **Pindah ke Kelas** menampilkan
+kelas yang tidak sesuai (kelas tujuan tidak terklasifikasi ke tingkat
+yang benar). Penelusuran menemukan akar masalah di **data**, bukan di
+tampilan:
+
+Data kelas di DB (hanya root, `parent_id IS NULL`):
+
+| id | nama | tingkat | keterangan |
+|---|---|---|---|
+| 1 | X | X | benar |
+| 30 | XII | XII | benar |
+| 37 | XI | **NULL** | salah / tidak lengkap |
+
+Root `XI` tidak memiliki nilai `tingkat`, padahal root `X` dan `XII`
+memilikinya.
+
+### 9.2 Akar Penyebab
+
+Kode lama `Kelas::tingkatSekarang()` hanya menelusuri rantai `parent`
+sampai root lalu membaca `root->tingkat`:
+
+```
+kelas "XI-RPL-1" → parent "XI-RPL" → parent "XI" (root, tingkat = NULL)
+```
+
+Karena root `XI` ber-`tingkat` NULL, **seluruh kelas XI** (XI-RPL-1
+sampai XI-RPL-6) terdeteksi tingkat `null`. Dampaknya pada fitur naik
+kelas:
+
+1. Opsi kelas tujuan dikelompokkan per tingkat sumber — kelas XI yang
+   tidak terklasifikasi tidak pernah masuk daftar `kelas_tujuan`,
+   sehingga pilihan yang tampil salah/tidak sesuai.
+2. Target otomatis (`promoteTarget`) dan status default untuk siswa XI
+   ikut rusak (tingkat dianggap tidak ada).
+
+### 9.3 Solusi
+
+Dua perbaikan yang dilakukan:
+
+**a) Perbaikan kode — fallback ke prefiks nama** (`app/Models/Kelas.php`):
+
+- Tambah method statis `Kelas::tingkatDariNama(string $nama): ?string`
+  yang mengekstrak tingkat dari **prefiks nama kelas** (konvensi
+  penamaan `X-RPL-1`, `XI-RPL-1`, `XII-RPL-1`) dengan regex
+  `^(XII|XI|X)(?=[\s-]|$)`:
+  - urutan alternation **XII → XI → X** (paling panjang dulu) agar
+    `XII-...` tidak salah terbaca sebagai `XI`
+  - pembatas `[\s-]` atau akhir string agar nama `AXIO` tidak ikut
+    terbaca
+- `tingkatSekarang()` diubah: tetap baca tingkat root, dan **bila NULL
+  (atau kosong) fallback ke `tingkatDariNama()`** dari nama kelas itu
+  sendiri:
+
+```
+tingkatSekarang() {
+    naik ke root melalui parent
+    root->tingkat ada ?  → return root->tingkat
+    tidak ada           → return tingkatDariNama(nama kelas)
+}
+```
+
+**b) Perbaikan data — normalisasi sekali jalan**:
+
+- Root `XI` (id 37) di-update menjadi `tingkat = 'XI'`, sehingga root
+  X, XI, XII semuanya konsisten. Perbaikan kode di atas tetap
+  diperlukan sebagai pengaman bila data serupa muncul lagi di
+  kemudian hari.
+
+### 9.4 Alur Logika Baru
+
+```mermaid
+flowchart TD
+    A([tingkatSekarang kelas]) --> B[Telusuri parent sampai root]
+    B --> C{Root punya tingkat?}
+    C -- ya --> D[return root.tingkat]
+    C -- tidak --> E[Regex prefiks nama: XII / XI / X]
+    E --> F{Nama cocok dengan prefiks?}
+    F -- ya --> G[return prefiks tingkat]
+    F -- tidak --> H[return null]
+```
+
+Contoh pada data riil:
+
+| Kelas | Root (tingkat) | Hasil sebelum fix | Hasil setelah fix |
+|---|---|---|---|
+| X RPL 5 | X (X) | X | X |
+| XI-RPL-1 | XI (**NULL**) | **null** | **XI** (fallback nama) |
+| XII-RPL-1 | XII (XII) | XII | XII |
+
+### 9.5 Test Regresi
+
+Dua test ditambahkan di `tests/Feature/NaikKelasTest.php` yang
+meniru struktur data riil (root XI tanpa tingkat):
+
+- `tingkatSekarang memakai nama saat root tidak punya tingkat` —
+  kelas `XI-RPL-1` di bawah root `XI` (tingkat null) harus tetap
+  terdeteksi `XI`, dan `tingkatBerikutnya()` mengembalikan `XII`.
+- `preview kelas tujuan tidak menampilkan kelas asal saat root XI
+  tingkat null` — preview naik kelas dari X harus menyediakan opsi
+  kelas tujuan berisi kelas XI (bukan kelas asal X), dan
+  `kelas_target_id` mengarah ke kelas XI.
