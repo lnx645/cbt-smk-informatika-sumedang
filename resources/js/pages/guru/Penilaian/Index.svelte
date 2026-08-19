@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { router } from '@inertiajs/svelte';
     import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
     import PenilaianController from '@/actions/App/Http/Controllers/Guru/PenilaianController';
@@ -33,10 +34,12 @@
             return;
         }
         errorPesan = '';
-        window.location.href = PenilaianController.show({
-            penilaian: penilaianId,
-            guruKelas: penugasanId,
-        }).url;
+        router.visit(
+            PenilaianController.show({
+                penilaian: penilaianId,
+                guruKelas: penugasanId,
+            }).url,
+        );
     }
 </script>
 
@@ -48,9 +51,7 @@
         {#snippet actions()}
             <Button
                 color="outline-primary"
-                onclick={() =>
-                    window.location.href =
-                        PenilaianController.rekap().url}
+                onclick={() => router.visit(PenilaianController.rekap().url)}
             >
                 <i class="bi bi-list-check me-1"></i>Rekap Nilai
             </Button>
