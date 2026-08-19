@@ -1,6 +1,6 @@
 <script lang="ts">
     import { inertia, router } from '@inertiajs/svelte';
-    import { Badge, Card, CardBody } from '@sveltestrap/sveltestrap';
+    import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
     import PenilaianController from '@/actions/App/Http/Controllers/Guru/PenilaianController';
 
@@ -47,12 +47,64 @@
         }
         router.visit(url.pathname + url.search);
     }
+
+    function resetPenugasan() {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('guru_kelas_id');
+        router.visit(url.pathname + url.search);
+    }
+
+    function predikat(
+        nilai: number | null,
+        maks: number | null,
+    ): { huruf: string; kelas: string; label: string } | null {
+        if (nilai === null || !maks) {
+            return null;
+        }
+        const pct = (nilai / maks) * 100;
+        if (pct >= 86) {
+            return { huruf: 'A', kelas: 'text-success', label: 'Sangat Baik' };
+        }
+        if (pct >= 71) {
+            return { huruf: 'B', kelas: 'text-primary', label: 'Baik' };
+        }
+        if (pct >= 56) {
+            return { huruf: 'C', kelas: 'text-warning', label: 'Cukup' };
+        }
+        return { huruf: 'D', kelas: 'text-danger', label: 'Kurang' };
+    }
+
+    function rataRataKolom(idx: number): number | null {
+        const vals = (siswas ?? [])
+            .map((s) => s.nilai[idx])
+            .filter((n): n is number => n !== null);
+        if (!vals.length) {
+            return null;
+        }
+        return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100;
+    }
+
+    const rataRataUmum = (): number | null => {
+        const vals = (siswas ?? [])
+            .map((s) => s.rata_rata)
+            .filter((n): n is number => n !== null);
+        if (!vals.length) {
+            return null;
+        }
+        return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100;
+    };
+
+    const terisi = (): number => {
+        const total = (siswas ?? []).reduce((acc, s) => acc + s.nilai.filter((n) => n !== null).length, 0);
+        const maks = ((siswas ?? []).length || 1) * (kolom?.length || 1);
+        return Math.round((total / maks) * 100);
+    };
 </script>
 
 <div class="container-fluid px-0">
     <PageHeader
         title="Rekap Nilai"
-        subtitle="Leger nilai siswa per kelas & mata pelajaran."
+        subtitle="Leger nilai siswa per kelas &amp; mata pelajaran."
     >
         {#snippet actions()}
             <a
@@ -67,26 +119,57 @@
 
     <Card class="border rounded-1 shadow-none mb-3">
         <CardBody class="p-3">
-            <div class="d-flex flex-wrap align-items-center gap-2">
-                <div class="fw-semibold me-2">Penugasan:</div>
-                <select
-                    class="form-select"
-                    style="min-width: 280px; max-width: 100%"
-                    value={selectedGuruKelasId ?? ''}
-                    onchange={changePenugasan}
-                >
-                    <option value="">-- Pilih kelas &amp; matpel --</option>
-                    {#each penugasan as g (g.value)}
-                        <option value={g.value}>{g.label}</option>
-                    {/each}
-                </select>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="rekap-penugasan" class="form-label fw-semibold mb-1">
+                        <i class="bi bi-funnel me-1"></i>Pilih Penugasan
+                    </label>
+                    <div class="input-group">
+                        <select
+                            id="rekap-penugasan"
+                            class="form-select"
+                            value={selectedGuruKelasId ?? ''}
+                            onchange={changePenugasan}
+                        >
+                            <option value="">-- Pilih kelas &amp; matpel --</option>
+                            {#each penugasan as g (g.value)}
+                                <option value={g.value}>{g.label}</option>
+                            {/each}
+                        </select>
+                        {#if selectedGuruKelasId}
+                            <button
+                                class="btn btn-outline-secondary"
+                                type="button"
+                                title="Hapus pilihan"
+                                onclick={resetPenugasan}
+                            >
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        {/if}
+                    </div>
+                </div>
+                {#if guruKelasInfo && kolom && siswas}
+                    <div class="col-md-7">
+                        <div class="d-flex flex-wrap gap-2">
+                            <Badge color="primary" pill class="px-3 py-2">
+                                <i class="bi bi-people me-1"></i>{guruKelasInfo.kelas ?? 'Kelas'}
+                            </Badge>
+                            <Badge color="info" pill class="px-3 py-2">
+                                <i class="bi bi-book me-1"></i>{guruKelasInfo.matpel ?? 'Matpel'}
+                            </Badge>
+                            <Badge color="secondary" pill class="px-3 py-2">
+                                <i class="bi bi-person-lines-fill me-1"></i>{siswas.length} siswa
+                            </Badge>
+                            <Badge color="secondary" pill class="px-3 py-2">
+                                <i class="bi bi-clipboard-check me-1"></i>{kolom.length} jenis penilaian
+                            </Badge>
+                            <Badge color={terisi() === 100 ? 'success' : 'light'} pill class="px-3 py-2">
+                                <i class="bi bi-percent me-1"></i>{terisi()}% terisi
+                            </Badge>
+                        </div>
+                    </div>
+                {/if}
             </div>
-            {#if guruKelasInfo}
-                <p class="text-muted small mt-2 mb-0">
-                    <i class="bi bi-people me-1"></i>
-                    {guruKelasInfo.kelas ?? 'Kelas'} · {guruKelasInfo.matpel ?? 'Matpel'}
-                </p>
-            {/if}
         </CardBody>
     </Card>
 
@@ -95,32 +178,35 @@
             <Card class="border rounded-1 shadow-none">
                 <CardBody class="text-center text-muted py-5">
                     <i class="bi bi-journal-x display-5 d-block mb-2"></i>
-                    <div>
-                        Belum ada nilai tercatat untuk penugasan ini.
+                    <div class="fw-semibold text-body">Belum ada nilai tercatat</div>
+                    <div class="small">
+                        Nilai akan muncul setelah guru menilai tugas atau memasukkan nilai manual di
+                        penugasan ini.
                     </div>
                 </CardBody>
             </Card>
         {:else}
             <Card class="border rounded-1 shadow-none">
-                <CardBody class="p-3">
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0">
+                <CardBody class="p-0">
+                    <div class="table-responsive rekap-scroll" style="max-height: 65vh">
+                        <table class="table table-striped table-hover align-middle mb-0 rekap-table">
                             <thead>
                                 <tr>
-                                    <th>No</th>
+                                    <th class="text-muted" style="width: 3rem">No</th>
                                     <th>Nama Siswa</th>
-                                    <th>NISN</th>
+                                    <th class="text-muted" style="width: 7rem">NISN</th>
                                     {#each kolom as k (k.id)}
-                                        <th class="text-end" title={k.nama}>
-                                            <div class="text-truncate" style="max-width: 120px">
+                                        <th class="text-end" style="min-width: 9rem">
+                                            <div class="text-truncate fw-semibold" title={k.nama}>
                                                 {k.nama}
                                             </div>
-                                            <div class="text-muted fw-normal small">
-                                                maks {k.nilai_maks ?? '—'}
-                                            </div>
+                                            <div class="text-muted fw-normal small">maks {k.nilai_maks ?? '—'}</div>
                                         </th>
                                     {/each}
-                                    <th class="text-end">Rata-rata</th>
+                                    <th class="text-end" style="min-width: 8rem">
+                                        Rata-rata
+                                        <div class="text-muted fw-normal small">nilai akhir</div>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -128,11 +214,17 @@
                                     <tr>
                                         <td class="text-muted">{i + 1}</td>
                                         <td class="fw-semibold">{siswa.nama}</td>
-                                        <td class="text-muted">{siswa.nisn}</td>
+                                        <td class="text-muted small">{siswa.nisn}</td>
                                         {#each siswa.nilai as n, j (j)}
                                             <td class="text-end text-nowrap">
                                                 {#if n !== null}
-                                                    <span class="fw-semibold">{n}</span>
+                                                    {@const p = predikat(n, kolom[j].nilai_maks)}
+                                                    <div class="fw-semibold">{n}</div>
+                                                    {#if p}
+                                                        <div class="small {p.kelas}" title={p.label}>
+                                                            Predikat {p.huruf}
+                                                        </div>
+                                                    {/if}
                                                 {:else}
                                                     <span class="text-muted">—</span>
                                                 {/if}
@@ -140,10 +232,16 @@
                                         {/each}
                                         <td class="text-end text-nowrap">
                                             {#if siswa.rata_rata !== null}
-                                                <Badge color="success" pill>
+                                                {@const p = predikat(siswa.rata_rata, 100)}
+                                                <Badge color="success" pill class="px-3 py-2">
                                                     <i class="bi bi-calculator me-1"></i>
                                                     {siswa.rata_rata}
                                                 </Badge>
+                                                {#if p}
+                                                    <div class="small {p.kelas} mt-1">
+                                                        {p.huruf} · {p.label}
+                                                    </div>
+                                                {/if}
                                             {:else}
                                                 <span class="text-muted">—</span>
                                             {/if}
@@ -151,6 +249,27 @@
                                     </tr>
                                 {/each}
                             </tbody>
+                            <tfoot class="table-light fw-semibold">
+                                <tr>
+                                    <td colspan="3">Rata-rata kelas</td>
+                                    {#each kolom as k, j (k.id)}
+                                        <td class="text-end text-nowrap">
+                                            {#if rataRataKolom(j) !== null}
+                                                {rataRataKolom(j)}
+                                            {:else}
+                                                <span class="text-muted">—</span>
+                                            {/if}
+                                        </td>
+                                    {/each}
+                                    <td class="text-end text-nowrap">
+                                        {#if rataRataUmum() !== null}
+                                            {rataRataUmum()}
+                                        {:else}
+                                            <span class="text-muted">—</span>
+                                        {/if}
+                                    </td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </CardBody>
@@ -160,8 +279,29 @@
         <Card class="border rounded-1 shadow-none">
             <CardBody class="text-center text-muted py-5">
                 <i class="bi bi-clipboard2-data display-5 d-block mb-2"></i>
-                <div>Pilih penugasan untuk melihat rekap nilai.</div>
+                <div class="fw-semibold text-body">Belum ada penugasan dipilih</div>
+                <div class="small">Pilih kelas &amp; mata pelajaran di atas untuk melihat rekap nilai.</div>
             </CardBody>
         </Card>
     {/if}
 </div>
+
+<style>
+    .rekap-scroll {
+        scrollbar-width: thin;
+    }
+
+    :global(.rekap-table thead th) {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background-color: #fff;
+        box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+        white-space: nowrap;
+    }
+
+    :global(.rekap-table td),
+    :global(.rekap-table th) {
+        font-variant-numeric: tabular-nums;
+    }
+</style>
