@@ -20,13 +20,11 @@ class GuruKelas extends Model
         'matpel_id',
         'tahun_ajaran_id',
         'aktif',
-        'active_forum',
         'lihat_anggota_kelas',
     ];
 
     protected $casts = [
         'aktif' => 'boolean',
-        'active_forum' => 'boolean',
         'lihat_anggota_kelas' => 'boolean',
     ];
 

@@ -21,7 +21,6 @@ return new class extends Migration
             $table->foreignIdFor(TahunAjaran::class)->constrained('tahun_ajaran')->cascadeOnUpdate()->restrictOnDelete();
             $table->boolean('aktif')->default(true);
             $table->char('kode_undangan')->nullable();
-            $table->boolean('active_forum')->default(false);
             $table->boolean('lihat_anggota_kelas')->default(false);
             $table->timestamps();
         });

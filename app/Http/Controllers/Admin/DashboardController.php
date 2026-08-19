@@ -62,7 +62,7 @@ class DashboardController extends Controller
 
         // Menggunakan true/false untuk PostgreSQL
         $penugasanStats = (clone $penugasanBase)
-            ->selectRaw('COUNT(*) as total, SUM(CASE WHEN aktif = true THEN 1 ELSE 0 END) as aktif, SUM(CASE WHEN active_forum = true THEN 1 ELSE 0 END) as forum')
+            ->selectRaw('COUNT(*) as total, SUM(CASE WHEN aktif = true THEN 1 ELSE 0 END) as aktif')
             ->first();
 
         $siswaDenganKelas = SiswaKelas::query()
@@ -91,11 +91,9 @@ class DashboardController extends Controller
      */
     private function statsTambahan(?int $tahunAjaranId): array
     {
-        $penugasan = GuruKelas::query()
-            ->when($tahunAjaranId, fn ($query) => $query->where('tahun_ajaran_id', $tahunAjaranId));
-
-        $penugasanStats = (clone $penugasan)
-            ->selectRaw('COUNT(DISTINCT guru_id) as guru_dengan_penugasan, SUM(CASE WHEN active_forum = true THEN 1 ELSE 0 END) as forum_aktif')
+        $penugasanStats = GuruKelas::query()
+            ->when($tahunAjaranId, fn ($query) => $query->where('tahun_ajaran_id', $tahunAjaranId))
+            ->selectRaw('COUNT(DISTINCT guru_id) as guru_dengan_penugasan')
             ->first();
         $userStats = User::selectRaw('
             SUM(CASE WHEN guru_id IS NOT NULL THEN 1 ELSE 0 END) as guru_akun,
@@ -111,7 +109,6 @@ class DashboardController extends Controller
             'kelas_aktif' => Kelas::leaf()->where('active', true)->count(),
             'guru_dengan_akun' => $userStats->guru_akun ?? 0,
             'siswa_dengan_akun' => $userStats->siswa_akun ?? 0,
-            'forum_aktif' => $penugasanStats->forum_aktif ?? 0,
         ];
     }
 
