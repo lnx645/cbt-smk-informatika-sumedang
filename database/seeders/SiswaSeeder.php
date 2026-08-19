@@ -12,17 +12,16 @@ class SiswaSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     *
+     * Setiap rombongan belajar (kelas leaf) diisi 10 siswa beserta akun
+     * login dan penempatan pada tahun ajaran aktif.
      */
     public function run(): void
     {
-        $kelases = Kelas::leaf()->get();
-        $tahunAjaranId = TahunAjaran::where('active', true)->first()?->id
-            ?? TahunAjaran::orderBy('id')->value('id');
+        $tahunAjaranId = TahunAjaran::where('active', true)->firstOrFail()->id;
 
-        foreach ($kelases as $kelas) {
-            $jumlah = rand(4, 8);
-
-            for ($i = 0; $i < $jumlah; $i++) {
+        foreach (Kelas::leaf()->orderBy('nama')->get() as $kelas) {
+            for ($i = 1; $i <= 10; $i++) {
                 $siswa = Siswa::factory()->create();
 
                 SiswaKelas::create([
