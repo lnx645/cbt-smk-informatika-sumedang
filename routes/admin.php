@@ -70,14 +70,10 @@ use App\Http\Controllers\Admin\PenilaianController;
 // Master Penilaian CRUD (admin only)
 Route::get('penilaian', [PenilaianController::class, 'index'])
     ->name('penilaian.index');
-Route::get('penilaian/create', [PenilaianController::class, 'create'])
-    ->name('penilaian.create');
 Route::post('penilaian', [PenilaianController::class, 'store'])
     ->name('penilaian.store');
 Route::get('penilaian/{penilaian}', [PenilaianController::class, 'show'])
     ->name('penilaian.show');
-Route::get('penilaian/{penilaian}/edit', [PenilaianController::class, 'edit'])
-    ->name('penilaian.edit');
 Route::put('penilaian/{penilaian}', [PenilaianController::class, 'update'])
     ->name('penilaian.update');
 Route::delete('penilaian/{penilaian}', [PenilaianController::class, 'destroy'])

@@ -4,6 +4,8 @@
     import PageHeader from '@/components/PageHeader.svelte';
     import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
     import DetailPenilaianController from '@/actions/App/Http/Controllers/Admin/DetailPenilaianController';
+    import PenilaianCreateModal from '@/components/penilaian/PenilaianCreateModal.svelte';
+    import PenilaianEditModal from '@/components/penilaian/PenilaianEditModal.svelte';
     import { confirm } from '@/lib/confirm.svelte';
 
     type PenilaianItem = {
@@ -18,6 +20,9 @@
     };
 
     let { penilaian }: { penilaian: PenilaianItem[] } = $props();
+
+    let createOpen = $state(false);
+    let editTarget = $state<PenilaianItem | null>(null);
 
     async function deletePenilaian(item: PenilaianItem) {
         const ok = await confirm.show({
@@ -39,11 +44,7 @@
         subtitle="Kelola jenis penilaian dan nilai siswa."
     >
         {#snippet actions()}
-            <Button
-                color="primary"
-                onclick={() =>
-                    router.visit(PenilaianController.create().url)}
-            >
+            <Button color="primary" onclick={() => (createOpen = true)}>
                 <i class="bi bi-plus-lg me-1"></i>Tambah Penilaian
             </Button>
         {/snippet}
@@ -128,16 +129,13 @@
                                         >
                                             Lihat
                                         </a>
-                                        <a
-                                            href={PenilaianController.edit(
-                                                {
-                                                    penilaian: p.id,
-                                                },
-                                            ).url}
+                                        <button
+                                            type="button"
                                             class="btn btn-sm btn-outline-success"
+                                            onclick={() => (editTarget = p)}
                                         >
                                             Edit
-                                        </a>
+                                        </button>
                                         <button
                                             type="button"
                                             class="btn btn-sm btn-outline-danger"
@@ -155,4 +153,11 @@
             {/if}
         </CardBody>
     </Card>
+
+    <PenilaianCreateModal open={createOpen} onClose={() => (createOpen = false)} />
+    <PenilaianEditModal
+        open={editTarget !== null}
+        penilaian={editTarget}
+        onClose={() => (editTarget = null)}
+    />
 </div>

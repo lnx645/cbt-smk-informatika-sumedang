@@ -27,14 +27,6 @@ class PenilaianController extends Controller
     }
 
     /**
-     * Show the form for creating a new penilaian.
-     */
-    public function create(Request $request): Response
-    {
-        return Inertia::render('admin/Penilaian/Create');
-    }
-
-    /**
      * Store a newly created penilaian.
      */
     public function store(Request $request): RedirectResponse
@@ -64,16 +56,6 @@ class PenilaianController extends Controller
         $penilaian->load('kelas', 'detailPenilaian');
 
         return Inertia::render('admin/Penilaian/Show', [
-            'penilaian' => $penilaian,
-        ]);
-    }
-
-    /**
-     * Show the form for editing the specified penilaian.
-     */
-    public function edit(Request $request, Penilaian $penilaian): Response
-    {
-        return Inertia::render('admin/Penilaian/Edit', [
             'penilaian' => $penilaian,
         ]);
     }
