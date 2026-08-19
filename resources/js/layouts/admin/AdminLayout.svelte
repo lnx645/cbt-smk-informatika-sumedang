@@ -34,12 +34,12 @@ import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianC
         email: authUser?.email ?? '',
         id: authUser?.id ?? '',
         role: authUser?.role ?? 'Administrator',
-        homeHref: DashboardController().url,
+        homeHref: DashboardController.__invoke().url,
     });
 
     const navItems: Array<AppShellNavItem | AppShellNavSection> = [
         {
-            href: DashboardController().url,
+            href: DashboardController.__invoke().url,
             label: 'Dashboard',
             icon: 'bi-speedometer2',
         },
