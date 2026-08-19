@@ -192,14 +192,12 @@
                         <table class="table table-striped table-hover align-middle mb-0 rekap-table">
                             <thead>
                                 <tr>
-                                    <th class="text-muted" style="width: 3rem">No</th>
-                                    <th>Nama Siswa</th>
-                                    <th class="text-muted" style="width: 7rem">NISN</th>
+                                    <th class="rekap-sticky text-muted" style="width: 2.5rem; left: 0">No</th>
+                                    <th class="rekap-sticky" style="min-width: 13rem; left: 2.5rem">Nama Siswa</th>
+                                    <th class="text-muted" style="width: 6rem">NISN</th>
                                     {#each kolom as k (k.id)}
                                         <th class="text-end" style="min-width: 9rem">
-                                            <div class="text-truncate fw-semibold" title={k.nama}>
-                                                {k.nama}
-                                            </div>
+                                            <div class="fw-semibold">{k.nama}</div>
                                             <div class="text-muted fw-normal small">maks {k.nilai_maks ?? '—'}</div>
                                         </th>
                                     {/each}
@@ -212,8 +210,10 @@
                             <tbody>
                                 {#each siswas as siswa, i (siswa.nisn)}
                                     <tr>
-                                        <td class="text-muted">{i + 1}</td>
-                                        <td class="fw-semibold">{siswa.nama}</td>
+                                        <td class="rekap-sticky text-muted" style="left: 0">{i + 1}</td>
+                                        <td class="rekap-sticky fw-semibold" style="left: 2.5rem">
+                                            {siswa.nama}
+                                        </td>
                                         <td class="text-muted small">{siswa.nisn}</td>
                                         {#each siswa.nilai as n, j (j)}
                                             <td class="text-end text-nowrap">
@@ -251,7 +251,9 @@
                             </tbody>
                             <tfoot class="table-light fw-semibold">
                                 <tr>
-                                    <td colspan="3">Rata-rata kelas</td>
+                                    <td class="rekap-sticky text-muted" style="left: 0"></td>
+                                    <td class="rekap-sticky" style="left: 2.5rem">Rata-rata kelas</td>
+                                    <td></td>
                                     {#each kolom as k, j (k.id)}
                                         <td class="text-end text-nowrap">
                                             {#if rataRataKolom(j) !== null}
@@ -272,6 +274,13 @@
                             </tfoot>
                         </table>
                     </div>
+                    {#if (kolom?.length ?? 0) >= 4}
+                        <div class="text-muted small px-3 py-2 border-top">
+                            <i class="bi bi-arrows-expand me-1"></i>
+                            Geser tabel ke kiri/kanan untuk melihat semua kolom penilaian — nama siswa
+                            tetap terlihat di sisi kiri.
+                        </div>
+                    {/if}
                 </CardBody>
             </Card>
         {/if}
@@ -291,6 +300,11 @@
         scrollbar-width: thin;
     }
 
+    :global(.rekap-table) {
+        min-width: max-content;
+        width: 100%;
+    }
+
     :global(.rekap-table thead th) {
         position: sticky;
         top: 0;
@@ -298,6 +312,26 @@
         background-color: #fff;
         box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.08);
         white-space: nowrap;
+    }
+
+    :global(.rekap-table .rekap-sticky) {
+        position: sticky;
+        background-color: #fff;
+    }
+
+    :global(.rekap-table thead .rekap-sticky) {
+        top: 0;
+        z-index: 3;
+    }
+
+    :global(.rekap-table tbody .rekap-sticky),
+    :global(.rekap-table tfoot .rekap-sticky) {
+        z-index: 1;
+        box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.08);
+    }
+
+    :global(.rekap-table tfoot .rekap-sticky) {
+        background-color: #f8f9fa;
     }
 
     :global(.rekap-table td),
