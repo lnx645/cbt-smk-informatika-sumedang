@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\BaseAppController;
 use App\Models\DetailPenilaian;
+use App\Models\Guru;
 use App\Models\GuruKelas;
 use App\Models\Penilaian;
 use App\Models\SiswaKelas;
@@ -52,7 +53,89 @@ class PenilaianController extends BaseAppController implements HasMiddleware
                 'sumber' => $p->sumber,
             ]);
 
-        $penugasan = GuruKelas::where('guru_id', $guru->id)
+        return Inertia::render('guru/Penilaian/Index', [
+            'penilaian' => $penilaian,
+            'penugasan' => $this->penugasan($guru),
+        ]);
+    }
+
+    /**
+     * Rekap nilai (leger) per penugasan: siswa × penilaian + rata-rata.
+     */
+    public function rekap(Request $request): Response
+    {
+        $guru = $request->user()->guru;
+
+        $guruKelasId = $request->integer('guru_kelas_id') ?: null;
+        $guruKelasInfo = null;
+        $kolom = null;
+        $siswas = null;
+
+        if ($guruKelasId) {
+            $guruKelas = GuruKelas::with(['kelas:id,nama', 'matpel:id,name'])
+                ->where('id', $guruKelasId)
+                ->where('guru_id', $guru->id)
+                ->firstOrFail();
+
+            $guruKelasInfo = [
+                'id' => $guruKelas->id,
+                'kelas' => $guruKelas->kelas?->nama,
+                'matpel' => $guruKelas->matpel?->name,
+            ];
+
+            $details = DetailPenilaian::with('penilaian:id,nama,nilai_maks')
+                ->where('guru_kelas_id', $guruKelas->id)
+                ->get();
+
+            $kolom = $details
+                ->groupBy('penilaian_id')
+                ->map(fn ($group): array => [
+                    'id' => $group->first()->penilaian_id,
+                    'nama' => $group->first()->penilaian?->nama ?? 'Penilaian',
+                    'nilai_maks' => $group->first()->penilaian?->nilai_maks,
+                ])
+                ->values();
+
+            $nilaiBySiswa = $details
+                ->groupBy('siswa_nisn')
+                ->map(fn ($group) => $group->mapWithKeys(fn ($d): array => [$d->penilaian_id => $d->nilai]));
+
+            $siswas = SiswaKelas::query()
+                ->with('siswa')
+                ->where('kelas_id', $guruKelas->kelas_id)
+                ->where('tahun_ajaran_id', $guruKelas->tahun_ajaran_id)
+                ->where('active', true)
+                ->orderBy('siswa_nisn')
+                ->get()
+                ->map(function (SiswaKelas $sk) use ($nilaiBySiswa, $kolom): array {
+                    $row = $nilaiBySiswa->get($sk->siswa_nisn, collect());
+                    $nilai = $kolom->map(fn (array $k) => $row->get($k['id']));
+                    $terisi = $nilai->filter(fn ($n) => $n !== null);
+
+                    return [
+                        'nisn' => $sk->siswa_nisn,
+                        'nama' => $sk->siswa?->nama_lengkap ?? 'Siswa',
+                        'nilai' => $nilai->values(),
+                        'rata_rata' => $terisi->count() ? round($terisi->avg(), 2) : null,
+                    ];
+                });
+        }
+
+        return Inertia::render('guru/Penilaian/Rekap', [
+            'penugasan' => $this->penugasan($guru),
+            'guruKelasInfo' => $guruKelasInfo,
+            'selectedGuruKelasId' => $guruKelasId,
+            'kolom' => $kolom,
+            'siswas' => $siswas,
+        ]);
+    }
+
+    /**
+     * Penugasan aktif guru untuk dropdown.
+     */
+    private function penugasan(Guru $guru): array
+    {
+        return GuruKelas::where('guru_id', $guru->id)
             ->where('aktif', true)
             ->where('tahun_ajaran_id', $this->tahunAjaran?->id)
             ->with(['kelas', 'matpel'])
@@ -61,12 +144,8 @@ class PenilaianController extends BaseAppController implements HasMiddleware
             ->map(fn (GuruKelas $gk): array => [
                 'value' => $gk->id,
                 'label' => ($gk->kelas?->nama ?? 'Kelas').' — '.($gk->matpel?->name ?? 'Matpel'),
-            ]);
-
-        return Inertia::render('guru/Penilaian/Index', [
-            'penilaian' => $penilaian,
-            'penugasan' => $penugasan,
-        ]);
+            ])
+            ->all();
     }
 
     /**

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Badge, Card, CardBody } from '@sveltestrap/sveltestrap';
+    import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
     import PenilaianController from '@/actions/App/Http/Controllers/Guru/PenilaianController';
 
@@ -44,7 +44,18 @@
     <PageHeader
         title="Penilaian"
         subtitle="Input nilai ulangan harian, PTS, sikap, dan jenis penilaian lainnya."
-    />
+    >
+        {#snippet actions()}
+            <Button
+                color="outline-primary"
+                onclick={() =>
+                    window.location.href =
+                        PenilaianController.rekap().url}
+            >
+                <i class="bi bi-list-check me-1"></i>Rekap Nilai
+            </Button>
+        {/snippet}
+    </PageHeader>
 
     <div class="row g-3">
         <div class="col-12 col-xl-7">
