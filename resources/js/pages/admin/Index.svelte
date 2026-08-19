@@ -41,8 +41,7 @@
             guru_dengan_penugasan: number;
             kelas_aktif: number;
             guru_dengan_akun: number;
-            siswa_dengan_akun: number;
-            forum_aktif: number;
+         siswa_dengan_akun: number;
         };
         siswaPerJurusan: { name: string; kode: string | null; siswa: number }[];
         kelasPerJurusan: { name: string; kode: string | null; kelas: number }[];

@@ -7,10 +7,8 @@
 
     GlobalWorkerOptions.workerSrc = workerUrl;
 
-    let {
-        url,
-        className = '',
-    }: { url: string; className?: string } = $props();
+    let { url, className = '' }: { url: string; className?: string } =
+        $props();
 
     let canvas: HTMLCanvasElement | undefined = $state();
     let loading = $state(true);
@@ -39,6 +37,10 @@
                 return;
             }
 
+            if (!canvas) {
+                return;
+            }
+
             try {
                 const page = await documentProxy.getPage(pageNumber);
                 if (token !== renderToken) {
@@ -58,7 +60,11 @@
                 }
 
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                renderTask = page.render({ canvasContext: ctx, viewport });
+                //@ts-ignore
+                renderTask = page.render({
+                    canvasContext: ctx,
+                    viewport,
+                });
                 await renderTask.promise;
 
                 if (token !== renderToken) {
@@ -77,7 +83,11 @@
 
     onDestroy(() => {
         renderTask?.cancel();
-        documentProxy?.destroy();
+        // pdfjs-dist's PDFDocumentProxy type does not expose a `destroy` method
+        // in the bundled TypeScript definitions. The runtime object does
+        // provide a `destroy` method, so we cast to `any` to avoid a type
+        // error while still calling the method if it exists.
+        (documentProxy as any)?.destroy();
         documentProxy = null;
     });
 
@@ -133,7 +143,9 @@
             >
                 <i class="bi bi-zoom-out"></i>
             </button>
-            <span class="pdf-viewer__zoom">{Math.round(zoom * 100)}%</span>
+            <span class="pdf-viewer__zoom"
+                >{Math.round(zoom * 100)}%</span
+            >
             <button
                 type="button"
                 class="btn btn-sm btn-outline-secondary"
@@ -153,10 +165,12 @@
             </div>
         {:else if errorMessage}
             <div class="alert alert-danger border rounded-1 m-3 mb-4">
-                <i class="bi bi-exclamation-triangle me-2"></i>{errorMessage}
+                <i class="bi bi-exclamation-triangle me-2"
+                ></i>{errorMessage}
             </div>
         {:else}
-            <canvas class="pdf-viewer__canvas" bind:this={canvas}></canvas>
+            <canvas class="pdf-viewer__canvas" bind:this={canvas}
+            ></canvas>
         {/if}
     </div>
 </div>

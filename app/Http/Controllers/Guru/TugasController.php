@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\BaseAppController;
+use App\Models\DetailPenilaian;
 use App\Models\Guru;
 use App\Models\GuruKelas;
+use App\Models\Penilaian;
 use App\Models\SiswaKelas;
 use App\Models\Tugas;
 use App\Models\TugasPengumpulan;
@@ -93,6 +95,7 @@ class TugasController extends BaseAppController implements HasMiddleware
                 'tanggal_terbit' => $tugas->tanggal_terbit?->format('Y-m-d H:i'),
                 'deadline' => $tugas->deadline?->format('Y-m-d H:i'),
                 'jenis_pengumpulan' => $tugas->jenis_pengumpulan,
+                'poin' => $tugas->poin,
                 'file_name' => $tugas->file_name,
                 'file_size' => $tugas->file_size,
             ],
@@ -121,7 +124,21 @@ class TugasController extends BaseAppController implements HasMiddleware
             'file_name' => $file?->getClientOriginalName(),
             'file_size' => $file?->getSize() ?? 0,
             'mime_type' => $file?->getMimeType(),
+            'poin' => $data['poin'] ?? 100,
         ]);
+
+        $penilaian = Penilaian::create([
+            'nama' => 'Tugas: '.$tugas->judul,
+            'deskripsi' => $data['deskripsi'] ?? null,
+            'tipe' => 'tugas',
+            'nilai_maks' => $tugas->poin,
+            'bobot' => 1,
+            'aktif' => true,
+            'sumber' => 'tugas',
+        ]);
+
+        $tugas->penilaian_id = $penilaian->id;
+        $tugas->save();
 
         Toast::success('Tugas "'.$tugas->judul.'" berhasil dibuat.');
 
@@ -160,7 +177,15 @@ class TugasController extends BaseAppController implements HasMiddleware
             'tanggal_terbit' => $data['tanggal_terbit'] ?? now(),
             'deadline' => $data['deadline'],
             'jenis_pengumpulan' => $data['jenis_pengumpulan'] ?? $tugas->jenis_pengumpulan,
+            'poin' => $data['poin'] ?? $tugas->poin,
         ])->save();
+
+        if ($tugas->penilaian_id) {
+            $tugas->penilaian()->update([
+                'nama' => 'Tugas: '.$tugas->judul,
+                'nilai_maks' => $tugas->poin,
+            ]);
+        }
 
         Toast::success('Tugas "'.$tugas->judul.'" berhasil diperbarui.');
 
@@ -186,6 +211,10 @@ class TugasController extends BaseAppController implements HasMiddleware
             ->pluck('file_path')
             ->each(fn (string $path) => Storage::disk('public')->delete($path));
 
+        if ($tugas->penilaian_id) {
+            Penilaian::where('id', $tugas->penilaian_id)->delete();
+        }
+
         $tugas->delete();
 
         Toast::success('Tugas berhasil dihapus.');
@@ -200,7 +229,7 @@ class TugasController extends BaseAppController implements HasMiddleware
     {
         abort_unless($tugas->guru_id === $request->user()->guru?->id, 404);
 
-        $tugas->load('pengumpulans:id,tugas_id,siswa_nisn,file_name,jawaban_teks,submitted_at');
+        $tugas->load('pengumpulans:id,tugas_id,siswa_nisn,file_name,jawaban_teks,submitted_at,nilai');
 
         $guruKelas = $tugas->guruKelas;
 
@@ -223,6 +252,7 @@ class TugasController extends BaseAppController implements HasMiddleware
                     'terlambat' => $pengumpulan !== null
                         && $tugas->deadline !== null
                         && $pengumpulan->submitted_at->gt($tugas->deadline),
+                    'nilai' => $pengumpulan?->nilai,
                     'pengumpulan_id' => $pengumpulan?->id,
                 ];
             });
@@ -235,10 +265,56 @@ class TugasController extends BaseAppController implements HasMiddleware
                 'matpel' => $guruKelas->matpel?->name,
                 'deadline' => $tugas->deadline?->translatedFormat('d M Y H:i'),
                 'jenis_pengumpulan' => $tugas->jenis_pengumpulan,
+                'poin' => $tugas->poin,
                 'jumlah_siswa' => $siswas->count(),
             ],
             'siswas' => $siswas,
         ]);
+    }
+
+    /**
+     * Simpan nilai satu pengumpulan siswa + sinkronisasi ke detail_penilaian.
+     */
+    public function nilai(Request $request, Tugas $tugas): RedirectResponse
+    {
+        abort_unless($tugas->guru_id === $request->user()->guru?->id, 404);
+
+        $data = $request->validate([
+            'siswa_nisn' => ['required', 'string', 'exists:siswa,nisn'],
+            'nilai' => ['required', 'numeric', 'min:0', 'max:'.$tugas->poin],
+        ]);
+
+        $pengumpulan = TugasPengumpulan::where('tugas_id', $tugas->id)
+            ->where('siswa_nisn', $data['siswa_nisn'])
+            ->first();
+
+        if (! $pengumpulan) {
+            Toast::error('Siswa belum mengumpulkan tugas.');
+
+            return Redirect::back();
+        }
+
+        $pengumpulan->update(['nilai' => $data['nilai']]);
+
+        if ($tugas->penilaian_id) {
+            DetailPenilaian::updateOrCreate(
+                [
+                    'penilaian_id' => $tugas->penilaian_id,
+                    'guru_kelas_id' => $tugas->guru_kelas_id,
+                    'siswa_nisn' => $data['siswa_nisn'],
+                ],
+                [
+                    'tahun_ajaran_id' => $tugas->guruKelas->tahun_ajaran_id,
+                    'guru_id' => $tugas->guru_id,
+                    'nilai' => $data['nilai'],
+                    'sumber' => 'tugas',
+                ]
+            );
+        }
+
+        Toast::success('Nilai berhasil disimpan.');
+
+        return Redirect::back();
     }
 
     /**
@@ -339,6 +415,7 @@ class TugasController extends BaseAppController implements HasMiddleware
             'tanggal_terbit' => ['nullable', 'date'],
             'deadline' => ['required', 'date', 'after_or_equal:tanggal_terbit'],
             'jenis_pengumpulan' => ['sometimes', 'required', Rule::in(['file', 'teks', 'keduanya'])],
+            'poin' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'file' => [
                 'nullable',
                 'file',
@@ -352,6 +429,7 @@ class TugasController extends BaseAppController implements HasMiddleware
             'tanggal_terbit' => 'Tanggal Terbit',
             'deadline' => 'Batas Waktu',
             'jenis_pengumpulan' => 'Cara Pengumpulan',
+            'poin' => 'Poin',
             'file' => 'Berkas Tugas',
         ]);
     }

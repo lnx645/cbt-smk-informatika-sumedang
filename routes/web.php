@@ -3,11 +3,13 @@
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Guru\MateriController as GuruMateriController;
+use App\Http\Controllers\Guru\PenilaianController as GuruPenilaianController;
 use App\Http\Controllers\Guru\TugasController as GuruTugasController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LinkExternalController;
 use App\Http\Controllers\MataPelajaranGuruController;
 use App\Http\Controllers\Siswa\MateriController as SiswaMateriController;
+use App\Http\Controllers\Siswa\PenilaianController as SiswaPenilaianController;
 use App\Http\Controllers\Siswa\TugasController as SiswaTugasController;
 use App\Http\Controllers\SocialiteController;
 use Illuminate\Support\Facades\Route;
@@ -40,7 +42,12 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::delete('guru/tugas/{tugas}', [GuruTugasController::class, 'destroy'])->name('guru.tugas.destroy');
     Route::get('guru/tugas/{tugas}/unduh', [GuruTugasController::class, 'unduh'])->name('guru.tugas.unduh');
     Route::get('guru/tugas/{tugas}/pengumpulan', [GuruTugasController::class, 'pengumpulan'])->name('guru.tugas.pengumpulan');
+    Route::put('guru/tugas/{tugas}/nilai', [GuruTugasController::class, 'nilai'])->name('guru.tugas.nilai');
     Route::get('guru/tugas/{tugas}/pengumpulan/{pengumpulan}/unduh', [GuruTugasController::class, 'pengumpulanUnduh'])->name('guru.tugas.pengumpulan.unduh');
+    Route::get('guru/penilaian', [GuruPenilaianController::class, 'index'])->name('guru.penilaian.index');
+    Route::get('guru/penilaian/rekap', [GuruPenilaianController::class, 'rekap'])->name('guru.penilaian.rekap');
+    Route::get('guru/penilaian/{penilaian}/{guruKelas}', [GuruPenilaianController::class, 'show'])->name('guru.penilaian.show');
+    Route::post('guru/penilaian/{penilaian}/{guruKelas}', [GuruPenilaianController::class, 'store'])->name('guru.penilaian.store');
     Route::get('materi', [SiswaMateriController::class, 'index'])->name('siswa.materi.index');
     Route::get('materi/{materi}', [SiswaMateriController::class, 'show'])->name('siswa.materi.show');
     Route::get('materi/{materi}/lihat', [SiswaMateriController::class, 'lihat'])->name('siswa.materi.lihat');
@@ -49,6 +56,7 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::get('tugas/{tugas}', [SiswaTugasController::class, 'show'])->name('siswa.tugas.show');
     Route::post('tugas/{tugas}/kumpul', [SiswaTugasController::class, 'kumpul'])->name('siswa.tugas.kumpul');
     Route::get('tugas/{tugas}/unduh', [SiswaTugasController::class, 'unduh'])->name('siswa.tugas.unduh');
+    Route::get('nilai', [SiswaPenilaianController::class, 'index'])->name('siswa.penilaian.index');
 });
 
 Route::prefix('admin')->middleware(['auth', 'admin-only'])->name('admin.')->group(base_path('routes/admin.php'));

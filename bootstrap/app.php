@@ -27,7 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return 'admin';
             }
 
-            return "app";
+            return 'app';
         });
 
         $middleware->alias([

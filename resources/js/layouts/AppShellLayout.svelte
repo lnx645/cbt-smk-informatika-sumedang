@@ -82,7 +82,10 @@
     });
 
     $effect(() => {
-        localStorage.setItem('app-sidebar-collapsed', String(sidebarCollapsed));
+        localStorage.setItem(
+            'app-sidebar-collapsed',
+            String(sidebarCollapsed),
+        );
     });
 
     function toggleSidebar() {
@@ -127,7 +130,9 @@
     }
 
     function normalizeUrl(url: string): string {
-        return url.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+        return (
+            url.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/'
+        );
     }
 
     // Only ONE item should be highlighted. Pick the most specific (longest)
@@ -139,7 +144,10 @@
         const consider = (href?: string) => {
             if (!href) return;
             const target = normalizeUrl(href);
-            if (current === target || current.startsWith(target + '/')) {
+            if (
+                current === target ||
+                current.startsWith(target + '/')
+            ) {
                 if (
                     best === null ||
                     target.length > normalizeUrl(best).length
@@ -236,23 +244,31 @@
             </div>
             <div class="app-shell__brand-text">
                 <h5 class="app-shell__brand-title">{brandTitle}</h5>
-                <span class="app-shell__brand-subtitle">{brandSubtitle}</span>
+                <span class="app-shell__brand-subtitle"
+                    >{brandSubtitle}</span
+                >
             </div>
         </div>
 
         {#snippet navLink(entry: AppShellNavItem, subitem: boolean)}
             <a
-                use:inertia={{ prefetch: true }}
+                use:inertia={{
+                    prefetch: false,
+                }}
                 href={entry.href}
                 title={entry.label}
                 onclick={navigate}
                 class={`app-shell__nav-item ${subitem ? 'app-shell__nav-subitem' : ''} ${isActive(entry.href ?? '') ? 'active' : ''}`}
-                aria-current={isActive(entry.href ?? '') ? 'page' : undefined}
+                aria-current={isActive(entry.href ?? '')
+                    ? 'page'
+                    : undefined}
             >
                 <i class="bi {entry.icon}"></i>
                 <span>{entry.label}</span>
                 {#if entry.badge}
-                    <span class="app-shell__nav-badge">{entry.badge}</span>
+                    <span class="app-shell__nav-badge"
+                        >{entry.badge}</span
+                    >
                 {/if}
             </a>
         {/snippet}
@@ -260,7 +276,9 @@
         <nav class="app-shell__nav">
             {#each navItems as item ('section' in item ? item.section : (item.href ?? item.label))}
                 {#if 'section' in item}
-                    <div class="app-shell__nav-category">{item.section}</div>
+                    <div class="app-shell__nav-category">
+                        {item.section}
+                    </div>
                     {#each item.items as child (child.href ?? child.label)}
                         {@render navLink(child, true)}
                     {/each}
@@ -373,7 +391,8 @@
                             >{userInitials}</span
                         >
                         <span class="app-shell__user-meta">
-                            <span class="app-shell__user-name">{user.name}</span
+                            <span class="app-shell__user-name"
+                                >{user.name}</span
                             >
                             {#if user.role}
                                 <span
@@ -395,16 +414,21 @@
                         <!-- Bagian Header Dropdown (Biru) -->
                         <div class="app-shell__menu-profile-header">
                             <div class="app-shell__menu-profile-text">
-                                <div class="app-shell__menu-profile-name">
+                                <div
+                                    class="app-shell__menu-profile-name"
+                                >
                                     {user.name}
                                 </div>
                                 {#if user.role}
-                                    <span class="app-shell__role-badge"
+                                    <span
+                                        class="app-shell__role-badge"
                                         >{user.role}</span
                                     >
                                 {/if}
                                 {#if user.email}
-                                    <div class="app-shell__menu-profile-email">
+                                    <div
+                                        class="app-shell__menu-profile-email"
+                                    >
                                         {user.email}
                                     </div>
                                 {/if}
@@ -426,7 +450,10 @@
                             </a>
                         </div>
 
-                        <DropdownItem divider class="app-shell__menu-divider" />
+                        <DropdownItem
+                            divider
+                            class="app-shell__menu-divider"
+                        />
 
                         <!-- Tombol Keluar -->
                         <div class="app-shell__menu-footer">

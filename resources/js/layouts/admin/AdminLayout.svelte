@@ -17,25 +17,29 @@
     import ProfilController from '@/actions/App/Http/Controllers/Admin/ProfilController';
     import AkunAdminController from '@/actions/App/Http/Controllers/Admin/AkunAdminController';
     import NaikKelasController from '@/actions/App/Http/Controllers/Admin/NaikKelasController';
+import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
 
     let {
         children,
         tahunAjaranAktif,
-    }: { children: Snippet; tahunAjaranAktif: { name: string } } = $props();
+    }: { children: Snippet; tahunAjaranAktif: { name: string } } =
+        $props();
 
-    const authUser = $derived((usePage().props.auth as any)?.user ?? null);
+    const authUser = $derived(
+        (usePage().props.auth as any)?.user ?? null,
+    );
 
     const user = $derived<AppShellUser>({
         name: authUser?.name ?? 'Administrator',
         email: authUser?.email ?? '',
         id: authUser?.id ?? '',
         role: authUser?.role ?? 'Administrator',
-        homeHref: DashboardController().url,
+        homeHref: DashboardController.__invoke().url,
     });
 
     const navItems: Array<AppShellNavItem | AppShellNavSection> = [
         {
-            href: DashboardController().url,
+            href: DashboardController.__invoke().url,
             label: 'Dashboard',
             icon: 'bi-speedometer2',
         },
@@ -46,29 +50,22 @@
                     href: PengajarController.index().url,
                     label: 'Pengajar',
                     icon: 'bi-people-fill',
-                    badge: '482',
                 },
                 {
                     href: SiswaController.index().url,
                     label: 'Peserta Didik',
                     icon: 'bi-mortarboard-fill',
                 },
-                {
-                    href: '/manage/ujian',
-                    label: 'Ujian',
-                    icon: 'bi-clipboard-check',
-                    badge: '3',
-                },
-                {
-                    href: '/manage/bank-soal',
-                    label: 'Bank Soal',
-                    icon: 'bi-question-circle-fill',
-                    badge: '120',
-                },
+
                 {
                     href: KelasController.index().url,
                     label: 'Kelas',
                     icon: 'bi-collection-fill',
+                },
+                {
+                    href: PenilaianController.index().url,
+                    label: 'Penilaian',
+                    icon: 'bi-card-checklist',
                 },
                 {
                     href: NaikKelasController.index().url,

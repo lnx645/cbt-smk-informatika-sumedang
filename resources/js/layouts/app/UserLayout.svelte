@@ -10,8 +10,10 @@
     import { Alert } from '@sveltestrap/sveltestrap';
     import MataPelajaranGuruController from '@/actions/App/Http/Controllers/MataPelajaranGuruController';
     import GuruMateriController from '@/actions/App/Http/Controllers/Guru/MateriController';
+    import GuruPenilaianController from '@/actions/App/Http/Controllers/Guru/PenilaianController';
     import GuruTugasController from '@/actions/App/Http/Controllers/Guru/TugasController';
     import SiswaMateriController from '@/actions/App/Http/Controllers/Siswa/MateriController';
+    import SiswaPenilaianController from '@/actions/App/Http/Controllers/Siswa/PenilaianController';
     import SiswaTugasController from '@/actions/App/Http/Controllers/Siswa/TugasController';
     import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
     let { children }: { children: Snippet } = $props();
@@ -56,18 +58,13 @@
 
         if (authUser?.guru || authUser?.role === 'guru') {
             items.push({
-                section: 'app',
+                section: 'Akademik',
                 items: [
                     {
                         href: MataPelajaranGuruController.index().url,
-                        label: 'Diskusi',
+                        label: 'Kelas Saya',
                         icon: 'bi-chat-dots',
                     },
-                ],
-            } satisfies AppShellNavSection as any);
-            items.push({
-                section: 'Akademik',
-                items: [
                     {
                         href: GuruMateriController.index().url,
                         label: 'Materi',
@@ -78,14 +75,10 @@
                         label: 'Tugas',
                         icon: 'bi-clipboard-check',
                     },
+
                     {
-                        href: '/guru/tugas-ujian',
-                        label: 'Soal Ujian',
-                        icon: 'bi-journal-text',
-                    },
-                    {
-                        href: '/nilai',
-                        label: 'Nilai Siswa',
+                        href: GuruPenilaianController.index().url,
+                        label: 'Penilaian',
                         icon: 'bi-award',
                     },
                 ],
@@ -109,6 +102,11 @@
                     href: SiswaTugasController.index().url,
                     label: 'Tugas',
                     icon: 'bi-ui-checks-grid',
+                },
+                {
+                    href: SiswaPenilaianController.index().url,
+                    label: 'Nilai',
+                    icon: 'bi-award',
                 },
             );
         }

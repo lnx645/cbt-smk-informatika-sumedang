@@ -57,14 +57,19 @@ class DashboardController extends Controller
      */
     private function kpiStats(?int $tahunAjaranId): array
     {
+        $penugasanBase = GuruKelas::query()
+            ->when($tahunAjaranId, fn ($query) => $query->where('tahun_ajaran_id', $tahunAjaranId));
+
+        // Menggunakan true/false untuk PostgreSQL
+        $penugasanStats = (clone $penugasanBase)
+            ->selectRaw('COUNT(*) as total, SUM(CASE WHEN aktif = true THEN 1 ELSE 0 END) as aktif')
+            ->first();
+
         $siswaDenganKelas = SiswaKelas::query()
             ->where('active', true)
             ->when($tahunAjaranId, fn ($query) => $query->where('tahun_ajaran_id', $tahunAjaranId))
-            ->distinct()
+            ->distinct('siswa_nisn')
             ->count('siswa_nisn');
-
-        $penugasan = GuruKelas::query()
-            ->when($tahunAjaranId, fn ($query) => $query->where('tahun_ajaran_id', $tahunAjaranId));
 
         return [
             'guru' => Guru::count(),
@@ -74,8 +79,8 @@ class DashboardController extends Controller
             'kelas' => Kelas::leaf()->count(),
             'matpel' => Matpel::count(),
             'jurusan' => Jurusan::count(),
-            'penugasan' => (clone $penugasan)->count(),
-            'penugasan_aktif' => (clone $penugasan)->where('aktif', true)->count(),
+            'penugasan' => $penugasanStats->total ?? 0,
+            'penugasan_aktif' => $penugasanStats->aktif ?? 0,
         ];
     }
 
@@ -86,19 +91,24 @@ class DashboardController extends Controller
      */
     private function statsTambahan(?int $tahunAjaranId): array
     {
-        $penugasan = GuruKelas::query()
-            ->when($tahunAjaranId, fn ($query) => $query->where('tahun_ajaran_id', $tahunAjaranId));
+        $penugasanStats = GuruKelas::query()
+            ->when($tahunAjaranId, fn ($query) => $query->where('tahun_ajaran_id', $tahunAjaranId))
+            ->selectRaw('COUNT(DISTINCT guru_id) as guru_dengan_penugasan')
+            ->first();
+        $userStats = User::selectRaw('
+            SUM(CASE WHEN guru_id IS NOT NULL THEN 1 ELSE 0 END) as guru_akun,
+            SUM(CASE WHEN nisn IS NOT NULL THEN 1 ELSE 0 END) as siswa_akun
+        ')->first();
 
         return [
             'siswa_l' => Siswa::where('jenis_kelamin', 'L')->count(),
             'siswa_p' => Siswa::where('jenis_kelamin', 'P')->count(),
             'guru_l' => Guru::where('jenis_kelamin', 'L')->count(),
             'guru_p' => Guru::where('jenis_kelamin', 'P')->count(),
-            'guru_dengan_penugasan' => (clone $penugasan)->distinct()->count('guru_id'),
+            'guru_dengan_penugasan' => $penugasanStats->guru_dengan_penugasan ?? 0,
             'kelas_aktif' => Kelas::leaf()->where('active', true)->count(),
-            'guru_dengan_akun' => User::whereNotNull('guru_id')->count(),
-            'siswa_dengan_akun' => User::whereNotNull('nisn')->count(),
-            'forum_aktif' => (clone $penugasan)->where('active_forum', true)->count(),
+            'guru_dengan_akun' => $userStats->guru_akun ?? 0,
+            'siswa_dengan_akun' => $userStats->siswa_akun ?? 0,
         ];
     }
 

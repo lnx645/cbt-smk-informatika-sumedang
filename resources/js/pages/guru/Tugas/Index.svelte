@@ -48,6 +48,7 @@
         tanggal_terbit: string | null;
         deadline: string | null;
         jenis_pengumpulan: JenisPengumpulan;
+        poin: number;
         file_name: string | null;
         file_size: number;
     };
@@ -80,6 +81,7 @@
         tanggal_terbit: '',
         deadline: '',
         jenis_pengumpulan: 'file' as JenisPengumpulan,
+        poin: 100,
         file: null as File | null,
     });
 
@@ -90,6 +92,7 @@
         tanggal_terbit: '',
         deadline: '',
         jenis_pengumpulan: 'file' as JenisPengumpulan,
+        poin: 100,
         file: null as File | null,
     });
 
@@ -115,6 +118,7 @@
         editForm.deadline = editTugas.deadline ?? '';
         editForm.jenis_pengumpulan =
             editTugas.jenis_pengumpulan ?? 'file';
+        editForm.poin = editTugas.poin ?? 100;
         editForm.file = null;
     });
 

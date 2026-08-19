@@ -6,7 +6,12 @@
     import Youtube from '@tiptap/extension-youtube';
     import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
     import { onDestroy, onMount } from 'svelte';
-    import { AudioPlayer, DaftarIsi, HeadingWithId, syncDaftarIsi } from '@/lib/tiptap/custom-extensions';
+    import {
+        AudioPlayer,
+        DaftarIsi,
+        HeadingWithId,
+        syncDaftarIsi,
+    } from '@/lib/tiptap/custom-extensions';
     import { lowlight } from '@/lib/tiptap/lowlight-langs';
     import 'katex/dist/katex.min.css';
     import 'highlight.js/styles/github.css';
@@ -54,12 +59,18 @@
                 Link.configure({
                     openOnClick: false,
                     autolink: true,
-                    HTMLAttributes: { rel: 'noopener noreferrer nofollow', target: '_blank' },
+                    HTMLAttributes: {
+                        rel: 'noopener noreferrer nofollow',
+                        target: '_blank',
+                    },
                 }),
                 Mathematics.configure({
                     inlineOptions: {
                         onClick: (node, pos) => {
-                            const latex = window.prompt('Edit rumus (LaTeX):', node.attrs.latex);
+                            const latex = window.prompt(
+                                'Edit rumus (LaTeX):',
+                                node.attrs.latex,
+                            );
                             if (latex !== null) {
                                 editor
                                     ?.chain()
@@ -72,7 +83,10 @@
                     },
                     blockOptions: {
                         onClick: (node, pos) => {
-                            const latex = window.prompt('Edit rumus (LaTeX):', node.attrs.latex);
+                            const latex = window.prompt(
+                                'Edit rumus (LaTeX):',
+                                node.attrs.latex,
+                            );
                             if (latex !== null) {
                                 editor
                                     ?.chain()
@@ -97,7 +111,9 @@
             editorProps: {
                 attributes: {
                     class: 'rich-editor__content',
-                    ...(placeholder ? { 'data-placeholder': placeholder } : {}),
+                    ...(placeholder
+                        ? { 'data-placeholder': placeholder }
+                        : {}),
                 },
             },
             onUpdate: ({ editor: current }) => {
@@ -164,8 +180,12 @@
                 break;
             case 'link':
                 {
-                    const current = editor.getAttributes('link').href as string | undefined;
-                    const href = window.prompt('Tautan URL:', current ?? 'https://');
+                    const current = editor.getAttributes('link')
+                        .href as string | undefined;
+                    const href = window.prompt(
+                        'Tautan URL:',
+                        current ?? 'https://',
+                    );
 
                     if (href === null) {
                         return;
@@ -174,7 +194,9 @@
                     if (href.trim() === '') {
                         chain.unsetLink();
                     } else {
-                        chain.extendMarkRange('link').setLink({ href: href.trim() });
+                        chain
+                            .extendMarkRange('link')
+                            .setLink({ href: href.trim() });
                     }
                 }
                 break;
@@ -183,23 +205,36 @@
                 break;
             case 'math':
                 {
-                    const latex = window.prompt('Rumus matematika (LaTeX):', '\\frac{a}{b}');
+                    const latex = window.prompt(
+                        'Rumus matematika (LaTeX):',
+                        '\\frac{a}{b}',
+                    );
                     if (latex !== null && latex.trim() !== '') {
-                        chain.insertInlineMath({ latex: latex.trim() });
+                        chain.insertInlineMath({
+                            latex: latex.trim(),
+                        });
                     }
                 }
                 break;
             case 'blockMath':
                 {
-                    const latex = window.prompt('Rumus matematika (LaTeX):', 'E = mc^2');
+                    const latex = window.prompt(
+                        'Rumus matematika (LaTeX):',
+                        'E = mc^2',
+                    );
                     if (latex !== null && latex.trim() !== '') {
-                        chain.insertBlockMath({ latex: latex.trim() });
+                        chain.insertBlockMath({
+                            latex: latex.trim(),
+                        });
                     }
                 }
                 break;
             case 'youtube':
                 {
-                    const src = window.prompt('Tautan video YouTube:', 'https://www.youtube.com/watch?v=');
+                    const src = window.prompt(
+                        'Tautan video YouTube:',
+                        'https://www.youtube.com/watch?v=',
+                    );
                     if (src !== null && src.trim() !== '') {
                         chain.setYoutubeVideo({ src: src.trim() });
                     }
@@ -207,13 +242,18 @@
                 break;
             case 'audio':
                 {
-                    const src = window.prompt('Tautan berkas audio (mp3/ogg/wav):', 'https://');
+                    const src = window.prompt(
+                        'Tautan berkas audio (mp3/ogg/wav):',
+                        'https://',
+                    );
                     if (src !== null && src.trim() !== '') {
+                        //@ts-ignore
                         chain.setAudio(src.trim());
                     }
                 }
                 break;
             case 'daftarIsi':
+                //@ts-ignore
                 chain.insertDaftarIsi();
                 break;
             case 'code':
@@ -246,40 +286,101 @@
             bulletList: editor?.isActive('bulletList') ?? false,
             orderedList: editor?.isActive('orderedList') ?? false,
             link: editor?.isActive('link') ?? false,
-            heading1: editor?.isActive('heading', { level: 1 }) ?? false,
-            heading2: editor?.isActive('heading', { level: 2 }) ?? false,
-            heading3: editor?.isActive('heading', { level: 3 }) ?? false,
+            heading1:
+                editor?.isActive('heading', { level: 1 }) ?? false,
+            heading2:
+                editor?.isActive('heading', { level: 2 }) ?? false,
+            heading3:
+                editor?.isActive('heading', { level: 3 }) ?? false,
             code: editor?.isActive('code') ?? false,
             codeBlock: editor?.isActive('codeBlock') ?? false,
         };
     });
 
-    const tools: { command: ToolbarCommand; icon: string; label: string }[] = [
-        { command: 'heading1', icon: 'bi-type-h1', label: 'Judul (H1)' },
-        { command: 'heading2', icon: 'bi-type-h2', label: 'Sub judul (H2)' },
-        { command: 'heading3', icon: 'bi-type-h3', label: 'Sub sub judul (H3)' },
+    const tools: {
+        command: ToolbarCommand;
+        icon: string;
+        label: string;
+    }[] = [
+        {
+            command: 'heading1',
+            icon: 'bi-type-h1',
+            label: 'Judul (H1)',
+        },
+        {
+            command: 'heading2',
+            icon: 'bi-type-h2',
+            label: 'Sub judul (H2)',
+        },
+        {
+            command: 'heading3',
+            icon: 'bi-type-h3',
+            label: 'Sub sub judul (H3)',
+        },
         { command: 'bold', icon: 'bi-type-bold', label: 'Tebal' },
-        { command: 'italic', icon: 'bi-type-italic', label: 'Miring' },
-        { command: 'underline', icon: 'bi-type-underline', label: 'Garis bawah' },
-        { command: 'bulletList', icon: 'bi-list-ul', label: 'Daftar berpoin' },
-        { command: 'orderedList', icon: 'bi-list-ol', label: 'Daftar bernomor' },
+        {
+            command: 'italic',
+            icon: 'bi-type-italic',
+            label: 'Miring',
+        },
+        {
+            command: 'underline',
+            icon: 'bi-type-underline',
+            label: 'Garis bawah',
+        },
+        {
+            command: 'bulletList',
+            icon: 'bi-list-ul',
+            label: 'Daftar berpoin',
+        },
+        {
+            command: 'orderedList',
+            icon: 'bi-list-ol',
+            label: 'Daftar bernomor',
+        },
         { command: 'link', icon: 'bi-link-45deg', label: 'Tautan' },
-        { command: 'math', icon: 'bi-123', label: 'Rumus matematika' },
-        { command: 'blockMath', icon: 'bi-arrow-down-up', label: 'Rumus blok (kiri-tengah-kanan)' },
+        {
+            command: 'math',
+            icon: 'bi-123',
+            label: 'Rumus matematika',
+        },
+        {
+            command: 'blockMath',
+            icon: 'bi-arrow-down-up',
+            label: 'Rumus blok (kiri-tengah-kanan)',
+        },
         { command: 'code', icon: 'bi-code', label: 'Kode inline' },
-        { command: 'codeBlock', icon: 'bi-code-slash', label: 'Blok kode' },
-        { command: 'youtube', icon: 'bi-youtube', label: 'Video YouTube' },
-        { command: 'audio', icon: 'bi-music-note-beamed', label: 'Audio' },
-        { command: 'daftarIsi', icon: 'bi-list-nested', label: 'Daftar Isi' },
+        {
+            command: 'codeBlock',
+            icon: 'bi-code-slash',
+            label: 'Blok kode',
+        },
+        {
+            command: 'youtube',
+            icon: 'bi-youtube',
+            label: 'Video YouTube',
+        },
+        {
+            command: 'audio',
+            icon: 'bi-music-note-beamed',
+            label: 'Audio',
+        },
+        {
+            command: 'daftarIsi',
+            icon: 'bi-list-nested',
+            label: 'Daftar Isi',
+        },
     ];
 </script>
 
-<div class={`rich-editor ${invalid ? 'is-invalid' : ''}`} id={id}>
+<div class={`rich-editor ${invalid ? 'is-invalid' : ''}`} {id}>
     <div class="rich-editor__toolbar">
         {#each tools as tool (tool.command)}
             <button
                 type="button"
-                class="rich-editor__tool {activeStates[tool.command] ? 'is-active' : ''}"
+                class="rich-editor__tool {activeStates[tool.command]
+                    ? 'is-active'
+                    : ''}"
                 onclick={() => toggle(tool.command)}
                 title={tool.label}
                 aria-label={tool.label}
@@ -291,10 +392,19 @@
         {#if activeStates.codeBlock}
             <select
                 class="rich-editor__lang"
-                value={editor?.getAttributes('codeBlock').language ?? 'plaintext'}
+                value={editor?.getAttributes('codeBlock').language ??
+                    'plaintext'}
                 onchange={(e) => {
-                    const lang = (e.currentTarget as HTMLSelectElement).value;
-                    editor?.chain().focus().updateAttributes('codeBlock', { language: lang }).run();
+                    const lang = (
+                        e.currentTarget as HTMLSelectElement
+                    ).value;
+                    editor
+                        ?.chain()
+                        .focus()
+                        .updateAttributes('codeBlock', {
+                            language: lang,
+                        })
+                        .run();
                 }}
                 aria-label="Bahasa kode"
                 title="Bahasa kode"

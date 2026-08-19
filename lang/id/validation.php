@@ -214,8 +214,6 @@ return [
         'tahun_ajaran_id' => 'Tahun Ajaran',
         'guru_id' => 'Guru',
         'aktif' => 'Aktif',
-        'active_forum' => 'Forum Aktif',
-        'lihat_anggota_kelas' => 'Lihat Anggota Kelas',
     ],
 
 ];
