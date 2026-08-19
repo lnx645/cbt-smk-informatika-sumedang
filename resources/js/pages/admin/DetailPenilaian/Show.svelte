@@ -13,6 +13,8 @@
     import NilaiSlider from '@/components/NilaiSlider.svelte';
     import DetailPenilaianController from '@/actions/App/Http/Controllers/Admin/DetailPenilaianController';
     import { useForm, router, inertia } from '@inertiajs/svelte';
+    import { predikat } from '@/lib/nilai';
+    import type { GuruKelasInfo } from '@/types/models';
 
     interface Penilaian {
         id: number;
@@ -21,12 +23,6 @@
         nilai_maks: number;
         bobot: number;
         aktif: boolean;
-    }
-
-    interface GuruKelasInfo {
-        id: number;
-        kelas: string | null;
-        matpel: string | null;
     }
 
     interface Siswa {
@@ -54,29 +50,8 @@
         keterangan: detail?.keterangan ?? '',
     });
 
-    function predikat(
-        nilai: number,
-        maks: number,
-    ): { huruf: string; kelas: string; label: string } {
-        const pct = (nilai / maks) * 100;
-        if (pct >= 86) {
-            return { huruf: 'A', kelas: 'text-success', label: 'Sangat Baik' };
-        }
-        if (pct >= 71) {
-            return { huruf: 'B', kelas: 'text-primary', label: 'Baik' };
-        }
-        if (pct >= 56) {
-            return { huruf: 'C', kelas: 'text-warning', label: 'Cukup' };
-        }
-        return { huruf: 'D', kelas: 'text-danger', label: 'Kurang' };
-    }
-
-    const predikatSaatIni = (): ReturnType<typeof predikat> | null => {
-        if (detail?.nilai === undefined || detail?.nilai === null) {
-            return null;
-        }
-        return predikat(detail.nilai, penilaian.nilai_maks || 100);
-    };
+    const predikatSaatIni = (): ReturnType<typeof predikat> =>
+        predikat(detail?.nilai ?? null, penilaian.nilai_maks || 100);
 
     const nilaiMaks = () => Number(penilaian?.nilai_maks ?? 0);
 

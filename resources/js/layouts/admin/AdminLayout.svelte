@@ -25,15 +25,13 @@ import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianC
     }: { children: Snippet; tahunAjaranAktif: { name: string } } =
         $props();
 
-    const authUser = $derived(
-        (usePage().props.auth as any)?.user ?? null,
-    );
+    const authUser = $derived(usePage().props.auth?.user ?? null);
 
     const user = $derived<AppShellUser>({
         name: authUser?.name ?? 'Administrator',
         email: authUser?.email ?? '',
         id: authUser?.id ?? '',
-        role: authUser?.role ?? 'Administrator',
+        role: authUser?.role ? authUser.role : 'Administrator',
         homeHref: DashboardController.__invoke().url,
     });
 

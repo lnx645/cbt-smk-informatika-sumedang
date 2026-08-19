@@ -1,30 +1,23 @@
 <script lang="ts">
     import { Badge, Card, CardBody } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
+    import EmptyState from '@/components/EmptyState.svelte';
     import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
     import DetailPenilaianController from '@/actions/App/Http/Controllers/Admin/DetailPenilaianController';
-    import { inertia, router } from '@inertiajs/svelte';
-
-    interface Penugasan {
-        value: number;
-        label: string;
-    }
-
-    interface SiswaItem {
-        nisn: string;
-        nama: string;
-        nilai: number | null;
-        sumber: 'manual' | 'tugas' | null;
-        keterangan: string | null;
-        guru: string | null;
-    }
+    import { changePenugasan, resetPenugasan } from '@/lib/penugasan';
+    import { inertia } from '@inertiajs/svelte';
+    import type {
+        GuruKelasInfo,
+        PenugasanOption,
+        SiswaNilaiItem,
+    } from '@/types/models';
 
     interface Props {
         penilaian: { id: number; nama: string };
-        penugasan: Penugasan[];
-        guruKelasInfo: { id: number; kelas: string | null; matpel: string | null } | null;
+        penugasan: PenugasanOption[];
+        guruKelasInfo: GuruKelasInfo | null;
         selectedGuruKelasId: string | null;
-        siswas: SiswaItem[] | null;
+        siswas: SiswaNilaiItem[] | null;
     }
 
     let {
@@ -42,23 +35,6 @@
 
     const pctTerisi = (): number =>
         totalSiswa() ? Math.round((sudahDinilai() / totalSiswa()) * 100) : 0;
-
-    function changePenugasan(event: Event) {
-        const value = (event.currentTarget as HTMLSelectElement).value;
-        const url = new URL(window.location.href);
-        if (value) {
-            url.searchParams.set('guru_kelas_id', value);
-        } else {
-            url.searchParams.delete('guru_kelas_id');
-        }
-        router.visit(url.pathname + url.search);
-    }
-
-    function resetPenugasan() {
-        const url = new URL(window.location.href);
-        url.searchParams.delete('guru_kelas_id');
-        router.visit(url.pathname + url.search);
-    }
 </script>
 
 <div class="container-fluid px-0">
@@ -138,15 +114,12 @@
 
     {#if guruKelasInfo}
         {#if !siswas || siswas.length === 0}
-            <Card class="border rounded-1 shadow-none">
-                <CardBody class="text-center text-muted py-5">
-                    <i class="bi bi-person-x display-5 d-block mb-2"></i>
-                    <div class="fw-semibold text-body">Tidak ada siswa aktif</div>
-                    <div class="small">
-                        Tidak ditemukan siswa aktif pada kelas tahun ajaran ini.
-                    </div>
-                </CardBody>
-            </Card>
+            <EmptyState
+                icon="bi-person-x"
+                message="Tidak ada siswa aktif"
+                hint="Tidak ditemukan siswa aktif pada kelas tahun ajaran ini."
+                variant="card"
+            />
         {:else}
             <Card class="border rounded-1 shadow-none">
                 <CardBody class="p-0">
@@ -222,15 +195,12 @@
             </Card>
         {/if}
     {:else}
-        <Card class="border rounded-1 shadow-none">
-            <CardBody class="text-center text-muted py-5">
-                <i class="bi bi-clipboard2-data display-5 d-block mb-2"></i>
-                <div class="fw-semibold text-body">Belum ada penugasan dipilih</div>
-                <div class="small">
-                    Pilih kelas &amp; mata pelajaran di atas untuk mulai mengisi nilai.
-                </div>
-            </CardBody>
-        </Card>
+        <EmptyState
+            icon="bi-clipboard2-data"
+            message="Belum ada penugasan dipilih"
+            hint="Pilih kelas &amp; mata pelajaran di atas untuk mulai mengisi nilai."
+            variant="card"
+        />
     {/if}
 </div>
 

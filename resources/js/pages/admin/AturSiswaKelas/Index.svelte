@@ -17,6 +17,9 @@
     import Select from '@/components/Select.svelte';
     import PageHeader from '@/components/PageHeader.svelte';
     import Avatar from '@/components/Avatar.svelte';
+    import ToggleSwitch from '@/components/ToggleSwitch.svelte';
+    import { extractId } from '@/lib/utils';
+    import type { SelectOption } from '@/types/models';
 
     interface KelasItem {
         id: number;
@@ -27,8 +30,6 @@
         active: boolean;
         pertama_masuk?: boolean;
     }
-
-    type SelectOption = { value: number | string; label: string };
 
     interface Props {
         siswa_nisn: string;
@@ -60,25 +61,6 @@
     );
 
     const hasClasses = $derived(kelas_saya.length > 0);
-
-    function extractId(value: unknown): number | null {
-        if (value === null || value === undefined || value === '') {
-            return null;
-        }
-        if (typeof value === 'object') {
-            const obj = value as Record<string, unknown>;
-            if (
-                obj.value !== undefined &&
-                obj.value !== null &&
-                obj.value !== ''
-            ) {
-                return Number(obj.value);
-            }
-            return null;
-        }
-        const n = Number(value);
-        return Number.isNaN(n) ? null : n;
-    }
 
     let modalOpen = $state(false);
     let editingId = $state<number | null>(null);
@@ -329,38 +311,20 @@
             {/if}
         </FormGroup>
 
-        <div class="crud-checkbox mb-2">
-            <!-- svelte-ignore a11y_consider_explicit_label -->
-            <button
-                type="button"
-                class="crud-toggle__track"
-                class:is-on={form.active}
-                role="switch"
-                aria-checked={form.active ? 'true' : 'false'}
-                onclick={() => (form.active = !form.active)}
-            >
-                <span class="crud-toggle__knob"></span>
-            </button>
-            <Label for="active" class="crud-checkbox__label"
-                >Aktif</Label
-            >
+        <div class="mb-2">
+            <ToggleSwitch
+                checked={form.active}
+                label="Aktif"
+                onchange={(v) => (form.active = v)}
+            />
         </div>
 
-        <div class="crud-checkbox">
-            <!-- svelte-ignore a11y_consider_explicit_label -->
-            <button
-                type="button"
-                class="crud-toggle__track"
-                class:is-on={form.pertama_masuk}
-                role="switch"
-                aria-checked={form.pertama_masuk ? 'true' : 'false'}
-                onclick={() => (form.pertama_masuk = !form.pertama_masuk)}
-            >
-                <span class="crud-toggle__knob"></span>
-            </button>
-            <Label for="pertama_masuk" class="crud-checkbox__label"
-                >Pertama Masuk</Label
-            >
+        <div class="mb-2">
+            <ToggleSwitch
+                checked={form.pertama_masuk}
+                label="Pertama Masuk"
+                onchange={(v) => (form.pertama_masuk = v)}
+            />
         </div>
     </ModalBody>
     <ModalFooter>
@@ -378,49 +342,3 @@
         </Button>
     </ModalFooter>
 </Modal>
-
-<style>
-    .crud-checkbox {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-    }
-
-    .crud-checkbox__label {
-        margin-bottom: 0;
-        font-weight: 500;
-        cursor: pointer;
-    }
-
-    .crud-toggle__track {
-        position: relative;
-        width: 46px;
-        height: 26px;
-        border-radius: 999px;
-        border: none;
-        background: var(--bs-secondary);
-        cursor: pointer;
-        padding: 0;
-        transition: background 0.2s ease;
-    }
-
-    .crud-toggle__track.is-on {
-        background: var(--bs-success);
-    }
-
-    .crud-toggle__knob {
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: var(--inv-white);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-        transition: transform 0.2s ease;
-    }
-
-    .crud-toggle__track.is-on .crud-toggle__knob {
-        transform: translateX(20px);
-    }
-</style>

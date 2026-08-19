@@ -1,23 +1,17 @@
 <script lang="ts">
-    import { inertia, router } from '@inertiajs/svelte';
-    import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
+    import { inertia } from '@inertiajs/svelte';
+    import { Badge, Card, CardBody } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
+    import EmptyState from '@/components/EmptyState.svelte';
     import PenilaianController from '@/actions/App/Http/Controllers/Guru/PenilaianController';
-
-    type Penugasan = { value: number; label: string };
-
-    type Kolom = {
-        id: number;
-        nama: string;
-        nilai_maks: number | null;
-    };
-
-    type SiswaItem = {
-        nisn: string;
-        nama: string;
-        nilai: (number | null)[];
-        rata_rata: number | null;
-    };
+    import { changePenugasan, resetPenugasan } from '@/lib/penugasan';
+    import { predikat, rataRata } from '@/lib/nilai';
+    import type {
+        GuruKelasInfo,
+        PenugasanOption,
+        RekapKolom,
+        RekapSiswaItem,
+    } from '@/types/models';
 
     let {
         penugasan,
@@ -26,73 +20,19 @@
         kolom,
         siswas,
     }: {
-        penugasan: Penugasan[];
-        guruKelasInfo: {
-            id: number;
-            kelas: string | null;
-            matpel: string | null;
-        } | null;
+        penugasan: PenugasanOption[];
+        guruKelasInfo: GuruKelasInfo | null;
         selectedGuruKelasId: number | null;
-        kolom: Kolom[] | null;
-        siswas: SiswaItem[] | null;
+        kolom: RekapKolom[] | null;
+        siswas: RekapSiswaItem[] | null;
     } = $props();
 
-    function changePenugasan(event: Event) {
-        const value = (event.currentTarget as HTMLSelectElement).value;
-        const url = new URL(window.location.href);
-        if (value) {
-            url.searchParams.set('guru_kelas_id', value);
-        } else {
-            url.searchParams.delete('guru_kelas_id');
-        }
-        router.visit(url.pathname + url.search);
-    }
-
-    function resetPenugasan() {
-        const url = new URL(window.location.href);
-        url.searchParams.delete('guru_kelas_id');
-        router.visit(url.pathname + url.search);
-    }
-
-    function predikat(
-        nilai: number | null,
-        maks: number | null,
-    ): { huruf: string; kelas: string; label: string } | null {
-        if (nilai === null || !maks) {
-            return null;
-        }
-        const pct = (nilai / maks) * 100;
-        if (pct >= 86) {
-            return { huruf: 'A', kelas: 'text-success', label: 'Sangat Baik' };
-        }
-        if (pct >= 71) {
-            return { huruf: 'B', kelas: 'text-primary', label: 'Baik' };
-        }
-        if (pct >= 56) {
-            return { huruf: 'C', kelas: 'text-warning', label: 'Cukup' };
-        }
-        return { huruf: 'D', kelas: 'text-danger', label: 'Kurang' };
-    }
-
     function rataRataKolom(idx: number): number | null {
-        const vals = (siswas ?? [])
-            .map((s) => s.nilai[idx])
-            .filter((n): n is number => n !== null);
-        if (!vals.length) {
-            return null;
-        }
-        return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100;
+        return rataRata((siswas ?? []).map((s) => s.nilai[idx]));
     }
 
-    const rataRataUmum = (): number | null => {
-        const vals = (siswas ?? [])
-            .map((s) => s.rata_rata)
-            .filter((n): n is number => n !== null);
-        if (!vals.length) {
-            return null;
-        }
-        return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100;
-    };
+    const rataRataUmum = (): number | null =>
+        rataRata((siswas ?? []).map((s) => s.rata_rata));
 
     const terisi = (): number => {
         const total = (siswas ?? []).reduce((acc, s) => acc + s.nilai.filter((n) => n !== null).length, 0);
@@ -175,16 +115,12 @@
 
     {#if guruKelasInfo}
         {#if !kolom || kolom.length === 0 || !siswas || siswas.length === 0}
-            <Card class="border rounded-1 shadow-none">
-                <CardBody class="text-center text-muted py-5">
-                    <i class="bi bi-journal-x display-5 d-block mb-2"></i>
-                    <div class="fw-semibold text-body">Belum ada nilai tercatat</div>
-                    <div class="small">
-                        Nilai akan muncul setelah guru menilai tugas atau memasukkan nilai manual di
-                        penugasan ini.
-                    </div>
-                </CardBody>
-            </Card>
+            <EmptyState
+                icon="bi-journal-x"
+                message="Belum ada data nilai untuk ditampilkan"
+                hint="Nilai akan muncul setelah guru menilai tugas atau memasukkan nilai manual di penugasan ini."
+                variant="card"
+            />
         {:else}
             <Card class="border rounded-1 shadow-none">
                 <CardBody class="p-0">
@@ -282,13 +218,12 @@
             </Card>
         {/if}
     {:else}
-        <Card class="border rounded-1 shadow-none">
-            <CardBody class="text-center text-muted py-5">
-                <i class="bi bi-clipboard2-data display-5 d-block mb-2"></i>
-                <div class="fw-semibold text-body">Belum ada penugasan dipilih</div>
-                <div class="small">Pilih kelas &amp; mata pelajaran di atas untuk melihat rekap nilai.</div>
-            </CardBody>
-        </Card>
+        <EmptyState
+            icon="bi-clipboard2-data"
+            message="Belum ada penugasan dipilih"
+            hint="Pilih kelas &amp; mata pelajaran di atas untuk melihat rekap nilai."
+            variant="card"
+        />
     {/if}
 </div>
 

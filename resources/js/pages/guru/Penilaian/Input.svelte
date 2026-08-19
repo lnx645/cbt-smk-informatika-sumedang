@@ -2,30 +2,13 @@
     import { inertia, router } from '@inertiajs/svelte';
     import { Badge, Card, CardBody } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
+    import EmptyState from '@/components/EmptyState.svelte';
     import PenilaianController from '@/actions/App/Http/Controllers/Guru/PenilaianController';
-
-    type PenilaianInfo = {
-        id: number;
-        nama: string;
-        deskripsi: string | null;
-        tipe: string;
-        nilai_maks: number;
-        sumber: 'manual' | 'tugas';
-    };
-
-    type GuruKelasInfo = {
-        id: number;
-        kelas: string | null;
-        matpel: string | null;
-    };
-
-    type SiswaItem = {
-        nisn: string;
-        nama: string;
-        nilai: number | null;
-        sumber: 'manual' | 'tugas' | null;
-        keterangan: string | null;
-    };
+    import type {
+        GuruKelasInfo,
+        PenilaianInfo,
+        SiswaNilaiItem,
+    } from '@/types/models';
 
     let {
         penilaian,
@@ -34,7 +17,7 @@
     }: {
         penilaian: PenilaianInfo;
         guruKelas: GuruKelasInfo;
-        siswas: SiswaItem[];
+        siswas: SiswaNilaiItem[];
     } = $props();
 
     let nilaiDraft = $state<Record<string, string>>({});
@@ -42,7 +25,7 @@
     let menyimpan = $state<Record<string, boolean>>({});
     let errorPesan = $state('');
 
-    function simpanNilai(siswa: SiswaItem) {
+    function simpanNilai(siswa: SiswaNilaiItem) {
         const nilai = nilaiDraft[siswa.nisn] ?? '';
         const nilaiAngka = Number(nilai);
         if (nilai === '' || Number.isNaN(nilaiAngka)) {
@@ -100,10 +83,11 @@
     <Card class="border rounded-1 shadow-none">
         <CardBody class="p-3">
             {#if siswas.length === 0}
-                <div class="text-center text-muted py-5">
-                    <i class="bi bi-people display-5 d-block mb-2"></i>
-                    <div>Tidak ada siswa aktif di penugasan ini.</div>
-                </div>
+                <EmptyState
+                    icon="bi-people"
+                    message="Tidak ada siswa aktif di penugasan ini."
+                    variant="card"
+                />
             {:else}
                 <div class="table-responsive">
                     <table class="table align-middle mb-0">
