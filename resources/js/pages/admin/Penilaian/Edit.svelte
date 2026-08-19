@@ -124,12 +124,14 @@
         {/if}
     </FormGroup>
 
-    <FormGroup>
+    <FormGroup class="d-flex align-items-center gap-2">
         <Input
             id="aktif"
-            bind:value={form.aktif}
+            type="checkbox"
+            bind:checked={form.aktif}
             disabled={form.processing}
         />
+        <Label for="aktif" class="mb-0">Aktif</Label>
         {#if form.errors.aktif}
             <small class="text-danger d-block mt-1"
                 >{form.errors.aktif}</small

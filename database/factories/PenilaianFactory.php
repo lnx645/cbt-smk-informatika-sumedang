@@ -25,7 +25,7 @@ class PenilaianFactory extends Factory
         return [
             'nama' => fake()->sentence(3),
             'deskripsi' => fake()->optional()->paragraph(),
-            'tipe' => fake()->randomElement(['nilai', 'nilai_akhir']),
+            'tipe' => fake()->randomElement(['kognitif', 'sikap', 'tugas', 'cbt']),
             'nilai_maks' => fake()->numberBetween(100, 1000),
             'bobot' => fake()->numberBetween(1, 100),
             'aktif' => fake()->boolean(),
