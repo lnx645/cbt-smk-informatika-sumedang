@@ -28,7 +28,6 @@
         kelas_id: number;
         tahun_ajaran_id: number | null;
         aktif: boolean;
-        lihat_anggota_kelas: boolean;
     }
 
     interface KelasItem {
@@ -106,7 +105,6 @@
         matpel_id: null as number | null,
         tahun_ajaran_id: tahun_ajaran_aktif,
         aktif: true,
-        lihat_anggota_kelas: false,
     });
 
     function openCreate() {
@@ -116,7 +114,6 @@
         form.matpel_id = null;
         form.kelas_id = null;
         form.tahun_ajaran_id = tahun_ajaran_aktif;
-        form.lihat_anggota_kelas = false;
         modalOpen = true;
     }
 
@@ -127,7 +124,6 @@
         form.matpel_id = item.matpel_id;
         form.tahun_ajaran_id = item.tahun_ajaran_id;
         form.aktif = item.aktif;
-        form.lihat_anggota_kelas = item.lihat_anggota_kelas;
         modalOpen = true;
     }
 
@@ -416,30 +412,7 @@
                 >Aktif</Label
             >
     </div>
-
-    <div class="crud-checkbox">
-        <!-- svelte-ignore a11y_consider_explicit_label -->
-        <button
-            type="button"
-            class="crud-toggle__track"
-            class:is-on={form.lihat_anggota_kelas}
-                role="switch"
-                aria-checked={form.lihat_anggota_kelas
-                    ? 'true'
-                    : 'false'}
-                onclick={() =>
-                    (form.lihat_anggota_kelas =
-                        !form.lihat_anggota_kelas)}
-            >
-                <span class="crud-toggle__knob"></span>
-            </button>
-            <Label
-                for="lihat_anggota_kelas"
-                class="crud-checkbox__label"
-                >Lihat Anggota Kelas</Label
-            >
-        </div>
-    </ModalBody>
+</ModalBody>
     <ModalFooter>
         <Button
             color="secondary"

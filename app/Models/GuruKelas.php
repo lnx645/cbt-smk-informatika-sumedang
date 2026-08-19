@@ -20,12 +20,10 @@ class GuruKelas extends Model
         'matpel_id',
         'tahun_ajaran_id',
         'aktif',
-        'lihat_anggota_kelas',
     ];
 
     protected $casts = [
         'aktif' => 'boolean',
-        'lihat_anggota_kelas' => 'boolean',
     ];
 
     public function guru(): BelongsTo

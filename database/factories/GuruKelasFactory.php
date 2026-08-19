@@ -24,7 +24,6 @@ class GuruKelasFactory extends Factory
             'matpel_id' => Matpel::factory(),
             'tahun_ajaran_id' => TahunAjaran::factory(),
             'aktif' => $this->faker->boolean(80),
-            'lihat_anggota_kelas' => $this->faker->boolean,
         ];
     }
 }

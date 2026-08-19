@@ -45,7 +45,6 @@ class GuruKelasController extends Controller
                         'kelas_id' => $e->kelas_id,
                         'tahun_ajaran_id' => $e->tahun_ajaran_id,
                         'aktif' => $e->aktif,
-                        'lihat_anggota_kelas' => $e->lihat_anggota_kelas,
                     ];
                 });
 
@@ -141,13 +140,11 @@ class GuruKelasController extends Controller
             'matpel_id' => ['required', 'exists:matpels,id'],
             'tahun_ajaran_id' => ['required', 'exists:tahun_ajaran,id'],
             'aktif' => ['boolean'],
-            'lihat_anggota_kelas' => ['boolean'],
         ], [], [
             'kelas_id' => 'Kelas',
             'matpel_id' => 'Mata Pelajaran',
             'tahun_ajaran_id' => 'Tahun Ajaran',
             'aktif' => 'Aktif',
-            'lihat_anggota_kelas' => 'Lihat Anggota Kelas',
         ]);
 
         return [
@@ -156,7 +153,6 @@ class GuruKelasController extends Controller
             'matpel_id' => $data['matpel_id'],
             'tahun_ajaran_id' => $data['tahun_ajaran_id'],
             'aktif' => (bool) ($data['aktif'] ?? true),
-            'lihat_anggota_kelas' => (bool) ($data['lihat_anggota_kelas'] ?? false),
         ];
     }
 }
