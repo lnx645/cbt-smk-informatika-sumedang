@@ -19,6 +19,7 @@
     import PageHeader from '@/components/PageHeader.svelte';
     import Select from '@/components/Select.svelte';
     import Pagination from '@/components/Pagination.svelte';
+    import ToggleSwitch from '@/components/ToggleSwitch.svelte';
     import { confirm } from '@/lib/confirm.svelte';
     import type { RouteDefinition } from '@/wayfinder';
 
@@ -555,37 +556,17 @@
                             placeholder={field.placeholder ?? ''}
                         />
                     {:else if field.type === 'checkbox'}
-                        <div class="crud-checkbox">
-                            <!-- svelte-ignore a11y_consider_explicit_label -->
-                            <button
-                                type="button"
-                                class="crud-toggle__track"
-                                class:is-on={(form as Record<string, unknown>)[
+                        <ToggleSwitch
+                            checked={Boolean(
+                                (form as Record<string, unknown>)[field.name],
+                            )}
+                            label={field.label}
+                            disabled={locked}
+                            onchange={(v) =>
+                                ((form as Record<string, unknown>)[
                                     field.name
-                                ]}
-                                role="switch"
-                                aria-checked={(form as Record<string, unknown>)[
-                                    field.name
-                                ]
-                                    ? 'true'
-                                    : 'false'}
-                                disabled={locked}
-                                onclick={() =>
-                                    ((form as Record<string, unknown>)[
-                                        field.name
-                                    ] = !(form as Record<string, unknown>)[
-                                        field.name
-                                    ])}
-                            >
-                                <span class="crud-toggle__knob"></span>
-                            </button>
-                            <Label
-                                for={field.name}
-                                class="crud-checkbox__label"
-                            >
-                                {field.label}
-                            </Label>
-                        </div>
+                                ] = v)}
+                        />
                     {:else if field.type === 'file' || field.type === 'image'}
                         <Input
                             id={field.name}
@@ -731,55 +712,5 @@
 
     .crud-filterbar .crud-reset {
         color: var(--inv-gray-700);
-    }
-
-    .crud-checkbox {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.6rem;
-    }
-
-    .crud-checkbox__label {
-        margin-bottom: 0;
-        font-weight: 500;
-        color: var(--inv-gray-800);
-        cursor: pointer;
-    }
-
-    .crud-toggle__track {
-        position: relative;
-        width: 40px;
-        height: 20px;
-        border-radius: 999px;
-        border: none;
-        background: var(--inv-gray-400);
-        cursor: pointer;
-        padding: 0;
-        transition: background 0.2s ease;
-    }
-
-    .crud-toggle__track.is-on {
-        background: var(--inv-success-500);
-    }
-
-    .crud-toggle__track:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-    }
-
-    .crud-toggle__knob {
-        position: absolute;
-        top: 2.5px;
-        left: 3px;
-        width: 15px;
-        height: 15px;
-        border-radius: 50%;
-        background: var(--inv-white);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-        transition: transform 0.2s ease;
-    }
-
-    .crud-toggle__track.is-on .crud-toggle__knob {
-        transform: translateX(20px);
     }
 </style>

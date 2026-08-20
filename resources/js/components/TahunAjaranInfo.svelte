@@ -1,13 +1,10 @@
 <script lang="ts">
     import { usePage } from '@inertiajs/svelte';
     import { Alert } from '@sveltestrap/sveltestrap';
-    import type { TahunAjaran } from '@/types/global';
 
     let { class: className = '' }: { class?: string } = $props();
 
-    const tahunAjaranAktif = $derived(
-        ((usePage().props as any).tahunAjaranAktif as TahunAjaran | null) ?? null,
-    );
+    const tahunAjaranAktif = $derived(usePage().props.tahunAjaranAktif);
 </script>
 
 {#if tahunAjaranAktif}

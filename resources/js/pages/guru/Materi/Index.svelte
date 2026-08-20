@@ -16,8 +16,10 @@
     import RichTextEditor from '@/components/RichTextEditor.svelte';
     import Select from '@/components/Select.svelte';
     import { confirm } from '@/lib/confirm.svelte';
+    import { extractId } from '@/lib/utils';
+    import { formatBytes } from '@/lib/materi';
+    import type { PaginationMeta, PenugasanOption } from '@/types/models';
 
-    type Penugasan = { value: number; label: string };
     type MateriItem = {
         id: number;
         judul: string;
@@ -28,15 +30,6 @@
         kelas: string | null;
         matpel: string | null;
         dibuat_pada: string;
-    };
-    type PaginationMeta = {
-        data: MateriItem[];
-        current_page: number;
-        last_page: number;
-        total: number;
-        per_page: number;
-        from?: number | null;
-        to?: number | null;
     };
 
     type KatalogItem = {
@@ -117,8 +110,8 @@
         editMateri = null,
     }: {
         guru_kelas_id?: string | null;
-        materis: PaginationMeta;
-        penugasan: Penugasan[];
+        materis: PaginationMeta & { data: MateriItem[] };
+        penugasan: PenugasanOption[];
         katalog: KatalogMeta | null;
         katalogFilters: KatalogFilters;
         filters: { guru_kelas_id: number | null; q: string };
@@ -255,47 +248,6 @@
                     },
                 );
             });
-    }
-
-    function extractId(value: unknown): number | null {
-        if (value === null || value === undefined || value === '') {
-            return null;
-        }
-
-        if (typeof value === 'object') {
-            const obj = value as Record<string, unknown>;
-
-            if (
-                obj.value !== undefined &&
-                obj.value !== null &&
-                obj.value !== ''
-            ) {
-                return Number(obj.value);
-            }
-
-            return null;
-        }
-
-        const n = Number(value);
-
-        return Number.isNaN(n) ? null : n;
-    }
-
-    function formatBytes(bytes: number): string {
-        if (!bytes) {
-            return '—';
-        }
-
-        const units = ['B', 'KB', 'MB', 'GB'];
-        let size = bytes;
-        let i = 0;
-
-        while (size >= 1024 && i < units.length - 1) {
-            size /= 1024;
-            i++;
-        }
-
-        return `${size.toFixed(size >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
     }
 
     function stripHtml(html: string | null): string {

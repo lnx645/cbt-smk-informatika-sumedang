@@ -1,16 +1,11 @@
 <script lang="ts">
+    import type { PaginationMeta } from '@/types/models';
+
     let {
         meta,
         onPageChange,
     }: {
-        meta: {
-            current_page: number;
-            last_page: number;
-            total: number;
-            per_page: number;
-            from?: number | null;
-            to?: number | null;
-        };
+        meta: PaginationMeta;
         onPageChange: (page: number) => void;
     } = $props();
 

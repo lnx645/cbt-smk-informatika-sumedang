@@ -42,7 +42,7 @@ export type User = {
     created_at: string | null;
     updated_at: string | null;
     google_id: string | null;
-    role: 'siswa' | 'guru' | 'admin' | string;
+    role: 'siswa' | 'guru' | 'admin' | false;
     nisn?: string | null;
     siswa?: Siswa | null;
     guru?: Guru | null;

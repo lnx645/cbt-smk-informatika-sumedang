@@ -17,11 +17,12 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             JurusanSeeder::class,
+            MatpelSeeder::class,
+            TahunAjaranSeeder::class,
             GuruSeeder::class,
             KelasSeeder::class,
             SiswaSeeder::class,
-            MatpelSeeder::class,
-            TahunAjaranSeeder::class,
+            GuruKelasSeeder::class,
         ]);
 
         User::factory()->create([

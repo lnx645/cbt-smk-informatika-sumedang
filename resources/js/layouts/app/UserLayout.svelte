@@ -10,16 +10,16 @@
     import { Alert } from '@sveltestrap/sveltestrap';
     import MataPelajaranGuruController from '@/actions/App/Http/Controllers/MataPelajaranGuruController';
     import GuruMateriController from '@/actions/App/Http/Controllers/Guru/MateriController';
+    import GuruPenilaianController from '@/actions/App/Http/Controllers/Guru/PenilaianController';
     import GuruTugasController from '@/actions/App/Http/Controllers/Guru/TugasController';
     import SiswaMateriController from '@/actions/App/Http/Controllers/Siswa/MateriController';
+    import SiswaPenilaianController from '@/actions/App/Http/Controllers/Siswa/PenilaianController';
     import SiswaTugasController from '@/actions/App/Http/Controllers/Siswa/TugasController';
     import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
     let { children }: { children: Snippet } = $props();
-    const authUser = $derived(
-        (usePage().props.auth as any)?.user ?? null,
-    );
+    const authUser = $derived(usePage().props.auth?.user ?? null);
     const tahunAjaranAktif = $derived(
-        (usePage().props as any).tahunAjaranAktif ?? null,
+        usePage().props.tahunAjaranAktif ?? null,
     );
     const showTahunAjaranInfo = $derived(
         !!authUser?.siswa && !tahunAjaranAktif,
@@ -35,7 +35,7 @@
               : 'Pengguna Aktif',
         homeHref: '/',
     });
-    const navItems = $derived.by<AppShellNavItem[]>(() => {
+    const navItems = $derived.by<(AppShellNavItem | AppShellNavSection)[]>(() => {
         if (!authUser?.gate_access) {
             return [
                 {
@@ -46,7 +46,7 @@
             ];
         }
 
-        const items: AppShellNavItem[] = [
+        const items: (AppShellNavItem | AppShellNavSection)[] = [
             {
                 href: DashboardController().url,
                 label: 'Dashboard',
@@ -75,12 +75,12 @@
                     },
 
                     {
-                        href: '/nilai',
-                        label: 'Nilai Siswa',
+                        href: GuruPenilaianController.index().url,
+                        label: 'Penilaian',
                         icon: 'bi-award',
                     },
                 ],
-            } satisfies AppShellNavSection as any);
+            } satisfies AppShellNavSection);
         }
 
         if (authUser?.siswa || authUser?.role === 'siswa') {
@@ -100,6 +100,11 @@
                     href: SiswaTugasController.index().url,
                     label: 'Tugas',
                     icon: 'bi-ui-checks-grid',
+                },
+                {
+                    href: SiswaPenilaianController.index().url,
+                    label: 'Nilai',
+                    icon: 'bi-award',
                 },
             );
         }

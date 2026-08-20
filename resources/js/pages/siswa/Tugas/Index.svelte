@@ -20,6 +20,8 @@
         deadline_at: string | null;
         jenis_pengumpulan: keyof typeof PENGGUMPULAN_INFO;
         file_name: string | null;
+        poin: number;
+        nilai: number | null;
         status: keyof typeof STATUS_TUGAS_INFO;
         submitted_at: string | null;
     };
@@ -81,7 +83,11 @@
                                     <span class="text-muted">
                                         <i class="bi bi-hourglass-split me-1"></i>{item.deadline ?? '—'}
                                     </span>
-                                    {#if item.status === 'belum' && sisaWaktu(item.deadline_at)}
+                                    {#if item.nilai !== null}
+                                        <span class="text-success fw-semibold text-nowrap">
+                                            <i class="bi bi-check2-circle me-1"></i>Nilai: {item.nilai}/{item.poin}
+                                        </span>
+                                    {:else if item.status === 'belum' && sisaWaktu(item.deadline_at)}
                                         <span class="text-primary fw-semibold">{sisaWaktu(item.deadline_at)}</span>
                                     {:else if item.submitted_at}
                                         <span class="text-success">

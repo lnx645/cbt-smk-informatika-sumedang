@@ -20,8 +20,8 @@
     } from '@/lib/tugas';
     import type { JenisPengumpulan } from '@/lib/tugas';
     import TugasController from '@/actions/App/Http/Controllers/Guru/TugasController';
+    import type { PaginationMeta, PenugasanOption } from '@/types/models';
 
-    type Penugasan = { value: number; label: string };
     type TugasItem = {
         id: number;
         judul: string;
@@ -48,17 +48,9 @@
         tanggal_terbit: string | null;
         deadline: string | null;
         jenis_pengumpulan: JenisPengumpulan;
+        poin: number;
         file_name: string | null;
         file_size: number;
-    };
-    type PaginationMeta = {
-        data: TugasItem[];
-        current_page: number;
-        last_page: number;
-        total: number;
-        per_page: number;
-        from?: number | null;
-        to?: number | null;
     };
 
     let {
@@ -67,8 +59,8 @@
         filters = { guru_kelas_id: null, q: '' },
         editTugas = null,
     }: {
-        tugases: PaginationMeta;
-        penugasan: Penugasan[];
+        tugases: PaginationMeta & { data: TugasItem[] };
+        penugasan: PenugasanOption[];
         filters: { guru_kelas_id: number | null; q: string };
         editTugas: EditTugas | null;
     } = $props();
@@ -80,6 +72,7 @@
         tanggal_terbit: '',
         deadline: '',
         jenis_pengumpulan: 'file' as JenisPengumpulan,
+        poin: 100,
         file: null as File | null,
     });
 
@@ -90,6 +83,7 @@
         tanggal_terbit: '',
         deadline: '',
         jenis_pengumpulan: 'file' as JenisPengumpulan,
+        poin: 100,
         file: null as File | null,
     });
 
@@ -115,6 +109,7 @@
         editForm.deadline = editTugas.deadline ?? '';
         editForm.jenis_pengumpulan =
             editTugas.jenis_pengumpulan ?? 'file';
+        editForm.poin = editTugas.poin ?? 100;
         editForm.file = null;
     });
 

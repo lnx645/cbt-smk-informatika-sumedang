@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { inertia } from '@inertiajs/svelte';
+    import { inertia, router } from '@inertiajs/svelte';
     import { Badge, Card, CardBody } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
     import { PENGGUMPULAN_INFO } from '@/lib/tugas';
@@ -12,6 +12,7 @@
         matpel: string | null;
         deadline: string | null;
         jenis_pengumpulan: keyof typeof PENGGUMPULAN_INFO;
+        poin: number;
         jumlah_siswa: number;
     };
 
@@ -22,6 +23,7 @@
         jawaban_teks: string | null;
         submitted_at: string | null;
         terlambat: boolean;
+        nilai: number | null;
         pengumpulan_id: number | null;
     };
 
@@ -36,9 +38,36 @@
     const terlambat = $derived(
         siswas.filter((s) => s.terlambat).length,
     );
+    const sudahDinilai = $derived(
+        siswas.filter((s) => s.nilai !== null).length,
+    );
     const belum = $derived(siswas.length - terkumpul);
 
     let dibuka = $state<string | null>(null);
+
+    let nilaiDraft = $state<Record<string, string>>({});
+    let menyimpan = $state<Record<string, boolean>>({});
+
+    function simpanNilai(siswa: SiswaPengumpulan) {
+        const nilai = nilaiDraft[siswa.nisn] ?? '';
+        if (nilai === '' || Number(nilai) < 0 || Number(nilai) > tugas.poin) {
+            return;
+        }
+        menyimpan[siswa.nisn] = true;
+        router.put(
+            TugasController.nilai({ tugas: tugas.id }).url,
+            {
+                siswa_nisn: siswa.nisn,
+                nilai,
+            },
+            {
+                preserveScroll: true,
+                onFinish: () => {
+                    menyimpan[siswa.nisn] = false;
+                },
+            },
+        );
+    }
 </script>
 
 <div class="container-fluid px-0">
@@ -94,6 +123,18 @@
             <Card class="border rounded-1 shadow-none">
                 <CardBody class="p-3">
                     <div class="text-muted small">
+                        Sudah Dinilai
+                    </div>
+                    <div class="h4 mb-0 fw-semibold text-info">
+                        {sudahDinilai}
+                    </div>
+                </CardBody>
+            </Card>
+        </div>
+        <div class="col-6 col-md-3">
+            <Card class="border rounded-1 shadow-none">
+                <CardBody class="p-3">
+                    <div class="text-muted small">
                         Belum Mengumpul
                     </div>
                     <div class="h4 mb-0 fw-semibold text-secondary">
@@ -137,6 +178,7 @@
                             <th>NISN</th>
                             <th>Status</th>
                             <th>Waktu Kumpul</th>
+                            <th>Nilai / {tugas.poin}</th>
                             <th class="text-end">Jawaban</th>
                         </tr>
                     </thead>
@@ -173,6 +215,58 @@
                                 <td class="small text-muted"
                                     >{siswa.submitted_at ?? '—'}</td
                                 >
+                                <td>
+                                    {#if siswa.pengumpulan_id}
+                                        <div
+                                            class="d-flex align-items-center gap-1"
+                                        >
+                                            <input
+                                                type="number"
+                                                class="form-control form-control-sm"
+                                                style="width: 80px"
+                                                min="0"
+                                                max={tugas.poin}
+                                                value={nilaiDraft[siswa.nisn] ??
+                                                    (siswa.nilai ?? '')}
+                                                disabled={menyimpan[
+                                                    siswa.nisn
+                                                ]}
+                                                oninput={(e) =>
+                                                    (nilaiDraft[
+                                                        siswa.nisn
+                                                    ] = (
+                                                        e.currentTarget as HTMLInputElement
+                                                    ).value)}
+                                            />
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-success text-nowrap"
+                                                title="Simpan nilai"
+                                                disabled={menyimpan[
+                                                    siswa.nisn
+                                                ] ||
+                                                    nilaiDraft[siswa.nisn] ===
+                                                        undefined}
+                                                onclick={() =>
+                                                    simpanNilai(siswa)}
+                                            >
+                                                {#if menyimpan[siswa.nisn]}
+                                                    <span
+                                                        class="spinner-border spinner-border-sm"
+                                                    ></span>
+                                                {:else}
+                                                    <i
+                                                        class="bi bi-check-lg"
+                                                    ></i>
+                                                {/if}
+                                            </button>
+                                        </div>
+                                    {:else}
+                                        <span class="text-muted small"
+                                            >—</span
+                                        >
+                                    {/if}
+                                </td>
                                 <td class="text-end">
                                     {#if siswa.pengumpulan_id}
                                         {#if siswa.file_name}
@@ -219,7 +313,7 @@
                             </tr>
                             {#if dibuka === siswa.nisn && siswa.jawaban_teks}
                                 <tr class="border-0">
-                                    <td colspan="6" class="pt-0">
+                                    <td colspan="7" class="pt-0">
                                         <div
                                             class="jawaban-box mt-3 text-pre-wrap small"
                                         >

@@ -14,14 +14,13 @@ class JurusanSeeder extends Seeder
     {
         $data = [
             ['name' => 'Rekayasa Perangkat Lunak', 'kode' => 'RPL'],
-            ['name' => 'Teknik Komputer & Jaringan', 'kode' => 'TKJ'],
-            ['name' => 'Teknik Kendaraan Ringan', 'kode' => 'TKR'],
-            ['name' => 'Bisnis Daring & Pemasaran', 'kode' => 'BDP'],
-            ['name' => 'Akuntansi', 'kode' => 'AKT'],
+            ['name' => 'Desain Komunikasi Visual', 'kode' => 'DKV'],
+            ['name' => 'Kelas Industri', 'kode' => 'IND'],
+            ['name' => 'Kelas Axio', 'kode' => 'AXIO'],
         ];
 
         foreach ($data as $item) {
-            Jurusan::firstOrCreate(['kode' => $item['kode']], $item);
+            Jurusan::updateOrCreate(['kode' => $item['kode']], $item);
         }
     }
 }

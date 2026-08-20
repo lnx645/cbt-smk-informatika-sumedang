@@ -17,6 +17,8 @@
     import ProfilController from '@/actions/App/Http/Controllers/Admin/ProfilController';
     import AkunAdminController from '@/actions/App/Http/Controllers/Admin/AkunAdminController';
     import NaikKelasController from '@/actions/App/Http/Controllers/Admin/NaikKelasController';
+import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
+import LaporanController from '@/actions/App/Http/Controllers/Admin/LaporanController';
 
     let {
         children,
@@ -24,21 +26,19 @@
     }: { children: Snippet; tahunAjaranAktif: { name: string } } =
         $props();
 
-    const authUser = $derived(
-        (usePage().props.auth as any)?.user ?? null,
-    );
+    const authUser = $derived(usePage().props.auth?.user ?? null);
 
     const user = $derived<AppShellUser>({
         name: authUser?.name ?? 'Administrator',
         email: authUser?.email ?? '',
         id: authUser?.id ?? '',
-        role: authUser?.role ?? 'Administrator',
-        homeHref: DashboardController().url,
+        role: authUser?.role ? authUser.role : 'Administrator',
+        homeHref: DashboardController.__invoke().url,
     });
 
     const navItems: Array<AppShellNavItem | AppShellNavSection> = [
         {
-            href: DashboardController().url,
+            href: DashboardController.__invoke().url,
             label: 'Dashboard',
             icon: 'bi-speedometer2',
         },
@@ -62,6 +62,11 @@
                     icon: 'bi-collection-fill',
                 },
                 {
+                    href: PenilaianController.index().url,
+                    label: 'Penilaian',
+                    icon: 'bi-card-checklist',
+                },
+                {
                     href: NaikKelasController.index().url,
                     label: 'Naik Kelas',
                     icon: 'bi-arrow-up-circle-fill',
@@ -81,6 +86,16 @@
                     href: AkunAdminController.index().url,
                     label: 'Akun Admin',
                     icon: 'bi-shield-lock',
+                },
+            ],
+        },
+        {
+            section: 'Laporan',
+            items: [
+                {
+                    href: LaporanController.index().url,
+                    label: 'Cetak Laporan',
+                    icon: 'bi-printer-fill',
                 },
             ],
         },

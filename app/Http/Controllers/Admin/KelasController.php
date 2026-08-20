@@ -16,7 +16,7 @@ class KelasController extends Controller
 {
     public function index()
     {
-        $kelas = Kelas::with(['jurusan', 'walikelas'])->get();
+        $kelas = Kelas::with(['jurusan', 'walikelas'])->withCount('siswas')->get();
 
         $buildTree = function ($parentId, $depth = 0) use ($kelas, &$buildTree) {
             return $kelas
@@ -25,6 +25,7 @@ class KelasController extends Controller
                 ->map(function ($item) use ($buildTree, $depth) {
                     $node = $item->toArray();
                     $node['depth'] = $depth;
+                    $node['siswa_count'] = $item->siswas_count;
                     $node['children'] = $buildTree($item->id, $depth + 1);
 
                     return $node;
@@ -48,7 +49,7 @@ class KelasController extends Controller
 
         return inertia('admin/Kelas/Index', [
             'kelas_parent' => $buildTree(null),
-            'kelas_list' => $kelas->map(fn (Kelas $k) => [
+            'kelas_list' => $kelas->map(fn(Kelas $k) => [
                 'id' => $k->id,
                 'nama' => $k->nama,
                 'parent_id' => $k->parent_id,
@@ -90,12 +91,7 @@ class KelasController extends Controller
 
     public function destroy(Kelas $kelas): RedirectResponse
     {
-        $ids = [$kelas->id];
-        $current = [$kelas->id];
-        while ($current) {
-            $current = Kelas::whereIn('parent_id', $current)->pluck('id')->all();
-            $ids = array_merge($ids, $current);
-        }
+        $ids = $this->descendantIds($kelas);
 
         if (Kelas::whereIn('id', $ids)->has('siswas')->exists()) {
             Inertia::flash('toast', [
@@ -147,19 +143,31 @@ class KelasController extends Controller
             'deskripsi' => $request->input('deskripsi') ?? '',
         ]);
 
+        $parentId = $request->input('parent_id');
+
         return $request->validate([
             'nama' => [
                 'required',
                 'string',
                 'max:255',
                 Rule::unique('kelas', 'nama')
-                    ->where(fn ($query) => $query->where('parent_id', $request->input('parent_id')))
+                    ->where(function ($query) use ($parentId) {
+                        if ($parentId === null) {
+                            $query->whereNull('parent_id');
+                        } else {
+                            $query->where('parent_id', $parentId);
+                        }
+                    })
                     ->ignore($kelas?->id),
             ],
             'deskripsi' => ['nullable', 'string'],
             'jurusan_id' => ['nullable', 'exists:jurusans,id'],
             'guru_id' => ['nullable', 'exists:gurus,id'],
-            'parent_id' => ['nullable', 'exists:kelas,id'],
+            'parent_id' => [
+                'nullable',
+                'exists:kelas,id',
+                ...($kelas !== null ? [Rule::notIn($this->descendantIds($kelas))] : []),
+            ],
             'active' => ['boolean'],
         ], [], [
             'nama' => 'Nama Kelas',
@@ -169,5 +177,21 @@ class KelasController extends Controller
             'parent_id' => 'Kelas Induk',
             'active' => 'Aktif',
         ]);
+    }
+
+    /**
+     * Id kelas ini beserta seluruh turunannya (untuk guard & penghapusan berantai).
+     */
+    private function descendantIds(Kelas $kelas): array
+    {
+        $ids = [$kelas->id];
+        $current = [$kelas->id];
+
+        while ($current) {
+            $current = Kelas::whereIn('parent_id', $current)->pluck('id')->all();
+            $ids = array_merge($ids, $current);
+        }
+
+        return $ids;
     }
 }

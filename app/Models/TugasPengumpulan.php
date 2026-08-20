@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Table('tugas_pengumpulans')]
-#[Fillable(['tugas_id', 'siswa_nisn', 'file_path', 'file_name', 'file_size', 'mime_type', 'jawaban_teks', 'submitted_at'])]
+#[Fillable(['tugas_id', 'siswa_nisn', 'file_path', 'file_name', 'file_size', 'mime_type', 'jawaban_teks', 'submitted_at', 'nilai'])]
 class TugasPengumpulan extends Model
 {
     use HasFactory;
 
     protected $casts = [
         'submitted_at' => 'datetime',
+        'nilai' => 'float',
     ];
 
     public function tugas(): BelongsTo

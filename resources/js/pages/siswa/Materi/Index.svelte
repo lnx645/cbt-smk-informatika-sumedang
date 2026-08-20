@@ -4,7 +4,11 @@
     import PageHeader from '@/components/PageHeader.svelte';
     import Pagination from '@/components/Pagination.svelte';
     import Select from '@/components/Select.svelte';
+    import EmptyState from '@/components/EmptyState.svelte';
     import MateriController from '@/actions/App/Http/Controllers/Siswa/MateriController';
+    import { extractId } from '@/lib/utils';
+    import { formatBytes } from '@/lib/materi';
+    import type { PaginationMeta } from '@/types/models';
 
     type MateriItem = {
         id: number;
@@ -17,15 +21,6 @@
         guru: string | null;
         dibuat_pada: string;
     };
-    type PaginationMeta = {
-        data: MateriItem[];
-        current_page: number;
-        last_page: number;
-        total: number;
-        per_page: number;
-        from?: number | null;
-        to?: number | null;
-    };
 
     let {
         materis,
@@ -33,7 +28,7 @@
         matpelList = [],
         filters = { matpel: null, q: '' },
     }: {
-        materis: PaginationMeta;
+        materis: PaginationMeta & { data: MateriItem[] };
         kelas: string | null;
         matpelList: { value: number; label: string }[];
         filters: { matpel: number | null; q: string };
@@ -42,11 +37,6 @@
     let filterMatpel = $state(filters.matpel);
     let searchInput = $state(filters.q);
     let searchTimer: ReturnType<typeof setTimeout> | undefined;
-
-    function extractId(value: unknown): number | null {
-        const item = value as { value?: number } | null;
-        return item?.value ?? null;
-    }
 
     function stripHtml(html: string | null): string {
         if (!html) return '';
@@ -94,17 +84,6 @@
         );
     }
 
-    function formatBytes(bytes: number): string {
-        if (!bytes) return '—';
-        const units = ['B', 'KB', 'MB', 'GB'];
-        let size = bytes;
-        let i = 0;
-        while (size >= 1024 && i < units.length - 1) {
-            size /= 1024;
-            i++;
-        }
-        return `${size.toFixed(size >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
-    }
 </script>
 
 <div class="container-fluid px-0">
@@ -224,19 +203,18 @@
         </div>
     {:else}
         <Card class="border rounded-1 shadow-sm">
-            <CardBody class="py-5">
-                <div class="text-center text-secondary">
-                    <i class="bi bi-book-half" style="font-size: 3rem"></i>
-                    <p class="mt-3 mb-0">
-                        {#if filterMatpel || searchInput.trim()}
-                            Tidak ada materi yang cocok dengan filter yang dipilih. Coba ubah atau bersihkan filter.
-                        {:else if kelas}
-                            Belum ada materi yang dibagikan untuk kelasmu.
-                        {:else}
-                            Kamu belum terdaftar di kelas mana pun, sehingga belum ada materi yang bisa dilihat.
-                        {/if}
-                    </p>
-                </div>
+            <CardBody class="p-0">
+                <EmptyState
+                    icon="bi-book-half"
+                    message={
+                        filterMatpel || searchInput.trim()
+                            ? 'Tidak ada materi yang cocok dengan filter yang dipilih. Coba ubah atau bersihkan filter.'
+                            : kelas
+                              ? 'Belum ada materi yang dibagikan untuk kelasmu.'
+                              : 'Kamu belum terdaftar di kelas mana pun, sehingga belum ada materi yang bisa dilihat.'
+                    }
+                    variant="card"
+                />
             </CardBody>
         </Card>
     {/if}
