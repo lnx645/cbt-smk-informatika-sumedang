@@ -69,10 +69,12 @@ class NaikKelasController extends Controller
             'pilihan' => ['required', 'array'],
             'pilihan.*.nisn' => ['required', 'string'],
             'pilihan.*.status' => ['required', 'in:naik,tinggal,lulus'],
+            'pilihan.*.kelas_target' => ['nullable', 'integer', 'exists:kelas,id'],
         ], [], [
             'tahun_ajaran_sumber' => 'Tahun Ajaran Sumber',
             'tahun_ajaran_target' => 'Tahun Ajaran Target',
             'pilihan' => 'Pilihan Siswa',
+            'pilihan.*.kelas_target' => 'Kelas Tujuan',
         ]);
 
         $sumber = TahunAjaran::findOrFail($data['tahun_ajaran_sumber']);

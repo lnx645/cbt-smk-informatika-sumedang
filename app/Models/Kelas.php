@@ -50,7 +50,16 @@ class Kelas extends Model
             }
         }
 
-        return $node?->tingkat;
+        return $node?->tingkat ?? static::tingkatDariNama($this->nama);
+    }
+
+    /**
+     * Ambil tingkat dari prefiks nama kelas (X, XI, XII), konvensi X-RPL-1 / XI-RPL-1.
+     * Dipakai sebagai fallback saat root kelas tidak memiliki tingkat.
+     */
+    public static function tingkatDariNama(string $nama): ?string
+    {
+        return preg_match('/^(XII|XI|X)(?=[\s-]|$)/', trim($nama), $m) ? $m[1] : null;
     }
 
     /**
