@@ -1,3 +1,33 @@
+# IFSU LMS (repo `D:\ifsu-cbt`)
+
+Fakta spesifik repo di bawah; di bawahnya ada aturan framework Laravel Boost yang dijaga otomatis oleh `boost:update` (jangan diedit manual).
+
+## Aplikasi & stack
+
+- Aplikasi LMS/CBT SMK Informatika Sumedang: Laravel 13 (`laravel/framework ^13.17`) + PHP 8.5 + **PostgreSQL** di dev/produksi; frontend Inertia v3 + Svelte 5 dengan **SSR nonaktif** (`ssr:false` di `vite.config.ts`); Bootstrap 5 + sveltestrap; package manager **bun** (`bun.lock`).
+- Peran user `admin`/`guru`/`siswa` di kolom `users.role`; middleware `admin-only` redirect ke `/app`, `app-only` redirect ke `/admin`.
+- Tema warna dikendalikan `resources/scss/_tokens.scss` (palet biru brand `#4182b3`) — jangan ubah warna lewat utility Tailwind.
+
+## Perintah
+
+- `composer test` = pint `--test` + phpstan + `php artisan test`; CI (`.github/workflows/tests.yml`) menjalankan `composer setup` + `composer ci:check` (eslint + prettier + svelte-check + composer test).
+- Test Pest: `php artisan test --compact --filter=NamaTest`. Test frontend: `bun run test:frontend` (Vitest, konfigurasi di `vitest.config.ts`).
+- `bun run types:check` = svelte-check; `composer types:check` = phpstan (larastan).
+- `composer run dev` = `php artisan serve` + `queue:listen` + vite serentak.
+- **SCSS**: vite TIDAK mengompilasi scss. Setelah mengubah `resources/scss/**` jalankan `bun run scss:run` (kompilasi `resources/scss/input.scss` → `resources/css/app.css`, artefak ter-commit) lalu `bun run build`.
+- Wayfinder: fungsi TS route/action ada di `resources/js/actions/` dan `resources/js/routes/`, digenerate plugin vite saat dev/build (atau `php artisan wayfinder:generate`). Jangan hardcode URL route; regenerate setelah menambah route.
+
+## Trap & aturan wajib
+
+- **Test memakai SQLite `:memory:`** (`phpunit.xml`) padahal produksi PostgreSQL — SQL mentah harus portabel, jangan pakai fungsi MySQL seperti `FIELD()` (pakai CASE expression).
+- Baca **`.ai/rules/index.md`** dan semua rule file yang glob-nya cocok dengan path yang diedit sebelum menulis kode (Kelas::leaf(), `App\Support\Toast`, PK `nisn` string, ordering hari pakai CASE, sidebar localStorage, Tiptap HTML, dll.).
+- Test frontend: mock Inertia di `tests/frontend/setup.ts` TIDAK reaktif → asersi nilai form langsung ke instance mock, bukan via DOM; modal sveltestrap render walau tertutup → scope dengan `within()`.
+
+## Dokumen & generator UML
+
+- `CARA-KERJA-APLIKASI.md` = perilaku aplikasi terkini; `app.md` = deskripsi arsitektur yang bisa usang; `docs/README.md` = indeks dokumentasi UML (`docs/uml/*.md`, notasi Mermaid) + aplikasi diagram interaktif.
+- Diagram UML digenerate dari source code repo ini dengan alur **dua tahap** di `D:\rancangan`: (1) `php generate-uml.php scan` — boot Laravel, baca source proyek sekali, tulis `data/project.json` (models/controllers/services/support/tabel + data use case, sequence, narrative, activity); (2) `php generate-uml.php [filter]` / `php generate-mdj.php` / `php generate-doc.php` — baca JSON tanpa boot dan tanpa baca source (output ke `D:\rancangan\final\uml` dan `docs/uml/`). Perubahan source tidak akan merusak generate; jalankan `scan` lagi untuk memperbarui data. Setelah mengubah model/migration, diagram perlu diregenerasi lewat alur tersebut.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
