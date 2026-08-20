@@ -49,7 +49,7 @@ class KelasController extends Controller
 
         return inertia('admin/Kelas/Index', [
             'kelas_parent' => $buildTree(null),
-            'kelas_list' => $kelas->map(fn (Kelas $k) => [
+            'kelas_list' => $kelas->map(fn(Kelas $k) => [
                 'id' => $k->id,
                 'nama' => $k->nama,
                 'parent_id' => $k->parent_id,

@@ -18,6 +18,7 @@
     import AkunAdminController from '@/actions/App/Http/Controllers/Admin/AkunAdminController';
     import NaikKelasController from '@/actions/App/Http/Controllers/Admin/NaikKelasController';
 import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
+import LaporanController from '@/actions/App/Http/Controllers/Admin/LaporanController';
 
     let {
         children,
@@ -85,6 +86,16 @@ import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianC
                     href: AkunAdminController.index().url,
                     label: 'Akun Admin',
                     icon: 'bi-shield-lock',
+                },
+            ],
+        },
+        {
+            section: 'Laporan',
+            items: [
+                {
+                    href: LaporanController.index().url,
+                    label: 'Cetak Laporan',
+                    icon: 'bi-printer-fill',
                 },
             ],
         },

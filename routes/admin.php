@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DetailPenilaianController;
 use App\Http\Controllers\Admin\GuruKelasController;
 use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\KelasController;
+use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\MatpelController;
 use App\Http\Controllers\Admin\NaikKelasController;
 use App\Http\Controllers\Admin\PengajarController;
@@ -143,5 +144,14 @@ Route::controller(PenilaianController::class)->group(function (): void {
 Route::controller(DetailPenilaianController::class)->group(function (): void {
     Route::get('penilaian/{penilaian}/penugasan', 'filterSiswa')->name('penilaian.penugasan.filter');
     Route::get('penilaian/{penilaian}/penugasan/{guruKelas}/siswa/{siswa}', 'detail')->name('penilaian.penugasan.detail');
-    Route::post('penilaian/{penilaian}/penugasan/{guruKelas}/siswa/{siswa}', 'storeNilai')->name('penilaian.penugasan.store');
+    Route::post('penilaian/{penilaian}/penugasan/{guruKelas}/siswa/{siswa}', 'storeNilai')->name('penilaian.penugasan.storeNilai');
+});
+
+// -------------------------------------------------------------------
+// Laporan: Cetak Seluruh Data (XLSX & PDF)
+// -------------------------------------------------------------------
+Route::controller(LaporanController::class)->group(function (): void {
+    Route::get('laporan', 'index')->name('laporan.index');
+    Route::get('laporan/export-xlsx', 'exportXlsx')->name('laporan.export-xlsx');
+    Route::get('laporan/export-pdf', 'exportPdf')->name('laporan.export-pdf');
 });
