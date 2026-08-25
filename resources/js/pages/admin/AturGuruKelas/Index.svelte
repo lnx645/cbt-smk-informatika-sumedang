@@ -211,7 +211,8 @@
                             >
                                 {#each validMatpels(item) as matpel (matpel.id)}
                                     <div
-                                        class="d-inline-flex align-items-center gap-2 bg-white border rounded px-3 py-2 shadow-sm"
+                                        class="d-inline-flex align-items-center gap-2 border rounded px-3 py-2 shadow-sm"
+                                        style="background-color: var(--app-shell-surface);"
                                     >
                                         <i
                                             class="bi bi-book-half text-primary"

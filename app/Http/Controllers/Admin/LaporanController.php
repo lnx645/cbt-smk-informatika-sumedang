@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\LaporanExportService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use OpenSpout\Common\Entity\Row;
@@ -14,9 +15,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class LaporanController extends Controller
 {
-    public function __construct(private readonly LaporanExportService $laporan)
-    {
-    }
+    public function __construct(private readonly LaporanExportService $laporan) {}
 
     public function index(): InertiaResponse
     {
@@ -27,7 +26,7 @@ class LaporanController extends Controller
 
     public function exportXlsx(): BinaryFileResponse
     {
-        $path = tempnam(sys_get_temp_dir(), 'laporan-') . '.xlsx';
+        $path = tempnam(sys_get_temp_dir(), 'laporan-').'.xlsx';
 
         $writer = new Writer(new Options);
         $writer->openToFile($path);
@@ -57,6 +56,28 @@ class LaporanController extends Controller
         ])->deleteFileAfterSend(true);
     }
 
+    public function exportPdf(): BinaryFileResponse
+    {
+        $datasets = $this->laporan->datasets();
+        $totalRows = array_sum(array_map(fn (array $d) => count($d['rows']), $datasets));
+
+        $html = view('laporan.pdf', [
+            'datasets' => $datasets,
+            'totalRows' => $totalRows,
+        ])->render();
+
+        $pdf = Pdf::loadHTML($html)
+            ->setPaper('a4', 'landscape')
+            ->setOption('isRemoteEnabled', true);
+
+        $path = tempnam(sys_get_temp_dir(), 'laporan-').'.pdf';
+        $pdf->save($path);
+
+        return response()->download($path, $this->namaFile('pdf'), [
+            'Content-Type' => 'application/pdf',
+        ])->deleteFileAfterSend(true);
+    }
+
     private function namaSheet(string $name): string
     {
         // Excel: nama sheet maksimal 31 karakter, tidak boleh mengandung : \ / ? * [ ]
@@ -67,6 +88,6 @@ class LaporanController extends Controller
 
     private function namaFile(string $ext): string
     {
-        return 'laporan-data-kelas-digital-' . date('Y-m-d') . '.' . $ext;
+        return 'laporan-data-kelas-digital-'.date('Y-m-d').'.'.$ext;
     }
 }

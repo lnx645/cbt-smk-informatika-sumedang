@@ -3,6 +3,10 @@ import { fireEvent, render, screen } from '@testing-library/svelte';
 import { describe, expect, it } from 'vitest';
 import Detail from '@/pages/siswa/Tugas/Detail.svelte';
 
+// Deadline harus selalu di masa depan relatif terhadap waktu test dijalankan,
+// kalau tidak komponen menganggap batas waktu lewat dan menyembunyikan form.
+const deadlineAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
 const baseProps = {
     tugas: {
         id: 1,
@@ -13,7 +17,7 @@ const baseProps = {
         guru: 'Budi Santoso',
         tanggal_terbit: '12 Agu 2026 08:00',
         deadline: '19 Agu 2026 23:59',
-        deadline_at: '2026-08-19T23:59:00+07:00',
+        deadline_at: deadlineAt,
         jenis_pengumpulan: 'file' as const,
         file_name: null,
         file_size: 0,

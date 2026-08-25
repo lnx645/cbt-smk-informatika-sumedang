@@ -295,7 +295,8 @@
                                         ></i>Jawaban:
                                     </div>
                                     <p
-                                        class="mb-0 p-2 bg-white border rounded-1 text-pre-wrap"
+                                        class="mb-0 p-2 border rounded-1 text-pre-wrap"
+                                        style="background-color: var(--app-shell-surface);"
                                     >
                                         {pengumpulan.jawaban_teks}
                                     </p>

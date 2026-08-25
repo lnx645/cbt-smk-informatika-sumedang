@@ -91,6 +91,7 @@
     );
 
     const xlsxUrl = LaporanController.exportXlsx().url;
+    const pdfUrl = LaporanController.exportPdf().url;
 </script>
 
 <PageHeader
@@ -105,6 +106,10 @@
             <a class="btn btn-success" href={xlsxUrl}>
                 <i class="bi bi-file-earmark-excel me-1"></i>Unduh
                 XLSX
+            </a>
+            <a class="btn btn-danger" href={pdfUrl}>
+                <i class="bi bi-file-earmark-pdf me-1"></i>Unduh
+                PDF
             </a>
         </div>
         <p class="text-muted small mb-0">

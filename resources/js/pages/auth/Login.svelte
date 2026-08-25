@@ -80,7 +80,7 @@
                 <div class="text-center small opacity-75"></div>
             </Col>
 
-            <Col lg={7} class="bg-white">
+            <Col lg={7} style="background-color: var(--app-shell-surface);">
                 <CardBody class="p-4 p-sm-5">
                     <div class="d-lg-none mb-4">
                         <h2 class="h4 mb-0">{appName}</h2>

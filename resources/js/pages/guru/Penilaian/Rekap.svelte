@@ -248,7 +248,7 @@
         position: sticky;
         top: 0;
         z-index: 2;
-        background-color: #fff;
+        background-color: var(--bs-body-bg, #fff);
         box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.08);
         white-space: nowrap;
         text-transform: none;
@@ -257,7 +257,7 @@
 
     :global(.rekap-table .rekap-sticky) {
         position: sticky;
-        background-color: #fff;
+        background-color: var(--bs-body-bg, #fff);
     }
 
     :global(.rekap-table thead .rekap-sticky) {
@@ -272,6 +272,6 @@
     }
 
     :global(.rekap-table tfoot .rekap-sticky) {
-        background-color: #f8f9fa;
+        background-color: var(--bs-secondary-bg, #f8f9fa);
     }
 </style>

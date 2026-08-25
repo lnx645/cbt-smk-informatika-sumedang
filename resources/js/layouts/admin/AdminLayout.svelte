@@ -19,6 +19,9 @@
     import NaikKelasController from '@/actions/App/Http/Controllers/Admin/NaikKelasController';
 import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianController';
 import LaporanController from '@/actions/App/Http/Controllers/Admin/LaporanController';
+import UjianController from '@/actions/App/Http/Controllers/Admin/UjianController';
+import PeriodeUjianController from '@/actions/App/Http/Controllers/Admin/PeriodeUjianController';
+import BankSoalController from '@/actions/App/Http/Controllers/Admin/BankSoalController';
 
     let {
         children,
@@ -75,6 +78,27 @@ import LaporanController from '@/actions/App/Http/Controllers/Admin/LaporanContr
         },
 
         {
+            section: 'Ujian (CBT)',
+            items: [
+                {
+                    href: UjianController.index().url,
+                    label: 'Monitor Ujian',
+                    icon: 'bi-pencil-square',
+                },
+                {
+                    href: PeriodeUjianController.index().url,
+                    label: 'Periode Ujian',
+                    icon: 'bi-calendar-range',
+                },
+                {
+                    href: BankSoalController.index().url,
+                    label: 'Bank Soal',
+                    icon: 'bi-collection',
+                },
+            ],
+        },
+
+        {
             section: 'Account',
             items: [
                 {
@@ -95,8 +119,7 @@ import LaporanController from '@/actions/App/Http/Controllers/Admin/LaporanContr
                 {
                     href: LaporanController.index().url,
                     label: 'Cetak Laporan',
-                    icon: 'bi-printer-fill',
-                },
+                    icon: 'bi-printer-fill',                },
             ],
         },
         {

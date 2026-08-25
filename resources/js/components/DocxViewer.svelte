@@ -10,6 +10,10 @@
     let errorMessage = $state('');
 
     onMount(async () => {
+        if (!container) {
+            loading = false;
+            return;
+        }
         try {
             const response = await fetch(url, { credentials: 'same-origin' });
             if (!response.ok) {
