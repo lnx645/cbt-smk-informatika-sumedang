@@ -121,12 +121,12 @@
     --app-shell-primary-dark: #{$primary-700};
     --app-shell-accent: #{$tutwuri-gold};
     --app-shell-accent-soft: rgba(253, 212, 6, 0.16);
-    --app-shell-app-bg: #{$light};
+    --app-shell-app-bg: #f4f6fb;
     --app-shell-surface: #{$white};
-    --app-shell-border: #{$gray-300};
-    --app-shell-text: #{$slate-700};
-    --app-shell-text-muted: #{$slate-500};
-    --app-shell-primary-soft: #{$primary-50};
+    --app-shell-border: #e5e8f0;
+    --app-shell-text: #1f2937;
+    --app-shell-text-muted: #64748b;
+    --app-shell-primary-soft: #eef3ff;
     --app-shell-danger: #{$danger};
     --app-shell-danger-soft: rgba(194, 92, 82, 0.1);
     --app-shell-success: #{$success};

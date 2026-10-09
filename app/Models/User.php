@@ -19,12 +19,18 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string $email
  * @property string|null $google_id
+ * @property int|null $guru_id
  * @property string|null $nisn
+ * @property bool $is_admin
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Siswa|null $siswa
+ * @property-read Guru|null $guru
+ * @property-read string|false $role
+ * @property-read bool $gate_access
  */
 #[Fillable(['name', 'email', 'is_admin', 'password', 'google_id', 'role', 'nisn', 'guru_id'])]
 #[Hidden(['password', 'remember_token'])]

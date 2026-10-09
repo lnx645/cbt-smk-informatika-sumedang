@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AkunAdminController;
 use App\Http\Controllers\Admin\AkunGuruController;
 use App\Http\Controllers\Admin\AkunSiswaController;
+use App\Http\Controllers\Admin\BankSoalController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DetailPenilaianController;
 use App\Http\Controllers\Admin\GuruKelasController;
@@ -13,10 +14,12 @@ use App\Http\Controllers\Admin\MatpelController;
 use App\Http\Controllers\Admin\NaikKelasController;
 use App\Http\Controllers\Admin\PengajarController;
 use App\Http\Controllers\Admin\PenilaianController;
+use App\Http\Controllers\Admin\PeriodeUjianController;
 use App\Http\Controllers\Admin\ProfilController;
 use App\Http\Controllers\Admin\SiswaController;
 use App\Http\Controllers\Admin\SiswaKelasController;
 use App\Http\Controllers\Admin\TahunAjaranController;
+use App\Http\Controllers\Admin\UjianController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -154,4 +157,38 @@ Route::controller(LaporanController::class)->group(function (): void {
     Route::get('laporan', 'index')->name('laporan.index');
     Route::get('laporan/export-xlsx', 'exportXlsx')->name('laporan.export-xlsx');
     Route::get('laporan/export-pdf', 'exportPdf')->name('laporan.export-pdf');
+});
+
+// -------------------------------------------------------------------
+// Ujian (CBT): Periode/Window Jadwal & Monitoring lintas guru
+// -------------------------------------------------------------------
+Route::controller(PeriodeUjianController::class)->group(function (): void {
+    Route::get('periode-ujian', 'index')->name('periode-ujian.index');
+    Route::post('periode-ujian', 'store')->name('periode-ujian.store');
+    Route::put('periode-ujian/{periodeUjian}', 'update')->name('periode-ujian.update');
+    Route::delete('periode-ujian/{periodeUjian}', 'destroy')->name('periode-ujian.destroy');
+});
+
+Route::controller(UjianController::class)->group(function (): void {
+    Route::get('ujian', 'index')->name('ujian.index');
+    Route::post('ujian', 'store')->name('ujian.store');
+    Route::post('ujian/{ujian}/terbit', 'terbit')->name('ujian.terbit');
+    Route::delete('ujian/{ujian}', 'destroy')->name('ujian.destroy');
+    Route::post('ujian/{ujian}/pengelola-token', 'setPengelolaToken')->name('ujian.pengelola-token');
+    Route::post('ujian/{ujian}/token', 'generateToken')->name('ujian.token');
+    Route::post('ujian/{ujian}/token/toggle', 'toggleToken')->name('ujian.token.toggle');
+    Route::get('ujian/{ujian}/soal', 'soal')->name('ujian.soal');
+    Route::get('ujian/{ujian}/hasil', 'hasil')->name('ujian.hasil');
+    Route::get('ujian/{ujian}/hasil/{pengerjaan}', 'hasilShow')->name('ujian.hasil.show');
+    Route::post('ujian/{ujian}/hasil/{pengerjaan}/jawaban/{jawaban}/nilai', 'nilaiEsai')->name('ujian.hasil.nilai');
+});
+
+// -------------------------------------------------------------------
+// Bank Soal (admin akses penuh lintas matpel)
+// -------------------------------------------------------------------
+Route::controller(BankSoalController::class)->group(function (): void {
+    Route::get('bank-soal', 'index')->name('bank-soal.index');
+    Route::post('bank-soal', 'store')->name('bank-soal.store');
+    Route::put('bank-soal/{bankSoal}', 'update')->name('bank-soal.update');
+    Route::delete('bank-soal/{bankSoal}', 'destroy')->name('bank-soal.destroy');
 });

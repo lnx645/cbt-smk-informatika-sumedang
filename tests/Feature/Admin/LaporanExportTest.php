@@ -65,5 +65,5 @@ test('admin dapat mengunduh seluruh data sebagai PDF', function (): void {
         'content-disposition',
         'attachment; filename=laporan-data-kelas-digital-'.date('Y-m-d').'.pdf'
     );
-    expect($response->getContent())->toStartWith('%PDF-');
+    expect(file_get_contents($response->getFile()->getPathname()))->toStartWith('%PDF-');
 });

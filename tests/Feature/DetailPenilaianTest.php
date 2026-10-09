@@ -70,7 +70,7 @@ test('halaman filter menampilkan siswa penugasan yang dipilih', function (): voi
 
 test('admin dapat menyimpan nilai siswa pada penugasan', function (): void {
     $this->actingAs($this->admin)
-        ->post(route('admin.penilaian.penugasan.store', [
+        ->post(route('admin.penilaian.penugasan.storeNilai', [
             'penilaian' => $this->penilaian,
             'guruKelas' => $this->guruKelas,
             'siswa' => $this->siswa,
@@ -96,7 +96,7 @@ test('admin dapat menyimpan nilai siswa pada penugasan', function (): void {
 
 test('admin tidak dapat menyimpan nilai melebihi nilai maksimum', function (): void {
     $this->actingAs($this->admin)
-        ->post(route('admin.penilaian.penugasan.store', [
+        ->post(route('admin.penilaian.penugasan.storeNilai', [
             'penilaian' => $this->penilaian,
             'guruKelas' => $this->guruKelas,
             'siswa' => $this->siswa,
@@ -119,7 +119,7 @@ test('admin tidak dapat menilai siswa di luar penugasan', function (): void {
     ]);
 
     $this->actingAs($this->admin)
-        ->post(route('admin.penilaian.penugasan.store', [
+        ->post(route('admin.penilaian.penugasan.storeNilai', [
             'penilaian' => $this->penilaian,
             'guruKelas' => $this->guruKelas,
             'siswa' => $siswaLain,
