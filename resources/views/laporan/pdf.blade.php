@@ -20,7 +20,13 @@
 </head>
 <body>
     <h1>Laporan Data Kelas Digital</h1>
-    <p class="meta">Dicetak pada {{ date('d-m-Y H:i') }} &mdash; {{ $totalRows }} baris data dari {{ count($datasets) }} entitas</p>
+    <p class="meta">
+        Dicetak pada {{ date('d-m-Y H:i') }}
+        @if ($tahunAjaran)
+            &mdash; Filter: <strong>{{ $tahunAjaran }}</strong>
+        @endif
+        &mdash; {{ $totalRows }} baris data dari {{ count($datasets) }} entitas
+    </p>
 
     @foreach ($datasets as $dataset)
         <div class="section">

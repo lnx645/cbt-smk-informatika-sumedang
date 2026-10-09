@@ -19,6 +19,7 @@ use App\Http\Controllers\Siswa\UjianController as SiswaUjianController;
 use App\Http\Controllers\SocialiteController;
 use Illuminate\Support\Facades\Route;
 
+Route::redirect("/", "login");
 Route::get('link/external', [LinkExternalController::class, 'link'])->name('external.link');
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('auth.login');

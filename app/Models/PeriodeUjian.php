@@ -31,4 +31,22 @@ class PeriodeUjian extends Model
     {
         return $this->belongsTo(TahunAjaran::class);
     }
+
+    public function sedangAktif(): bool
+    {
+        $now = now();
+
+        return $this->tanggal_mulai <= $now
+            && ($this->tanggal_selesai === null || $this->tanggal_selesai >= $now);
+    }
+
+    public function sudahLewat(): bool
+    {
+        return $this->tanggal_selesai !== null && $this->tanggal_selesai < now();
+    }
+
+    public function akanDatang(): bool
+    {
+        return $this->tanggal_mulai !== null && $this->tanggal_mulai > now();
+    }
 }

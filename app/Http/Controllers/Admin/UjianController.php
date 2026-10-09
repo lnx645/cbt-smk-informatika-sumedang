@@ -29,17 +29,11 @@ class UjianController extends Controller
         parent::__construct();
     }
 
-    /**
-     * Monitoring seluruh ujian lintas guru.
-     */
+    // ── Index ──────────────────────────────────────────────────────────────
+
     public function index(Request $request): Response
     {
-        $ujians = Ujian::query()
-            ->with(['guru:id,nama_lengkap', 'guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name'])
-            ->withCount('soals')
-            ->withCount(['pengerjaans as jumlah_selesai' => fn ($q) => $q->whereIn('status', ['selesai', 'auto_submit'])])
-            ->when($request->string('kategori')->toString(), fn ($q, $k) => $q->where('kategori', $k))
-            ->when($request->string('q')->toString(), fn ($q, $kw) => $q->where('judul', 'like', "%{$kw}%"))
+        $ujians = $this->queryUjian($request)
             ->orderByDesc('created_at')
             ->paginate(15)
             ->withQueryString();
@@ -63,7 +57,7 @@ class UjianController extends Controller
 
         return Inertia::render('admin/Ujian/Index', [
             'ujians' => $ujians,
-            'penugasan' => $this->penugasan(),
+            'penugasan' => $this->listPenugasan(),
             'filters' => [
                 'kategori' => $request->string('kategori')->toString() ?: null,
                 'q' => $request->string('q')->toString(),
@@ -71,16 +65,19 @@ class UjianController extends Controller
         ]);
     }
 
+    // ── Store ─────────────────────────────────────────────────────────────
+
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validateUjian($request);
         $guruKelas = GuruKelas::findOrFail($data['guru_kelas_id']);
 
-        $ujian = new Ujian($data);
-        $ujian->guru_id = $guruKelas->guru_id;
-        $ujian->dibuat_oleh_admin = true;
-        $ujian->status = 'draft';
-        $ujian->save();
+        $ujian = Ujian::create([
+            ...$data,
+            'guru_id' => $guruKelas->guru_id,
+            'dibuat_oleh_admin' => true,
+            'status' => 'draft',
+        ]);
 
         $penilaian = Penilaian::create([
             'nama' => strtoupper($ujian->kategori).': '.$ujian->judul,
@@ -91,12 +88,15 @@ class UjianController extends Controller
             'aktif' => true,
             'sumber' => $ujian->kategori,
         ]);
+
         $ujian->update(['penilaian_id' => $penilaian->id]);
 
         Toast::success('Ujian dibuat.');
 
         return Redirect::back();
     }
+
+    // ── Destroy ───────────────────────────────────────────────────────────
 
     public function destroy(Ujian $ujian): RedirectResponse
     {
@@ -111,6 +111,8 @@ class UjianController extends Controller
 
         return Redirect::back();
     }
+
+    // ── Publish / Unpublish ───────────────────────────────────────────────
 
     public function terbit(Ujian $ujian): RedirectResponse
     {
@@ -130,9 +132,8 @@ class UjianController extends Controller
         return Redirect::back();
     }
 
-    /**
-     * Atur siapa pengelola token (guru pengampu atau admin).
-     */
+    // ── Token ─────────────────────────────────────────────────────────────
+
     public function setPengelolaToken(Request $request, Ujian $ujian): RedirectResponse
     {
         $data = $request->validate([
@@ -146,9 +147,6 @@ class UjianController extends Controller
         return Redirect::back();
     }
 
-    /**
-     * Buat / regenerasi token (admin, untuk ujian yang dikelola admin).
-     */
     public function generateToken(Ujian $ujian): RedirectResponse
     {
         if ($ujian->token_pengelola !== 'admin') {
@@ -167,9 +165,6 @@ class UjianController extends Controller
         return Redirect::back();
     }
 
-    /**
-     * Rilis / tahan token (admin).
-     */
     public function toggleToken(Ujian $ujian): RedirectResponse
     {
         if ($ujian->token_pengelola !== 'admin') {
@@ -195,12 +190,16 @@ class UjianController extends Controller
         return Redirect::back();
     }
 
-    /**
-     * Lihat bank soal ujian (monitoring lintas guru, read-only).
-     */
+    // ── Bank Soal View ─────────────────────────────────────────────────────
+
     public function soal(Ujian $ujian): Response
     {
-        $ujian->load(['guru:id,nama_lengkap', 'guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name', 'soals.opsi']);
+        $ujian->load([
+            'guru:id,nama_lengkap',
+            'guruKelas.kelas:id,nama',
+            'guruKelas.matpel:id,name',
+            'soals.opsi',
+        ]);
 
         return Inertia::render('admin/Ujian/Soal', [
             'ujian' => [
@@ -228,12 +227,17 @@ class UjianController extends Controller
         ]);
     }
 
-    /**
-     * Rekap hasil ujian lintas siswa (monitoring).
-     */
+    // ── Hasil ─────────────────────────────────────────────────────────────
+
     public function hasil(Ujian $ujian): Response
     {
-        $ujian->load(['guru:id,nama_lengkap', 'guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name', 'pengerjaans']);
+        $ujian->load([
+            'guru:id,nama_lengkap',
+            'guruKelas.kelas:id,nama',
+            'guruKelas.matpel:id,name',
+            'pengerjaans',
+        ]);
+
         $guruKelas = $ujian->guruKelas;
 
         $pengerjaanByNisn = $ujian->pengerjaans
@@ -248,21 +252,7 @@ class UjianController extends Controller
             ->where('active', true)
             ->orderBy('siswa_nisn')
             ->get()
-            ->map(function (SiswaKelas $sk) use ($pengerjaanByNisn): array {
-                $p = $pengerjaanByNisn->get($sk->siswa_nisn);
-
-                return [
-                    'nisn' => $sk->siswa_nisn,
-                    'nama' => $sk->siswa?->nama_lengkap ?? 'Siswa',
-                    'pengerjaan_id' => $p?->id,
-                    'status' => $p?->status ?? 'belum',
-                    'nilai_total' => $p?->nilai_total,
-                    'nilai_objektif' => $p?->nilai_objektif,
-                    'nilai_esai' => $p?->nilai_esai,
-                    'jumlah_pelanggaran' => $p?->jumlah_pelanggaran ?? 0,
-                    'submitted_at' => $p?->submitted_at?->translatedFormat('d M Y H:i'),
-                ];
-            });
+            ->map(fn (SiswaKelas $sk) => $this->mapSiswaResult($sk, $pengerjaanByNisn));
 
         return Inertia::render('admin/Ujian/Hasil', [
             'ujian' => [
@@ -280,9 +270,6 @@ class UjianController extends Controller
         ]);
     }
 
-    /**
-     * Detail satu pengerjaan + koreksi esai (admin akses penuh).
-     */
     public function hasilShow(Ujian $ujian, UjianPengerjaan $pengerjaan): Response
     {
         abort_unless($pengerjaan->ujian_id === $ujian->id, 404);
@@ -330,11 +317,12 @@ class UjianController extends Controller
         ]);
     }
 
-    /**
-     * Simpan skor esai (admin) lalu hitung ulang nilai.
-     */
-    public function nilaiEsai(Request $request, Ujian $ujian, UjianPengerjaan $pengerjaan, JawabanSiswa $jawaban): RedirectResponse
-    {
+    public function nilaiEsai(
+        Request $request,
+        Ujian $ujian,
+        UjianPengerjaan $pengerjaan,
+        JawabanSiswa $jawaban,
+    ): RedirectResponse {
         abort_unless($pengerjaan->ujian_id === $ujian->id, 404);
         abort_unless($jawaban->ujian_pengerjaan_id === $pengerjaan->id, 404);
         abort_unless($jawaban->soal?->tipe === 'esai', 404);
@@ -351,10 +339,22 @@ class UjianController extends Controller
         return Redirect::back();
     }
 
-    /**
-     * @return array<int, array{value: int, label: string}>
-     */
-    private function penugasan(): array
+    // ── Private: Query & Mapping ────────────────────────────────────────────
+
+    private function queryUjian(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        return Ujian::query()
+            ->with(['guru:id,nama_lengkap', 'guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name'])
+            ->withCount('soals')
+            ->withCount([
+                'pengerjaans as jumlah_selesai' => fn ($q) => $q->whereIn('status', ['selesai', 'auto_submit']),
+            ])
+            ->when($request->string('kategori')->toString(), fn ($q, $k) => $q->where('kategori', $k))
+            ->when($request->string('q')->toString(), fn ($q, $kw) => $q->where('judul', 'like', "%{$kw}%"));
+    }
+
+    /** @return array<int, array{value: int, label: string}> */
+    private function listPenugasan(): array
     {
         return GuruKelas::query()
             ->where('aktif', true)
@@ -368,6 +368,25 @@ class UjianController extends Controller
             ])
             ->all();
     }
+
+    private function mapSiswaResult(SiswaKelas $sk, \Illuminate\Support\Collection $pengerjaanByNisn): array
+    {
+        $p = $pengerjaanByNisn->get($sk->siswa_nisn);
+
+        return [
+            'nisn' => $sk->siswa_nisn,
+            'nama' => $sk->siswa?->nama_lengkap ?? 'Siswa',
+            'pengerjaan_id' => $p?->id,
+            'status' => $p?->status ?? 'belum',
+            'nilai_total' => $p?->nilai_total,
+            'nilai_objektif' => $p?->nilai_objektif,
+            'nilai_esai' => $p?->nilai_esai,
+            'jumlah_pelanggaran' => $p?->jumlah_pelanggaran ?? 0,
+            'submitted_at' => $p?->submitted_at?->translatedFormat('d M Y H:i'),
+        ];
+    }
+
+    // ── Private: Validation ────────────────────────────────────────────────
 
     /**
      * @return array<string, mixed>
@@ -399,25 +418,33 @@ class UjianController extends Controller
         ]);
 
         if (in_array($data['kategori'], Ujian::KATEGORI_BESAR, true)) {
-            if (empty($data['tanggal_mulai']) || empty($data['tanggal_selesai'])) {
-                throw ValidationException::withMessages([
-                    'tanggal_mulai' => 'Ujian besar wajib memiliki jadwal.',
-                ]);
-            }
-
-            $ok = PeriodeUjian::where('kategori', $data['kategori'])
-                ->where('tahun_ajaran_id', $this->tahunAjaran?->id)
-                ->where('tanggal_mulai', '<=', $data['tanggal_mulai'])
-                ->where('tanggal_selesai', '>=', $data['tanggal_selesai'])
-                ->exists();
-
-            if (! $ok) {
-                throw ValidationException::withMessages([
-                    'tanggal_mulai' => 'Jadwal harus berada dalam periode '.strtoupper($data['kategori']).'.',
-                ]);
-            }
+            $this->validateJadwalBesar($data);
         }
 
         return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function validateJadwalBesar(array $data): void
+    {
+        if (empty($data['tanggal_mulai']) || empty($data['tanggal_selesai'])) {
+            throw ValidationException::withMessages([
+                'tanggal_mulai' => 'Ujian besar wajib memiliki jadwal.',
+            ]);
+        }
+
+        $ok = PeriodeUjian::where('kategori', $data['kategori'])
+            ->where('tahun_ajaran_id', $this->tahunAjaran?->id)
+            ->where('tanggal_mulai', '<=', $data['tanggal_mulai'])
+            ->where('tanggal_selesai', '>=', $data['tanggal_selesai'])
+            ->exists();
+
+        if (! $ok) {
+            throw ValidationException::withMessages([
+                'tanggal_mulai' => 'Jadwal harus berada dalam periode '.strtoupper($data['kategori']).'.',
+            ]);
+        }
     }
 }

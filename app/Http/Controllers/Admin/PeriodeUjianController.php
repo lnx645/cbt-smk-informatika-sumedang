@@ -15,9 +15,8 @@ use Inertia\Response;
 
 class PeriodeUjianController extends Controller
 {
-    /**
-     * Daftar window periode ujian besar.
-     */
+    // ── Index ──────────────────────────────────────────────────────────────
+
     public function index(Request $request): Response
     {
         $periode = PeriodeUjian::query()
@@ -36,38 +35,51 @@ class PeriodeUjianController extends Controller
 
         return Inertia::render('admin/PeriodeUjian/Index', [
             'periode' => $periode,
-            'tahunAjaran' => TahunAjaran::orderByDesc('active')->orderBy('name')->get(['id', 'name', 'active']),
+            'tahunAjaran' => TahunAjaran::orderByDesc('active')
+                ->orderBy('name')
+                ->get(['id', 'name', 'active']),
         ]);
     }
 
+    // ── Store ─────────────────────────────────────────────────────────────
+
     public function store(Request $request): RedirectResponse
     {
-        PeriodeUjian::create($this->validated($request));
+        PeriodeUjian::create($this->validateRequest($request));
+
         Toast::success('Periode ujian ditambahkan.');
 
         return Redirect::route('admin.periode-ujian.index');
     }
 
+    // ── Update ─────────────────────────────────────────────────────────────
+
     public function update(Request $request, PeriodeUjian $periodeUjian): RedirectResponse
     {
-        $periodeUjian->update($this->validated($request));
+        $periodeUjian->update($this->validateRequest($request));
+
         Toast::success('Periode ujian diperbarui.');
 
         return Redirect::route('admin.periode-ujian.index');
     }
 
+    // ── Destroy ───────────────────────────────────────────────────────────
+
     public function destroy(PeriodeUjian $periodeUjian): RedirectResponse
     {
         $periodeUjian->delete();
+
         Toast::success('Periode ujian dihapus.');
 
         return Redirect::route('admin.periode-ujian.index');
     }
 
+    // ── Private ──────────────────────────────────────────────────────────
+
     /**
      * @return array<string, mixed>
      */
-    private function validated(Request $request): array
+    private function validateRequest(Request $request): array
     {
         return $request->validate([
             'kategori' => ['required', Rule::in(['uts', 'uas', 'usbk'])],

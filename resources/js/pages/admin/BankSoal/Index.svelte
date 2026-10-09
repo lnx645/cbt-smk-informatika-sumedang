@@ -5,6 +5,7 @@
         Button,
         Card,
         CardBody,
+        Collapse,
         Modal,
         ModalBody,
         ModalFooter,
@@ -43,7 +44,7 @@
     let {
         bank,
         matpelOptions = [],
-        filters = { matpel_id: null, tipe: null, kesulitan: null, topik: '', q: '' },
+        filters = { matpel_id: null, tipe: null, kesulitan: null, q: '' },
     }: {
         bank: PaginationMeta & { data: BankItem[] };
         matpelOptions: MatpelOption[];
@@ -51,7 +52,6 @@
             matpel_id: number | null;
             tipe: TipeSoal | null;
             kesulitan: Kesulitan | null;
-            topik: string;
             q: string;
         };
     } = $props();
@@ -83,36 +83,48 @@
     }
 
     const form = useForm(baseForm());
+    const butuhOpsi = $derived(['pg', 'multi', 'benar_salah'].includes(form.tipe));
 
-    // svelte-ignore state_referenced_locally
+    // ── Filter state ─────────────────────────────────────────────────────
     let filterMatpel = $state(filters.matpel_id);
-    // svelte-ignore state_referenced_locally
     let filterTipe: TipeSoal | null = $state(filters.tipe);
-    // svelte-ignore state_referenced_locally
     let filterKesulitan: Kesulitan | null = $state(filters.kesulitan);
-    // svelte-ignore state_referenced_locally
     let searchInput = $state(filters.q);
     let searchTimer: ReturnType<typeof setTimeout> | undefined;
+
+    // ── Grouped by matpel ─────────────────────────────────────────────────
+    const grouped = $derived(() => {
+        const groups: Record<string, BankItem[]> = {};
+        for (const item of bank.data) {
+            const key = item.matpel ?? 'Tanpa Matpel';
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(item);
+        }
+        return groups;
+    });
+
+    const groupKeys = $derived(Object.keys(grouped()));
+    const firstKey = $derived(groupKeys[0] ?? null);
+
+    // ── Accordion state ──────────────────────────────────────────────────
+    let openMatpel = $state<string | null>(firstKey);
     let modalOpen = $state(false);
     let editId = $state<number | null>(null);
 
-    const butuhOpsi = $derived(['pg', 'multi', 'benar_salah'].includes(form.tipe));
+    // ── Tipe → color ─────────────────────────────────────────────────────
+    const TIPE_COLOR: Record<TipeSoal, string> = {
+        pg: 'primary', multi: 'success', benar_salah: 'info', isian: 'warning', esai: 'secondary',
+    };
 
+    // ── Form actions ───────────────────────────────────────────────────────
     function resetForm() {
         form.reset();
-        form.opsi = [
-            { teks: '', benar: true },
-            { teks: '', benar: false },
-        ];
+        form.opsi = [{ teks: '', benar: true }, { teks: '', benar: false }];
         form.kunci_isian = [''];
         form.clearErrors();
     }
 
-    function bukaBuat() {
-        resetForm();
-        editId = null;
-        modalOpen = true;
-    }
+    function bukaBuat() { resetForm(); editId = null; modalOpen = true; }
 
     function bukaEdit(b: BankItem) {
         editId = b.id;
@@ -124,10 +136,7 @@
         form.kesulitan = b.kesulitan;
         form.opsi = b.opsi.length
             ? b.opsi.map((o) => ({ teks: o.teks, benar: o.benar }))
-            : [
-                  { teks: '', benar: true },
-                  { teks: '', benar: false },
-              ];
+            : [{ teks: '', benar: true }, { teks: '', benar: false }];
         form.kunci_isian = b.kunci_isian?.length ? [...b.kunci_isian] : [''];
         form.isian_case_sensitive = b.isian_case_sensitive;
         form.clearErrors();
@@ -137,34 +146,18 @@
     function gantiTipe(t: TipeSoal) {
         form.tipe = t;
         if (t === 'benar_salah') {
-            form.opsi = [
-                { teks: 'Benar', benar: true },
-                { teks: 'Salah', benar: false },
-            ];
+            form.opsi = [{ teks: 'Benar', benar: true }, { teks: 'Salah', benar: false }];
         }
     }
 
-    function tambahOpsi() {
-        form.opsi = [...form.opsi, { teks: '', benar: false }];
-    }
-    function hapusOpsi(i: number) {
-        form.opsi = form.opsi.filter((_, idx) => idx !== i);
-    }
-    function setBenarTunggal(i: number) {
-        form.opsi = form.opsi.map((o, idx) => ({ ...o, benar: idx === i }));
-    }
-    function tambahKunci() {
-        form.kunci_isian = [...form.kunci_isian, ''];
-    }
-    function hapusKunci(i: number) {
-        form.kunci_isian = form.kunci_isian.filter((_, idx) => idx !== i);
-    }
+    function tambahOpsi() { form.opsi = [...form.opsi, { teks: '', benar: false }]; }
+    function hapusOpsi(i: number) { form.opsi = form.opsi.filter((_, idx) => idx !== i); }
+    function setBenarTunggal(i: number) { form.opsi = form.opsi.map((o, idx) => ({ ...o, benar: idx === i })); }
+    function tambahKunci() { form.kunci_isian = [...form.kunci_isian, '']; }
+    function hapusKunci(i: number) { form.kunci_isian = form.kunci_isian.filter((_, idx) => idx !== i); }
 
     function simpan() {
-        const onSuccess = () => {
-            modalOpen = false;
-            resetForm();
-        };
+        const onSuccess = () => { modalOpen = false; resetForm(); };
         form.transform((data) => ({
             matpel_id: data.matpel_id,
             tipe: data.tipe,
@@ -194,162 +187,206 @@
         router.delete(BankSoalController.destroy({ bankSoal: b.id }).url, { preserveScroll: true });
     }
 
+    // ── Filter actions ───────────────────────────────────────────────────
+    function baseUrl() { return (usePage().url as string).split('?')[0]; }
+    function buildParams(page?: number) {
+        return {
+            ...(page !== undefined ? { page } : {}),
+            matpel_id: filterMatpel ?? undefined,
+            tipe: filterTipe ?? undefined,
+            kesulitan: filterKesulitan ?? undefined,
+            q: searchInput.trim() || undefined,
+        };
+    }
     function reload() {
-        const url = (usePage().url as string).split('?')[0];
-        router.get(
-            url,
-            {
-                matpel_id: filterMatpel ?? undefined,
-                tipe: filterTipe ?? undefined,
-                kesulitan: filterKesulitan ?? undefined,
-                q: searchInput.trim() || undefined,
-            },
-            { preserveState: true, preserveScroll: true, replace: true, only: ['bank', 'filters'] },
-        );
+        router.get(baseUrl(), buildParams(), { preserveState: true, preserveScroll: true, replace: true, only: ['bank', 'filters'] });
     }
-
-    function onSearchInput() {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(reload, 400);
-    }
-
     function goToPage(page: number) {
-        const url = (usePage().url as string).split('?')[0];
-        router.get(
-            url,
-            {
-                page,
-                matpel_id: filterMatpel ?? undefined,
-                tipe: filterTipe ?? undefined,
-                kesulitan: filterKesulitan ?? undefined,
-                q: searchInput.trim() || undefined,
-            },
-            { preserveState: true, preserveScroll: true, replace: true, only: ['bank'] },
-        );
+        router.get(baseUrl(), buildParams(page), { preserveState: true, preserveScroll: true, replace: true, only: ['bank'] });
     }
+    function onSearchInput() { clearTimeout(searchTimer); searchTimer = setTimeout(reload, 400); }
 </script>
 
 <div class="container-fluid px-0">
-    <PageHeader
-        title="Bank Soal"
-        subtitle="Kelola seluruh bank soal lintas mata pelajaran."
-    >
+    <PageHeader title="Bank Soal" subtitle="Kelola seluruh bank soal lintas mata pelajaran.">
         {#snippet actions()}
             <Button color="primary" onclick={bukaBuat}>
-                <i class="bi bi-plus-lg me-1"></i>Tambah Soal
+                <i class="bi bi-plus-lg me-1"></i>Tambah
             </Button>
         {/snippet}
     </PageHeader>
 
-    <Card class="border rounded-1 shadow-none">
-        <CardBody class="p-3">
-            <div class="d-flex flex-wrap gap-2 mb-3">
-                <div style="min-width: 200px">
-                    <Select
-                        id="f-matpel"
-                        items={matpelOptions}
-                        value={filterMatpel}
-                        placeholder="Semua matpel"
-                        clearable={true}
-                        getOptionValue={(item) => item.value}
-                        onchange={(v) => {
-                            filterMatpel = extractId(v);
-                            reload();
-                        }}
-                    />
-                </div>
-                <div style="min-width: 150px">
-                    <Select
-                        id="f-tipe"
-                        items={tipeOptions}
-                        value={filterTipe}
-                        placeholder="Semua tipe"
-                        clearable={true}
-                        getOptionValue={(item) => item.value}
-                        onchange={(v) => {
-                            filterTipe = (v as TipeSoal) ?? null;
-                            reload();
-                        }}
-                    />
-                </div>
-                <div style="min-width: 140px">
-                    <Select
-                        id="f-kesulitan"
-                        items={kesulitanOptions}
-                        value={filterKesulitan}
-                        placeholder="Semua tingkat"
-                        clearable={true}
-                        getOptionValue={(item) => item.value}
-                        onchange={(v) => {
-                            filterKesulitan = (v as Kesulitan) ?? null;
-                            reload();
-                        }}
-                    />
-                </div>
-                <div class="input-group input-group-sm" style="max-width: 240px">
-                    <span class="input-group-text bg-body"><i class="bi bi-search"></i></span>
-                    <input type="search" class="form-control" placeholder="Cari pertanyaan…" bind:value={searchInput} onkeyup={onSearchInput} />
-                </div>
-            </div>
+    <!-- ── Filter Bar ─────────────────────────────────────────────── -->
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <div style="min-width:180px">
+            <Select
+                items={matpelOptions}
+                value={filterMatpel}
+                placeholder="Semua matpel"
+                clearable={true}
+                getOptionValue={(item) => item.value}
+                onchange={(v) => { filterMatpel = extractId(v); reload(); }}
+            />
+        </div>
+        <div style="min-width:150px">
+            <Select
+                items={tipeOptions}
+                value={filterTipe}
+                placeholder="Semua tipe"
+                clearable={true}
+                getOptionValue={(item) => item.value}
+                onchange={(v) => { filterTipe = (v as {value: TipeSoal} | null)?.value ?? null; reload(); }}
+            />
+        </div>
+        <div style="min-width:140px">
+            <Select
+                items={kesulitanOptions}
+                value={filterKesulitan}
+                placeholder="Semua tingkat"
+                clearable={true}
+                getOptionValue={(item) => item.value}
+                onchange={(v) => { filterKesulitan = (v as {value: Kesulitan} | null)?.value ?? null; reload(); }}
+            />
+        </div>
+        <div class="input-group input-group-sm ms-auto" style="max-width:220px">
+            <span class="input-group-text bg-transparent"><i class="bi bi-search"></i></span>
+            <input type="search" class="form-control" placeholder="Cari…" bind:value={searchInput} onkeyup={onSearchInput} />
+        </div>
+    </div>
+
+    <!-- ── Main Card ─────────────────────────────────────────────────── -->
+    <Card>
+        <CardBody class="p-0">
 
             {#if bank.data.length === 0}
                 <div class="text-center text-muted py-5">
-                    <i class="bi bi-inboxes display-5 d-block mb-2"></i>
-                    <div>Belum ada soal di bank.</div>
+                    <i class="bi bi-inboxes display-5 d-block mb-2 opacity-25"></i>
+                    <div class="fw-semibold mb-1">Belum ada soal di bank.</div>
+                    <div class="small mb-3">Tambahkan soal baru untuk mulai membangun bank soal.</div>
+                    <Button color="primary" onclick={bukaBuat}>
+                        <i class="bi bi-plus-lg me-1"></i>Tambah Soal Pertama
+                    </Button>
                 </div>
+
             {:else}
-                {#each bank.data as b (b.id)}
-                    <div class="border rounded-1 p-3 mb-2">
-                        <div class="d-flex justify-content-between align-items-start gap-2">
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                    <Badge color="light" class="text-dark border">
-                                        <i class={`bi ${TIPE_SOAL_INFO[b.tipe].icon} me-1`}></i>
-                                        {TIPE_SOAL_INFO[b.tipe].label}
-                                    </Badge>
-                                    <Badge color={KESULITAN_INFO[b.kesulitan].color} pill>
-                                        {KESULITAN_INFO[b.kesulitan].label}
-                                    </Badge>
-                                    <span class="text-muted small">{b.matpel} · {b.poin} poin</span>
-                                    {#if b.guru}
-                                        <span class="badge bg-light text-dark border">{b.guru}</span>
-                                    {/if}
-                                    {#if b.topik}
-                                        <span class="badge bg-secondary-subtle text-secondary-emphasis">{b.topik}</span>
-                                    {/if}
-                                </div>
-                                <div class="rich-deskripsi">{@html b.pertanyaan}</div>
-                                {#if b.opsi.length}
-                                    <ul class="mt-1 mb-0 small">
-                                        {#each b.opsi as o (o.id)}
-                                            <li class={o.benar ? 'text-success fw-semibold' : ''}>
-                                                {o.teks}{#if o.benar}<i class="bi bi-check-circle ms-1"></i>{/if}
-                                            </li>
-                                        {/each}
-                                    </ul>
-                                {:else if b.kunci_isian?.length}
-                                    <div class="small text-muted mt-1">Kunci: {b.kunci_isian.join(', ')}</div>
-                                {/if}
-                            </div>
-                            <div class="d-inline-flex gap-1">
-                                <Button size="sm" color="outline-secondary" onclick={() => bukaEdit(b)}>
-                                    <i class="bi bi-pencil"></i>
-                                </Button>
-                                <Button size="sm" color="outline-danger" onclick={() => hapus(b)}>
-                                    <i class="bi bi-trash"></i>
-                                </Button>
-                            </div>
-                        </div>
+                <!-- Toolbar -->
+                <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                    <span class="small text-muted">{groupKeys.length} mata pelajaran · {bank.total} soal</span>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-secondary" onclick={() => { openMatpel = null; }}>
+                            <i class="bi bi-arrows-collapse me-1"></i>Tutup
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick={() => { openMatpel = firstKey; }}>
+                            <i class="bi bi-arrows-expand me-1"></i>Buka
+                        </button>
                     </div>
+                </div>
+
+                <!-- Grouped by Matpel -->
+                {#each groupKeys as matpelName (matpelName)}
+                    {@const items = grouped()[matpelName]}
+                    {@const isOpen = openMatpel === matpelName}
+                    {@const totalPoin = items.reduce((s, b) => s + b.poin, 0)}
+                    {@const tipeCount = items.reduce((acc, b) => {
+                        acc[b.tipe] = (acc[b.tipe] ?? 0) + 1;
+                        return acc;
+                    }, {} as Record<string, number>)}
+
+                    <!-- Matpel Header -->
+                    <div
+                        class="d-flex align-items-center gap-2 px-3 py-2 border-bottom"
+                        role="button"
+                        tabindex="0"
+                        onclick={() => { openMatpel = isOpen ? null : matpelName; }}
+                        onkeydown={(e) => e.key === 'Enter' && (openMatpel = isOpen ? null : matpelName)}
+                        style="cursor:pointer"
+                    >
+                        <i class={`bi ${isOpen ? 'bi-chevron-down' : 'bi-chevron-right'} text-muted flex-shrink-0`}></i>
+                        <i class="bi bi-book text-primary flex-shrink-0"></i>
+                        <span class="fw-semibold flex-grow-1 small">{matpelName}</span>
+                        {#each Object.entries(tipeCount) as [tipe, count] (tipe)}
+                            <span class={`badge bg-light text-dark border`} style="font-size:0.63rem">
+                                {TIPE_SOAL_INFO[tipe as TipeSoal]?.label ?? tipe}: {count}
+                            </span>
+                        {/each}
+                        <span class="badge bg-dark" style="font-size:0.63rem">{items.length} · {totalPoin}pt</span>
+                    </div>
+
+                    <!-- Question Rows -->
+                    <Collapse isOpen={isOpen}>
+                        <div>
+                            {#each items as b (b.id)}
+                                <div class="d-flex align-items-start gap-3 px-3 py-2 border-bottom">
+                                    <!-- Left accent bar -->
+                                    <div class={`rounded flex-shrink-0 accent-bar accent-${TIPE_COLOR[b.tipe]}`}></div>
+
+                                    <!-- Info -->
+                                    <div class="flex-grow-1 min-w-0">
+                                        <!-- Meta -->
+                                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                            <Badge color={TIPE_COLOR[b.tipe]} class="text-white" style="font-size:0.68rem">
+                                                <i class={`bi ${TIPE_SOAL_INFO[b.tipe].icon} me-1`}></i>
+                                                {TIPE_SOAL_INFO[b.tipe].label}
+                                            </Badge>
+                                            <Badge color={KESULITAN_INFO[b.kesulitan].color} style="font-size:0.63rem">
+                                                {KESULITAN_INFO[b.kesulitan].label}
+                                            </Badge>
+                                            <span class="text-muted small">{b.poin} poin</span>
+                                            {#if b.guru}
+                                                <span class="badge bg-light text-dark border" style="font-size:0.63rem">{b.guru}</span>
+                                            {/if}
+                                            {#if b.topik}
+                                                <span class="badge bg-light text-dark border" style="font-size:0.63rem">{b.topik}</span>
+                                            {/if}
+                                        </div>
+
+                                        <!-- Pertanyaan -->
+                                        <div class="mb-1" style="font-size:0.875rem">{@html b.pertanyaan}</div>
+
+                                        <!-- Jawaban -->
+                                        {#if b.opsi.length}
+                                            <div class="d-flex flex-wrap gap-1">
+                                                {#each b.opsi as o (o.id)}
+                                                    <span class={`badge ${o.benar ? `bg-${TIPE_COLOR[b.tipe]}` : 'bg-light text-dark border'}`} style="font-size:0.7rem">
+                                                        {#if o.benar}<i class="bi bi-check-circle-fill me-1"></i>{:else}<i class="bi bi-circle me-1" style="font-size:0.6rem"></i>{/if}{o.teks}
+                                                    </span>
+                                                {/each}
+                                            </div>
+                                        {:else if b.kunci_isian?.length}
+                                            <div class="small text-muted">
+                                                <i class="bi bi-key me-1"></i>{b.kunci_isian.join(' | ')}
+                                            </div>
+                                        {/if}
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="d-inline-flex gap-1 flex-shrink-0">
+                                        <Button size="sm" color="outline-secondary" onclick={() => bukaEdit(b)} title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </Button>
+                                        <Button size="sm" color="outline-danger" onclick={() => hapus(b)} title="Hapus">
+                                            <i class="bi bi-trash"></i>
+                                        </Button>
+                                    </div>
+                                </div>
+                            {/each}
+                        </div>
+                    </Collapse>
                 {/each}
-                <Pagination meta={bank} onPageChange={goToPage} />
+
+                <!-- Pagination -->
+                <div class="px-3 py-2 border-top">
+                    <Pagination meta={bank} onPageChange={goToPage} />
+                </div>
             {/if}
         </CardBody>
     </Card>
 
+    <!-- ── Modal Form ─────────────────────────────────────────────────── -->
     <Modal isOpen={modalOpen} toggle={() => (modalOpen = !modalOpen)} size="lg">
         <ModalHeader toggle={() => (modalOpen = false)}>
-            {editId ? 'Edit Soal Bank' : 'Tambah Soal Bank'}
+            <i class={`bi ${editId ? 'bi-pencil-square' : 'bi-plus-circle'} me-2`}></i>
+            {editId ? 'Edit Soal' : 'Tambah Soal'}
         </ModalHeader>
         <ModalBody>
             <div class="row g-3">
@@ -368,9 +405,7 @@
                 <div class="col-md-3">
                     <label class="form-label" for="b-tipe">Tipe</label>
                     <select id="b-tipe" class="form-select" value={form.tipe} onchange={(e) => gantiTipe((e.currentTarget as HTMLSelectElement).value as TipeSoal)}>
-                        {#each tipeOptions as opt (opt.value)}
-                            <option value={opt.value}>{opt.label}</option>
-                        {/each}
+                        {#each tipeOptions as opt (opt.value)}<option value={opt.value}>{opt.label}</option>{/each}
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -384,9 +419,7 @@
                 <div class="col-md-4">
                     <label class="form-label" for="b-kesulitan">Kesulitan</label>
                     <select id="b-kesulitan" class="form-select" bind:value={form.kesulitan}>
-                        {#each kesulitanOptions as opt (opt.value)}
-                            <option value={opt.value}>{opt.label}</option>
-                        {/each}
+                        {#each kesulitanOptions as opt (opt.value)}<option value={opt.value}>{opt.label}</option>{/each}
                     </select>
                 </div>
                 <div class="col-12">
@@ -409,7 +442,7 @@
                                     {#if form.tipe === 'multi'}
                                         <input type="checkbox" checked={form.opsi[i].benar} onchange={(e) => (form.opsi[i].benar = (e.currentTarget as HTMLInputElement).checked)} />
                                     {:else}
-                                        <input type="radio" name="admin-bank-opsi-benar" checked={form.opsi[i].benar} onchange={() => setBenarTunggal(i)} />
+                                        <input type="radio" name="bank-opsi" checked={form.opsi[i].benar} onchange={() => setBenarTunggal(i)} />
                                     {/if}
                                 </span>
                                 <input class="form-control" placeholder={`Opsi ${i + 1}`} bind:value={form.opsi[i].teks} readonly={form.tipe === 'benar_salah'} />
@@ -452,7 +485,21 @@
         </ModalBody>
         <ModalFooter>
             <Button color="secondary" onclick={() => (modalOpen = false)}>Batal</Button>
-            <Button color="primary" onclick={simpan} disabled={form.processing}>Simpan</Button>
+            <Button color="primary" onclick={simpan} disabled={form.processing}>
+                <i class="bi bi-check-lg me-1"></i>Simpan
+            </Button>
         </ModalFooter>
     </Modal>
 </div>
+
+<style>
+    .accent-bar {
+        width: 4px;
+        min-height: 36px;
+    }
+    .accent-primary   { background: var(--bs-primary); }
+    .accent-success   { background: var(--bs-success); }
+    .accent-warning   { background: var(--bs-warning); }
+    .accent-info      { background: var(--bs-info); }
+    .accent-secondary { background: var(--bs-secondary); }
+</style>

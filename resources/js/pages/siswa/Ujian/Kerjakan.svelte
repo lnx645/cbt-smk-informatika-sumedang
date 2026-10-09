@@ -3,7 +3,12 @@
     import { router } from '@inertiajs/svelte';
     import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
     import { confirm } from '@/lib/confirm.svelte';
-    import { formatDurasi, type KategoriUjian, type TipeSoal } from '@/lib/ujian';
+    import {
+        KATEGORI_INFO,
+        formatDurasi,
+        type KategoriUjian,
+        type TipeSoal,
+    } from '@/lib/ujian';
     import UjianController from '@/actions/App/Http/Controllers/Siswa/UjianController';
 
     type Opsi = { id: number; teks: string };
@@ -192,7 +197,12 @@
 <div class="container-fluid px-0 ujian-runtime">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
-            <h1 class="h5 mb-0">{ujian.judul}</h1>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h1 class="h5 mb-0">{ujian.judul}</h1>
+                <Badge color={KATEGORI_INFO[ujian.kategori].color} pill
+                    >{KATEGORI_INFO[ujian.kategori].label}</Badge
+                >
+            </div>
             <div class="text-muted small">
                 Terjawab {terjawab}/{soals.length}
             </div>
@@ -320,5 +330,17 @@
     }
     .timer {
         font-variant-numeric: tabular-nums;
+        padding: 0.45rem 1rem;
+        border-radius: 999px;
+        color: #fff;
+        box-shadow: 0 0.2rem 0.5rem rgba(37, 99, 235, 0.25);
+    }
+
+    .timer.bg-primary {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    }
+
+    .timer.bg-danger {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
     }
 </style>

@@ -12549,12 +12549,12 @@ textarea.form-control-lg {
   --app-shell-primary-dark: #2b567a;
   --app-shell-accent: #D4A27F;
   --app-shell-accent-soft: rgba(253, 212, 6, 0.16);
-  --app-shell-app-bg: #FAF9F5;
+  --app-shell-app-bg: #f4f6fb;
   --app-shell-surface: #ffffff;
-  --app-shell-border: #E8E6DC;
-  --app-shell-text: #3D3D3A;
-  --app-shell-text-muted: #5E5D59;
-  --app-shell-primary-soft: #f0f5fa;
+  --app-shell-border: #e5e8f0;
+  --app-shell-text: #1f2937;
+  --app-shell-text-muted: #64748b;
+  --app-shell-primary-soft: #eef3ff;
   --app-shell-danger: #C46686;
   --app-shell-danger-soft: rgba(194, 92, 82, 0.1);
   --app-shell-success: #788C5D;
@@ -15119,25 +15119,25 @@ label {
   --bs-danger-border-subtle: rgb(117.6, 61.2, 80.4);
   --bs-light-border-subtle: #5E5D59;
   --bs-dark-border-subtle: #3D3D3A;
-  --app-shell-primary: #5a9fd4;
-  --app-shell-primary-dark: #7db8e6;
-  --app-shell-accent: #e0b88a;
-  --app-shell-accent-soft: rgba(224, 184, 138, 0.15);
-  --app-shell-app-bg: #141413;
-  --app-shell-surface: #3D3D3A;
-  --app-shell-border: #5E5D59;
-  --app-shell-text: #F0EEE6;
-  --app-shell-text-muted: #B0AEA5;
-  --app-shell-primary-soft: rgba(90, 159, 212, 0.15);
+  --app-shell-primary: #6cb2e6;
+  --app-shell-primary-dark: #8fc8ee;
+  --app-shell-accent: #f0c674;
+  --app-shell-accent-soft: rgba(240, 198, 116, 0.15);
+  --app-shell-app-bg: #0f1117;
+  --app-shell-surface: #181b24;
+  --app-shell-border: #272a37;
+  --app-shell-text: #e6e8ee;
+  --app-shell-text-muted: #9aa1b1;
+  --app-shell-primary-soft: rgba(108, 178, 230, 0.15);
   --app-shell-danger: #e07070;
   --app-shell-danger-soft: rgba(224, 112, 112, 0.12);
   --app-shell-success: #8cb87a;
   --app-shell-success-soft: rgba(140, 184, 122, 0.12);
   --app-shell-info: #7abfb8;
   --app-shell-info-soft: rgba(122, 191, 184, 0.12);
-  --color-primary: #5a9fd4;
+  --color-primary: #6cb2e6;
   --color-secondary: #9ca3af;
-  --color-accent: #7db8e6;
+  --color-accent: #8fc8ee;
   --color-text-on-primary: #ffffff;
   --color-text-primary: #e0e0e0;
   --color-text-secondary: #c8c8c8;
@@ -15161,10 +15161,10 @@ label {
   --inv-gray-700: #d1d5db;
   --inv-gray-800: #e5e7eb;
   --inv-gray-900: #f3f4f6;
-  --inv-primary-50: rgba(90, 159, 212, 0.15);
-  --inv-primary-100: rgba(90, 159, 212, 0.25);
-  --inv-primary-500: #5a9fd4;
-  --inv-primary-700: #7db8e6;
+  --inv-primary-50: rgba(108, 178, 230, 0.15);
+  --inv-primary-100: rgba(108, 178, 230, 0.25);
+  --inv-primary-500: #6cb2e6;
+  --inv-primary-700: #8fc8ee;
   --inv-secondary-50: rgba(156, 163, 175, 0.12);
   --inv-secondary-100: rgba(156, 163, 175, 0.2);
   --inv-secondary-500: #9ca3af;
@@ -15200,9 +15200,9 @@ label {
   border-color: var(--app-shell-primary) !important;
 }
 [data-bs-theme=dark] .card-primary .card-header {
-  background-color: rgba(90, 159, 212, 0.1) !important;
-  border-bottom-color: rgba(90, 159, 212, 0.2) !important;
-  color: #7db8e6 !important;
+  background-color: rgba(108, 178, 230, 0.1) !important;
+  border-bottom-color: rgba(108, 178, 230, 0.2) !important;
+  color: #8fc8ee !important;
 }
 [data-bs-theme=dark] .card-success .card-header {
   background-color: rgba(140, 184, 122, 0.1) !important;
@@ -15244,7 +15244,7 @@ label {
   border-bottom-color: var(--app-shell-border) !important;
 }
 [data-bs-theme=dark] .table tbody tr:hover td {
-  background-color: rgba(90, 159, 212, 0.08) !important;
+  background-color: rgba(108, 178, 230, 0.08) !important;
 }
 [data-bs-theme=dark] .table tfoot th {
   background-color: rgba(42, 45, 58, 0.6) !important;
@@ -15330,7 +15330,7 @@ label {
   color: var(--app-shell-text) !important;
 }
 [data-bs-theme=dark] .dropdown-item:hover, [data-bs-theme=dark] .dropdown-item:focus {
-  background-color: rgba(90, 159, 212, 0.1) !important;
+  background-color: rgba(108, 178, 230, 0.1) !important;
   color: var(--app-shell-text) !important;
 }
 [data-bs-theme=dark] .dropdown-item:active {
@@ -15375,7 +15375,7 @@ label {
   --bs-accordion-btn-color: #F0EEE6;
   --bs-accordion-btn-bg: #3D3D3A;
   --bs-accordion-active-color: #629dc8;
-  --bs-accordion-active-bg: rgba(90, 159, 212, 0.08);
+  --bs-accordion-active-bg: rgba(108, 178, 230, 0.08);
 }
 [data-bs-theme=dark] .accordion-item {
   background-color: var(--app-shell-surface) !important;
@@ -15387,15 +15387,15 @@ label {
   box-shadow: inset 0 -1px 0 var(--app-shell-border) !important;
 }
 [data-bs-theme=dark] .accordion-button:not(.collapsed) {
-  background-color: rgba(90, 159, 212, 0.08) !important;
+  background-color: rgba(108, 178, 230, 0.08) !important;
   color: var(--app-shell-primary) !important;
-  box-shadow: inset 0 -1px 0 rgba(90, 159, 212, 0.2) !important;
+  box-shadow: inset 0 -1px 0 rgba(108, 178, 230, 0.2) !important;
 }
 [data-bs-theme=dark] .accordion-button:hover {
-  background-color: rgba(90, 159, 212, 0.05) !important;
+  background-color: rgba(108, 178, 230, 0.05) !important;
 }
 [data-bs-theme=dark] .accordion-button:focus {
-  box-shadow: inset 0 -1px 0 var(--app-shell-border), 0 0 0 3px rgba(90, 159, 212, 0.2) !important;
+  box-shadow: inset 0 -1px 0 var(--app-shell-border), 0 0 0 3px rgba(108, 178, 230, 0.2) !important;
 }
 [data-bs-theme=dark] .accordion-button::after {
   filter: invert(0.7);
@@ -15407,8 +15407,8 @@ label {
   color: var(--app-shell-text-muted) !important;
 }
 [data-bs-theme=dark] .accordion-primary .accordion-button:not(.collapsed) {
-  background-color: rgba(90, 159, 212, 0.08) !important;
-  color: #7db8e6 !important;
+  background-color: rgba(108, 178, 230, 0.08) !important;
+  color: #8fc8ee !important;
 }
 [data-bs-theme=dark] .accordion-success .accordion-button:not(.collapsed) {
   background-color: rgba(140, 184, 122, 0.08) !important;
@@ -15431,9 +15431,9 @@ label {
   color: #d1d5db !important;
 }
 [data-bs-theme=dark] .alert-primary {
-  background-color: rgba(90, 159, 212, 0.12) !important;
-  border-color: rgba(90, 159, 212, 0.25) !important;
-  color: #7db8e6 !important;
+  background-color: rgba(108, 178, 230, 0.12) !important;
+  border-color: rgba(108, 178, 230, 0.25) !important;
+  color: #8fc8ee !important;
 }
 [data-bs-theme=dark] .alert-secondary {
   background-color: rgba(156, 163, 175, 0.12) !important;
@@ -15466,7 +15466,7 @@ label {
   color: var(--app-shell-text) !important;
 }
 [data-bs-theme=dark] .list-group-item:hover {
-  background-color: rgba(90, 159, 212, 0.06) !important;
+  background-color: rgba(108, 178, 230, 0.06) !important;
 }
 [data-bs-theme=dark] .list-group-item.active {
   background-color: var(--app-shell-primary) !important;
@@ -15479,7 +15479,7 @@ label {
   color: var(--app-shell-text-muted) !important;
 }
 [data-bs-theme=dark] .page-link:hover {
-  background-color: rgba(90, 159, 212, 0.08) !important;
+  background-color: rgba(108, 178, 230, 0.08) !important;
   color: var(--app-shell-primary) !important;
   border-color: var(--app-shell-border) !important;
 }
@@ -15532,7 +15532,7 @@ label {
 }
 [data-bs-theme=dark] .text-bg-primary {
   color: #ffffff !important;
-  background-color: rgba(90, 159, 212, 0.9) !important;
+  background-color: rgba(108, 178, 230, 0.9) !important;
 }
 [data-bs-theme=dark] .text-bg-secondary {
   color: #ffffff !important;
@@ -15586,7 +15586,7 @@ label {
   --bs-btn-bg: #3D3D3A;
   --bs-btn-border-color: #5E5D59;
   --bs-btn-color: #F0EEE6;
-  --bs-btn-hover-bg: rgba(90, 159, 212, 0.1);
+  --bs-btn-hover-bg: rgba(108, 178, 230, 0.1);
   --bs-btn-hover-border-color: #5E5D59;
   --bs-btn-hover-color: #F0EEE6;
   --bs-btn-active-bg: rgba(42, 45, 58, 0.8);
@@ -15595,7 +15595,7 @@ label {
   --bs-btn-disabled-color: #B0AEA5;
 }
 [data-bs-theme=dark] .btn-secondary:hover {
-  background-color: rgba(90, 159, 212, 0.1) !important;
+  background-color: rgba(108, 178, 230, 0.1) !important;
   border-color: var(--app-shell-border) !important;
   color: var(--app-shell-text) !important;
 }
@@ -15607,7 +15607,7 @@ label {
   border-color: var(--app-shell-border) !important;
 }
 [data-bs-theme=dark] .btn-outline-secondary:hover {
-  background-color: rgba(90, 159, 212, 0.1) !important;
+  background-color: rgba(108, 178, 230, 0.1) !important;
   color: var(--app-shell-text) !important;
   border-color: var(--app-shell-primary) !important;
 }
@@ -15626,7 +15626,7 @@ label {
   border-color: var(--app-shell-border) !important;
 }
 [data-bs-theme=dark] .btn-outline-light:hover {
-  background-color: rgba(90, 159, 212, 0.1) !important;
+  background-color: rgba(108, 178, 230, 0.1) !important;
   color: var(--app-shell-text) !important;
 }
 [data-bs-theme=dark] .breadcrumb .breadcrumb-item a {
@@ -15774,13 +15774,13 @@ label {
   background-color: rgba(42, 45, 58, 0.3) !important;
 }
 [data-bs-theme=dark] .table-hover > tbody > tr:hover > td {
-  background-color: rgba(90, 159, 212, 0.08) !important;
+  background-color: rgba(108, 178, 230, 0.08) !important;
 }
 [data-bs-theme=dark] a {
-  color: #7db8e6;
+  color: #8fc8ee;
 }
 [data-bs-theme=dark] a:hover {
-  color: #5a9fd4;
+  color: #6cb2e6;
 }
 [data-bs-theme=dark] h1, [data-bs-theme=dark] h2, [data-bs-theme=dark] h3, [data-bs-theme=dark] h4, [data-bs-theme=dark] h5, [data-bs-theme=dark] h6,
 [data-bs-theme=dark] .h1, [data-bs-theme=dark] .h2, [data-bs-theme=dark] .h3, [data-bs-theme=dark] .h4, [data-bs-theme=dark] .h5, [data-bs-theme=dark] .h6 {

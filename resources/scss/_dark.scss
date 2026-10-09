@@ -49,16 +49,16 @@
     --bs-dark-border-subtle: #{$gray-800};
 
     // ── 2. App Shell Tokens ──────────────────────────────
-    --app-shell-primary: #5a9fd4;
-    --app-shell-primary-dark: #7db8e6;
-    --app-shell-accent: #e0b88a;
-    --app-shell-accent-soft: rgba(224, 184, 138, 0.15);
-    --app-shell-app-bg: #{$gray-900};
-    --app-shell-surface: #{$gray-800};
-    --app-shell-border: #{$gray-700};
-    --app-shell-text: #{$gray-200};
-    --app-shell-text-muted: #{$gray-500};
-    --app-shell-primary-soft: rgba(90, 159, 212, 0.15);
+    --app-shell-primary: #6cb2e6;
+    --app-shell-primary-dark: #8fc8ee;
+    --app-shell-accent: #f0c674;
+    --app-shell-accent-soft: rgba(240, 198, 116, 0.15);
+    --app-shell-app-bg: #0f1117;
+    --app-shell-surface: #181b24;
+    --app-shell-border: #272a37;
+    --app-shell-text: #e6e8ee;
+    --app-shell-text-muted: #9aa1b1;
+    --app-shell-primary-soft: rgba(108, 178, 230, 0.15);
     --app-shell-danger: #e07070;
     --app-shell-danger-soft: rgba(224, 112, 112, 0.12);
     --app-shell-success: #8cb87a;
@@ -67,9 +67,9 @@
     --app-shell-info-soft: rgba(122, 191, 184, 0.12);
 
     // ── 3. Theme Utility Variables ────────────────────────
-    --color-primary: #5a9fd4;
+    --color-primary: #6cb2e6;
     --color-secondary: #9ca3af;
-    --color-accent: #7db8e6;
+    --color-accent: #8fc8ee;
     --color-text-on-primary: #ffffff;
     --color-text-primary: #e0e0e0;
     --color-text-secondary: #c8c8c8;
@@ -95,10 +95,10 @@
     --inv-gray-700: #d1d5db;
     --inv-gray-800: #e5e7eb;
     --inv-gray-900: #f3f4f6;
-    --inv-primary-50: rgba(90, 159, 212, 0.15);
-    --inv-primary-100: rgba(90, 159, 212, 0.25);
-    --inv-primary-500: #5a9fd4;
-    --inv-primary-700: #7db8e6;
+    --inv-primary-50: rgba(108, 178, 230, 0.15);
+    --inv-primary-100: rgba(108, 178, 230, 0.25);
+    --inv-primary-500: #6cb2e6;
+    --inv-primary-700: #8fc8ee;
     --inv-secondary-50: rgba(156, 163, 175, 0.12);
     --inv-secondary-100: rgba(156, 163, 175, 0.2);
     --inv-secondary-500: #9ca3af;
@@ -139,9 +139,9 @@
         border-color: var(--app-shell-primary) !important;
 
         .card-header {
-            background-color: rgba(90, 159, 212, 0.1) !important;
-            border-bottom-color: rgba(90, 159, 212, 0.2) !important;
-            color: #7db8e6 !important;
+            background-color: rgba(108, 178, 230, 0.1) !important;
+            border-bottom-color: rgba(108, 178, 230, 0.2) !important;
+            color: #8fc8ee !important;
         }
     }
 
@@ -193,7 +193,7 @@
             }
 
             tr:hover td {
-                background-color: rgba(90, 159, 212, 0.08) !important;
+                background-color: rgba(108, 178, 230, 0.08) !important;
             }
         }
 
@@ -303,7 +303,7 @@
 
         &:hover,
         &:focus {
-            background-color: rgba(90, 159, 212, 0.1) !important;
+            background-color: rgba(108, 178, 230, 0.1) !important;
             color: var(--app-shell-text) !important;
         }
 
@@ -361,7 +361,7 @@
         --bs-accordion-btn-color: #{$gray-200};
         --bs-accordion-btn-bg: #{$gray-800};
         --bs-accordion-active-color: #{$blue-400};
-        --bs-accordion-active-bg: rgba(90, 159, 212, 0.08);
+        --bs-accordion-active-bg: rgba(108, 178, 230, 0.08);
     }
 
     .accordion-item {
@@ -375,18 +375,18 @@
         box-shadow: inset 0 -1px 0 var(--app-shell-border) !important;
 
         &:not(.collapsed) {
-            background-color: rgba(90, 159, 212, 0.08) !important;
+            background-color: rgba(108, 178, 230, 0.08) !important;
             color: var(--app-shell-primary) !important;
-            box-shadow: inset 0 -1px 0 rgba(90, 159, 212, 0.2) !important;
+            box-shadow: inset 0 -1px 0 rgba(108, 178, 230, 0.2) !important;
         }
 
         &:hover {
-            background-color: rgba(90, 159, 212, 0.05) !important;
+            background-color: rgba(108, 178, 230, 0.05) !important;
         }
 
         &:focus {
             box-shadow: inset 0 -1px 0 var(--app-shell-border),
-                0 0 0 3px rgba(90, 159, 212, 0.2) !important;
+                0 0 0 3px rgba(108, 178, 230, 0.2) !important;
         }
 
         &::after {
@@ -403,8 +403,8 @@
     }
 
     .accordion-primary .accordion-button:not(.collapsed) {
-        background-color: rgba(90, 159, 212, 0.08) !important;
-        color: #7db8e6 !important;
+        background-color: rgba(108, 178, 230, 0.08) !important;
+        color: #8fc8ee !important;
     }
 
     .accordion-success .accordion-button:not(.collapsed) {
@@ -434,9 +434,9 @@
 
     // ── 13. Alerts (override _alerts.scss) ────────────────
     .alert-primary {
-        background-color: rgba(90, 159, 212, 0.12) !important;
-        border-color: rgba(90, 159, 212, 0.25) !important;
-        color: #7db8e6 !important;
+        background-color: rgba(108, 178, 230, 0.12) !important;
+        border-color: rgba(108, 178, 230, 0.25) !important;
+        color: #8fc8ee !important;
     }
 
     .alert-secondary {
@@ -476,7 +476,7 @@
         color: var(--app-shell-text) !important;
 
         &:hover {
-            background-color: rgba(90, 159, 212, 0.06) !important;
+            background-color: rgba(108, 178, 230, 0.06) !important;
         }
 
         &.active {
@@ -493,7 +493,7 @@
         color: var(--app-shell-text-muted) !important;
 
         &:hover {
-            background-color: rgba(90, 159, 212, 0.08) !important;
+            background-color: rgba(108, 178, 230, 0.08) !important;
             color: var(--app-shell-primary) !important;
             border-color: var(--app-shell-border) !important;
         }
@@ -563,7 +563,7 @@
     // ── 16b. text-bg-* (override hardcoded text colors) ───
     .text-bg-primary {
         color: #ffffff !important;
-        background-color: rgba(90, 159, 212, 0.9) !important;
+        background-color: rgba(108, 178, 230, 0.9) !important;
     }
 
     .text-bg-secondary {
@@ -633,7 +633,7 @@
         --bs-btn-bg: #{$gray-800};
         --bs-btn-border-color: #{$gray-700};
         --bs-btn-color: #{$gray-200};
-        --bs-btn-hover-bg: rgba(90, 159, 212, 0.1);
+        --bs-btn-hover-bg: rgba(108, 178, 230, 0.1);
         --bs-btn-hover-border-color: #{$gray-700};
         --bs-btn-hover-color: #{$gray-200};
         --bs-btn-active-bg: rgba(42, 45, 58, 0.8);
@@ -642,7 +642,7 @@
         --bs-btn-disabled-color: #{$gray-500};
 
         &:hover {
-            background-color: rgba(90, 159, 212, 0.1) !important;
+            background-color: rgba(108, 178, 230, 0.1) !important;
             border-color: var(--app-shell-border) !important;
             color: var(--app-shell-text) !important;
         }
@@ -657,7 +657,7 @@
         border-color: var(--app-shell-border) !important;
 
         &:hover {
-            background-color: rgba(90, 159, 212, 0.1) !important;
+            background-color: rgba(108, 178, 230, 0.1) !important;
             color: var(--app-shell-text) !important;
             border-color: var(--app-shell-primary) !important;
         }
@@ -680,7 +680,7 @@
         border-color: var(--app-shell-border) !important;
 
         &:hover {
-            background-color: rgba(90, 159, 212, 0.1) !important;
+            background-color: rgba(108, 178, 230, 0.1) !important;
             color: var(--app-shell-text) !important;
         }
     }
@@ -879,16 +879,16 @@
     }
 
     .table-hover > tbody > tr:hover > td {
-        background-color: rgba(90, 159, 212, 0.08) !important;
+        background-color: rgba(108, 178, 230, 0.08) !important;
     }
 
     // ── 26. Link Colors ──────────────────────────────────
     a {
-        color: #7db8e6;
+        color: #8fc8ee;
     }
 
     a:hover {
-        color: #5a9fd4;
+        color: #6cb2e6;
     }
 
     // ── 27. Headings ─────────────────────────────────────

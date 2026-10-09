@@ -36,6 +36,9 @@ class BankSoal extends Model
 
     public const KESULITAN = ['mudah', 'sedang', 'sulit'];
 
+    /** Tipe soal yang butuh opsi jawaban (bukan isian/esai). */
+    public const OPSI_TIPE = ['pg', 'multi', 'benar_salah'];
+
     public function matpel(): BelongsTo
     {
         return $this->belongsTo(Matpel::class);
@@ -53,7 +56,7 @@ class BankSoal extends Model
 
     public function butuhOpsi(): bool
     {
-        return in_array($this->tipe, ['pg', 'multi', 'benar_salah'], true);
+        return in_array($this->tipe, self::OPSI_TIPE, true);
     }
 
     /**
