@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\LaporanExportService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use OpenSpout\Common\Entity\Row;
@@ -11,6 +12,7 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Options;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class LaporanController extends Controller
 {
@@ -55,6 +57,14 @@ class LaporanController extends Controller
         return response()->download($path, $this->namaFile('xlsx'), [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ])->deleteFileAfterSend(true);
+    }
+
+    public function exportPdf(): Response
+    {
+        return Pdf::loadView('laporan.pdf', [
+            'datasets' => $this->laporan->datasets(),
+            'tanggal' => date('d M Y'),
+        ])->download($this->namaFile('pdf'));
     }
 
     private function namaSheet(string $name): string
