@@ -141,6 +141,12 @@
                 { teks: 'Benar', benar: true },
                 { teks: 'Salah', benar: false },
             ];
+        } else if (['pg', 'multi'].includes(t)) {
+            // Reset options with empty text for standard CBT UI
+            form.opsi = [
+                { teks: '', benar: true },
+                { teks: '', benar: false },
+            ];
         }
     }
 
@@ -283,7 +289,7 @@
                             clearable={true}
                             getOptionValue={(item) => item.value}
                             onchange={(v) => {
-                                filterTipe = (v as TipeSoal) ?? null;
+                                filterTipe = extractId(v) as TipeSoal | null;
                                 reload();
                             }}
                         />
@@ -297,7 +303,7 @@
                             clearable={true}
                             getOptionValue={(item) => item.value}
                             onchange={(v) => {
-                                filterKesulitan = (v as Kesulitan) ?? null;
+                                filterKesulitan = extractId(v) as Kesulitan | null;
                                 reload();
                             }}
                         />
@@ -421,22 +427,25 @@
                             <span class="form-label mb-0">Opsi Jawaban</span>
                             {#if form.tipe !== 'benar_salah'}
                                 <Button size="sm" color="outline-primary" onclick={tambahOpsi}>
-                                    <i class="bi bi-plus"></i> Opsi
+                                    <i class="bi bi-plus"></i> Tambah Opsi
                                 </Button>
                             {/if}
                         </div>
                         {#each form.opsi as _, i (i)}
                             <div class="input-group mb-2">
+                                <span class="input-group-text bg-light fw-bold text-secondary" style="min-width: 48px; text-align: center;">
+                                    {String.fromCharCode(65 + i)}
+                                </span>
                                 <span class="input-group-text">
                                     {#if form.tipe === 'multi'}
-                                        <input type="checkbox" checked={form.opsi[i].benar} onchange={(e) => (form.opsi[i].benar = (e.currentTarget as HTMLInputElement).checked)} />
+                                        <input type="checkbox" checked={form.opsi[i].benar} onchange={(e) => (form.opsi[i].benar = (e.currentTarget as HTMLInputElement).checked)} class="form-check-input mt-0" />
                                     {:else}
-                                        <input type="radio" name="bank-opsi-benar" checked={form.opsi[i].benar} onchange={() => setBenarTunggal(i)} />
+                                        <input type="radio" name="bank-opsi-benar" checked={form.opsi[i].benar} onchange={() => setBenarTunggal(i)} class="form-check-input mt-0" />
                                     {/if}
                                 </span>
-                                <input class="form-control" placeholder={`Opsi ${i + 1}`} bind:value={form.opsi[i].teks} readonly={form.tipe === 'benar_salah'} />
+                                <input class="form-control" placeholder={`Isi teks opsi ${String.fromCharCode(65 + i)}`} bind:value={form.opsi[i].teks} readonly={form.tipe === 'benar_salah'} />
                                 {#if form.tipe !== 'benar_salah' && form.opsi.length > 2}
-                                    <Button color="outline-danger" onclick={() => hapusOpsi(i)}><i class="bi bi-x"></i></Button>
+                                    <Button color="outline-danger" onclick={() => hapusOpsi(i)} class="ms-1"><i class="bi bi-x"></i></Button>
                                 {/if}
                             </div>
                         {/each}

@@ -47,7 +47,7 @@ class BankSoalController extends BaseAppController implements HasMiddleware
             ->with(['matpel:id,name', 'opsi:id,bank_soal_id,teks,benar'])
             ->untukMatpel($matpelIds)
             ->when($request->integer('matpel_id'), fn ($q, $id) => $q->where('matpel_id', $id))
-            ->when($request->string('tipe')->toString(), fn ($q, $t) => $q->where('tipe', $t))
+            ->when($request->input('tipe'), fn ($q, $t) => $q->where('tipe', is_array($t) ? ($t['value'] ?? $t[0] ?? null) : $t))
             ->when($request->string('kesulitan')->toString(), fn ($q, $k) => $q->where('kesulitan', $k))
             ->when($request->string('topik')->toString(), fn ($q, $t) => $q->where('topik', 'like', "%{$t}%"))
             ->when($request->string('q')->toString(), fn ($q, $kw) => $q->where('pertanyaan', 'like', "%{$kw}%"))
