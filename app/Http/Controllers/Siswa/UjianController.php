@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Random\Engine\Mt19937;
+use Random\Randomizer;
 
 class UjianController extends BaseAppController implements HasMiddleware
 {
@@ -402,6 +404,8 @@ class UjianController extends BaseAppController implements HasMiddleware
     }
 
     /**
+     * Urutan soal per attempt: stabil di dalam satu pengerjaan, beda antar attempt.
+     *
      * @return Collection<int, Soal>
      */
     private function urutkanSoal(Ujian $ujian, UjianPengerjaan $pengerjaan): Collection
@@ -409,21 +413,58 @@ class UjianController extends BaseAppController implements HasMiddleware
         $soals = $ujian->soals;
 
         if ($ujian->acak_soal) {
-            return $soals->shuffle($pengerjaan->id);
+            return $this->acakDeterministik($soals, $this->seedSoal($pengerjaan));
         }
 
         return $soals->values();
     }
 
     /**
+     * Acak deterministik dengan seed — hasil stabil untuk seed yang sama,
+     * berbeda untuk seed berbeda. Tidak menyentuh state random global PHP.
+     *
+     * @return Collection<int, mixed>
+     */
+    private function acakDeterministik(Collection $items, int $seed): Collection
+    {
+        $list = $items->values()->all();
+
+        if (count($list) <= 1) {
+            return collect($list);
+        }
+
+        $randomizer = new Randomizer(new Mt19937($seed));
+
+        return collect($randomizer->shuffleArray($list));
+    }
+
+    /**
+     * Urutan opsi per soal: stabil, beda antar soal & antar attempt.
+     *
      * @return Collection<int, OpsiSoal>
      */
     private function urutkanOpsi(Soal $soal, Ujian $ujian, UjianPengerjaan $pengerjaan): Collection
     {
         if ($ujian->acak_opsi) {
-            return $soal->opsi->shuffle($pengerjaan->id + $soal->id);
+            return $this->acakDeterministik($soal->opsi, $this->seedOpsi($pengerjaan, $soal));
         }
 
         return $soal->opsi->values();
+    }
+
+    /**
+     * Seed acak untuk urutan soal — unik per attempt.
+     */
+    private function seedSoal(UjianPengerjaan $pengerjaan): int
+    {
+        return (int) (crc32("soal:{$pengerjaan->id}:{$pengerjaan->attempt_ke}") & 0x7FFFFFFF);
+    }
+
+    /**
+     * Seed acak untuk urutan opsi — unik per attempt DAN per soal.
+     */
+    private function seedOpsi(UjianPengerjaan $pengerjaan, Soal $soal): int
+    {
+        return (int) (crc32("opsi:{$pengerjaan->id}:{$soal->id}:{$pengerjaan->attempt_ke}") & 0x7FFFFFFF);
     }
 }

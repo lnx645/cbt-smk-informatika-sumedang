@@ -24,6 +24,7 @@
     import BankSoalController from '@/actions/App/Http/Controllers/Guru/BankSoalController';
     import type { PaginationMeta } from '@/types/models';
 
+    type Opsi = { id: number; teks: string; benar: boolean };
     type BankItem = {
         id: number;
         matpel_id: number;
@@ -36,9 +37,13 @@
         kunci_isian: string[] | null;
         isian_case_sensitive: boolean;
         jumlah_opsi: number;
-        opsi: { id: number; teks: string; benar: boolean }[];
+        opsi: Opsi[];
+        milik_saya: boolean;
     };
     type MatpelOption = { value: number; label: string };
+
+    const HURUF = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    const huruf = (i: number): string => HURUF[i] ?? `${i + 1}`;
 
     let {
         bank,
@@ -65,6 +70,11 @@
         label: KESULITAN_INFO[k].label,
     }));
 
+    const defaultOpsi = () => [
+        { teks: '', benar: true },
+        { teks: '', benar: false },
+    ];
+
     function baseForm() {
         return {
             matpel_id: (matpelOptions[0]?.value ?? null) as number | null,
@@ -73,10 +83,7 @@
             poin: 10,
             topik: '',
             kesulitan: 'sedang' as Kesulitan,
-            opsi: [
-                { teks: '', benar: true },
-                { teks: '', benar: false },
-            ] as { teks: string; benar: boolean }[],
+            opsi: defaultOpsi(),
             kunci_isian: [''] as string[],
             isian_case_sensitive: false,
         };
@@ -100,10 +107,7 @@
 
     function resetForm() {
         form.reset();
-        form.opsi = [
-            { teks: '', benar: true },
-            { teks: '', benar: false },
-        ];
+        form.opsi = defaultOpsi();
         form.kunci_isian = [''];
         form.clearErrors();
     }
@@ -122,12 +126,7 @@
         form.poin = b.poin;
         form.topik = b.topik ?? '';
         form.kesulitan = b.kesulitan;
-        form.opsi = b.opsi.length
-            ? b.opsi.map((o) => ({ teks: o.teks, benar: o.benar }))
-            : [
-                  { teks: '', benar: true },
-                  { teks: '', benar: false },
-              ];
+        form.opsi = b.opsi.length ? b.opsi.map((o) => ({ teks: o.teks, benar: o.benar })) : defaultOpsi();
         form.kunci_isian = b.kunci_isian?.length ? [...b.kunci_isian] : [''];
         form.isian_case_sensitive = b.isian_case_sensitive;
         form.clearErrors();
@@ -142,11 +141,7 @@
                 { teks: 'Salah', benar: false },
             ];
         } else if (['pg', 'multi'].includes(t)) {
-            // Reset options with empty text for standard CBT UI
-            form.opsi = [
-                { teks: '', benar: true },
-                { teks: '', benar: false },
-            ];
+            form.opsi = defaultOpsi();
         }
     }
 
@@ -176,7 +171,7 @@
             tipe: data.tipe,
             pertanyaan: data.pertanyaan,
             poin: data.poin,
-            topik: data.topik,
+            topik: data.topik || null,
             kesulitan: data.kesulitan,
             opsi: ['pg', 'multi', 'benar_salah'].includes(data.tipe) ? data.opsi : [],
             kunci_isian: data.tipe === 'isian' ? data.kunci_isian : [],
@@ -222,6 +217,14 @@
         );
     }
 
+    function resetFilter() {
+        filterMatpel = null;
+        filterTipe = null;
+        filterKesulitan = null;
+        searchInput = '';
+        reload();
+    }
+
     function onSearchInput() {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(reload, 400);
@@ -265,7 +268,7 @@
     {:else}
         <Card class="border rounded-1 shadow-none">
             <CardBody class="p-3">
-                <div class="d-flex flex-wrap gap-2 mb-3">
+                <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
                     <div style="min-width: 200px">
                         <Select
                             id="f-matpel"
@@ -308,7 +311,7 @@
                             }}
                         />
                     </div>
-                    <div class="input-group input-group-sm" style="max-width: 240px">
+                    <div class="input-group input-group-sm" style="max-width: 260px">
                         <span class="input-group-text bg-body"><i class="bi bi-search"></i></span>
                         <input
                             type="search"
@@ -318,6 +321,11 @@
                             onkeyup={onSearchInput}
                         />
                     </div>
+                    {#if filterMatpel || filterTipe || filterKesulitan || searchInput}
+                        <Button size="sm" color="outline-secondary" onclick={resetFilter}>
+                            <i class="bi bi-x-lg me-1"></i>Reset
+                        </Button>
+                    {/if}
                 </div>
 
                 {#if bank.data.length === 0}
@@ -326,11 +334,12 @@
                         <div>Belum ada soal di bank. Klik "Tambah Soal".</div>
                     </div>
                 {:else}
-                    {#each bank.data as b (b.id)}
-                        <div class="border rounded-1 p-3 mb-2">
+                    {#each bank.data as b, no (b.id)}
+                        <div class="border rounded-1 p-3 mb-2 bg-body">
                             <div class="d-flex justify-content-between align-items-start gap-2">
-                                <div class="flex-grow-1">
+                                <div class="flex-grow-1 min-width-0">
                                     <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                        <span class="badge bg-primary-subtle text-primary-emphasis rounded-1">#</span>
                                         <Badge color="light" class="text-dark border">
                                             <i class={`bi ${TIPE_SOAL_INFO[b.tipe].icon} me-1`}></i>
                                             {TIPE_SOAL_INFO[b.tipe].label}
@@ -338,29 +347,52 @@
                                         <Badge color={KESULITAN_INFO[b.kesulitan].color} pill>
                                             {KESULITAN_INFO[b.kesulitan].label}
                                         </Badge>
-                                        <span class="text-muted small">{b.matpel} · {b.poin} poin</span>
+                                        {#if b.matpel}
+                                            <span class="text-muted small">{b.matpel}</span>
+                                        {/if}
+                                        <span class="text-muted small">· {b.poin} poin</span>
                                         {#if b.topik}
-                                            <span class="badge bg-secondary-subtle text-secondary-emphasis">{b.topik}</span>
+                                            <span class="badge bg-secondary-subtle text-secondary-emphasis">
+                                                <i class="bi bi-tag me-1"></i>{b.topik}
+                                            </span>
                                         {/if}
                                     </div>
                                     <div class="rich-deskripsi">{@html b.pertanyaan}</div>
                                     {#if b.opsi.length}
-                                        <ul class="mt-1 mb-0 small">
-                                            {#each b.opsi as o (o.id)}
-                                                <li class={o.benar ? 'text-success fw-semibold' : ''}>
-                                                    {o.teks}{#if o.benar}<i class="bi bi-check-circle ms-1"></i>{/if}
-                                                </li>
+                                        <div class="mt-2 d-flex flex-column gap-1">
+                                            {#each b.opsi as o, i (o.id)}
+                                                <div
+                                                    class={`d-flex align-items-start gap-2 small rounded-1 px-2 py-1 ${
+                                                        o.benar
+                                                            ? 'bg-success-subtle text-success-emphasis fw-semibold'
+                                                            : 'text-body'
+                                                    }`}
+                                                >
+                                                    <span class={`badge ${o.benar ? 'bg-success' : 'bg-secondary-subtle text-secondary-emphasis'}`} style="min-width: 24px;">
+                                                        {huruf(i)}
+                                                    </span>
+                                                    <span class="flex-grow-1">{o.teks}</span>
+                                                    {#if o.benar}
+                                                        <i class="bi bi-check-circle-fill"></i>
+                                                    {/if}
+                                                </div>
                                             {/each}
-                                        </ul>
+                                        </div>
                                     {:else if b.kunci_isian?.length}
-                                        <div class="small text-muted mt-1">Kunci: {b.kunci_isian.join(', ')}</div>
+                                        <div class="small text-muted mt-2">
+                                            <i class="bi bi-key me-1"></i>
+                                            Kunci: {b.kunci_isian.join(', ')}
+                                            {#if b.isian_case_sensitive}
+                                                <span class="badge bg-warning-subtle text-warning-emphasis ms-1">Case sensitive</span>
+                                            {/if}
+                                        </div>
                                     {/if}
                                 </div>
-                                <div class="d-inline-flex gap-1">
-                                    <Button size="sm" color="outline-secondary" onclick={() => bukaEdit(b)}>
+                                <div class="d-inline-flex gap-1 flex-shrink-0">
+                                    <Button size="sm" color="outline-secondary" onclick={() => bukaEdit(b)} title="Edit soal">
                                         <i class="bi bi-pencil"></i>
                                     </Button>
-                                    <Button size="sm" color="outline-danger" onclick={() => hapus(b)}>
+                                    <Button size="sm" color="outline-danger" onclick={() => hapus(b)} title="Hapus soal">
                                         <i class="bi bi-trash"></i>
                                     </Button>
                                 </div>
@@ -404,7 +436,7 @@
                     <input id="b-poin" type="number" min="1" class="form-control" bind:value={form.poin} />
                 </div>
                 <div class="col-md-8">
-                    <label class="form-label" for="b-topik">Topik (opsional)</label>
+                    <label class="form-label" for="b-topik">Topik <span class="text-muted fw-normal">(opsional)</span></label>
                     <input id="b-topik" class="form-control" bind:value={form.topik} placeholder="mis. Aljabar" />
                 </div>
                 <div class="col-md-4">
@@ -417,14 +449,19 @@
                 </div>
                 <div class="col-12">
                     <label class="form-label" for="b-pertanyaan">Pertanyaan</label>
-                    <textarea id="b-pertanyaan" class="form-control" rows="3" bind:value={form.pertanyaan}></textarea>
+                    <textarea id="b-pertanyaan" class="form-control" rows="3" bind:value={form.pertanyaan} placeholder="Tulis pertanyaan di sini…"></textarea>
                     {#if form.errors.pertanyaan}<div class="text-danger small">{form.errors.pertanyaan}</div>{/if}
                 </div>
 
                 {#if butuhOpsi}
                     <div class="col-12">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="form-label mb-0">Opsi Jawaban</span>
+                            <span class="form-label mb-0">
+                                Opsi Jawaban
+                                <span class="text-muted fw-normal small">
+                                    {form.tipe === 'multi' ? '(centang semua jawaban benar)' : '(pilih satu jawaban benar)'}
+                                </span>
+                            </span>
                             {#if form.tipe !== 'benar_salah'}
                                 <Button size="sm" color="outline-primary" onclick={tambahOpsi}>
                                     <i class="bi bi-plus"></i> Tambah Opsi
@@ -434,18 +471,20 @@
                         {#each form.opsi as _, i (i)}
                             <div class="input-group mb-2">
                                 <span class="input-group-text bg-light fw-bold text-secondary" style="min-width: 48px; text-align: center;">
-                                    {String.fromCharCode(65 + i)}
+                                    {huruf(i)}
                                 </span>
                                 <span class="input-group-text">
                                     {#if form.tipe === 'multi'}
-                                        <input type="checkbox" checked={form.opsi[i].benar} onchange={(e) => (form.opsi[i].benar = (e.currentTarget as HTMLInputElement).checked)} class="form-check-input mt-0" />
+                                        <input type="checkbox" checked={form.opsi[i].benar} onchange={(e) => (form.opsi[i].benar = (e.currentTarget as HTMLInputElement).checked)} class="form-check-input mt-0" aria-label="Jawaban benar" />
                                     {:else}
-                                        <input type="radio" name="bank-opsi-benar" checked={form.opsi[i].benar} onchange={() => setBenarTunggal(i)} class="form-check-input mt-0" />
+                                        <input type="radio" name="bank-opsi-benar" checked={form.opsi[i].benar} onchange={() => setBenarTunggal(i)} class="form-check-input mt-0" aria-label="Jawaban benar" />
                                     {/if}
                                 </span>
-                                <input class="form-control" placeholder={`Isi teks opsi ${String.fromCharCode(65 + i)}`} bind:value={form.opsi[i].teks} readonly={form.tipe === 'benar_salah'} />
+                                <input class="form-control" placeholder={`Isi teks opsi ${huruf(i)}`} bind:value={form.opsi[i].teks} readonly={form.tipe === 'benar_salah'} />
                                 {#if form.tipe !== 'benar_salah' && form.opsi.length > 2}
-                                    <Button color="outline-danger" onclick={() => hapusOpsi(i)} class="ms-1"><i class="bi bi-x"></i></Button>
+                                    <Button color="outline-danger" onclick={() => hapusOpsi(i)} class="ms-1" title="Hapus opsi">
+                                        <i class="bi bi-x"></i>
+                                    </Button>
                                 {/if}
                             </div>
                         {/each}
@@ -463,7 +502,9 @@
                             <div class="input-group mb-2">
                                 <input class="form-control" bind:value={form.kunci_isian[i]} placeholder={`Kunci ${i + 1}`} />
                                 {#if form.kunci_isian.length > 1}
-                                    <Button color="outline-danger" onclick={() => hapusKunci(i)}><i class="bi bi-x"></i></Button>
+                                    <Button color="outline-danger" onclick={() => hapusKunci(i)} title="Hapus kunci">
+                                        <i class="bi bi-x"></i>
+                                    </Button>
                                 {/if}
                             </div>
                         {/each}

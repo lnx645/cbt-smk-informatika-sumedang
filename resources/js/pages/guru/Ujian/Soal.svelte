@@ -300,14 +300,26 @@
                             </div>
                             <div class="rich-deskripsi">{@html s.pertanyaan}</div>
                             {#if s.opsi.length}
-                                <ul class="mt-2 mb-0 small">
-                                    {#each s.opsi as o (o.id)}
-                                        <li class={o.benar ? 'text-success fw-semibold' : ''}>
-                                            {o.teks}
-                                            {#if o.benar}<i class="bi bi-check-circle ms-1"></i>{/if}
-                                        </li>
+                                <div class="mt-2 d-flex flex-column gap-1">
+                                    {#each s.opsi as o, i (o.id)}
+                                        <div
+                                            class={`d-flex align-items-start gap-2 small rounded-1 px-2 py-1 ${
+                                                o.benar
+                                                    ? 'bg-success-subtle text-success-emphasis fw-semibold'
+                                                    : 'text-body'
+                                            }`}
+                                        >
+                                            <span
+                                                class={`badge ${o.benar ? 'bg-success' : 'bg-secondary-subtle text-secondary-emphasis'}`}
+                                                style="min-width: 24px;"
+                                            >
+                                                {String.fromCharCode(65 + i)}
+                                            </span>
+                                            <span class="flex-grow-1">{o.teks}</span>
+                                            {#if o.benar}<i class="bi bi-check-circle-fill"></i>{/if}
+                                        </div>
                                     {/each}
-                                </ul>
+                                </div>
                             {:else if s.kunci_isian?.length}
                                 <div class="small text-muted mt-2">
                                     Kunci: {s.kunci_isian.join(', ')}
@@ -365,21 +377,36 @@
                 {#if butuhOpsi}
                     <div class="col-12">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="form-label mb-0">Opsi Jawaban</span>
+                            <span class="form-label mb-0">
+                                Opsi Jawaban
+                                <span class="text-muted fw-normal small">
+                                    {form.tipe === 'multi'
+                                        ? '(centang semua jawaban benar)'
+                                        : '(pilih satu jawaban benar)'}
+                                </span>
+                            </span>
                             {#if form.tipe !== 'benar_salah'}
                                 <Button size="sm" color="outline-primary" onclick={tambahOpsi}>
-                                    <i class="bi bi-plus"></i> Opsi
+                                    <i class="bi bi-plus"></i> Tambah Opsi
                                 </Button>
                             {/if}
                         </div>
                         {#each form.opsi as opsi, i (i)}
                             <div class="input-group mb-2">
+                                <span
+                                    class="input-group-text bg-light fw-bold text-secondary"
+                                    style="min-width: 48px; text-align: center;"
+                                >
+                                    {String.fromCharCode(65 + i)}
+                                </span>
                                 <span class="input-group-text">
                                     {#if form.tipe === 'multi'}
                                         <input
                                             type="checkbox"
                                             checked={opsi.benar}
                                             onchange={(e) => (form.opsi[i].benar = (e.currentTarget as HTMLInputElement).checked)}
+                                            class="form-check-input mt-0"
+                                            aria-label="Jawaban benar"
                                         />
                                     {:else}
                                         <input
@@ -387,17 +414,19 @@
                                             name="opsi-benar"
                                             checked={opsi.benar}
                                             onchange={() => setBenarTunggal(i)}
+                                            class="form-check-input mt-0"
+                                            aria-label="Jawaban benar"
                                         />
                                     {/if}
                                 </span>
                                 <input
                                     class="form-control"
-                                    placeholder={`Opsi ${i + 1}`}
+                                    placeholder={`Isi teks opsi ${String.fromCharCode(65 + i)}`}
                                     bind:value={form.opsi[i].teks}
                                     readonly={form.tipe === 'benar_salah'}
                                 />
                                 {#if form.tipe !== 'benar_salah' && form.opsi.length > 2}
-                                    <Button color="outline-danger" onclick={() => hapusOpsi(i)}>
+                                    <Button color="outline-danger" onclick={() => hapusOpsi(i)} class="ms-1" title="Hapus opsi">
                                         <i class="bi bi-x"></i>
                                     </Button>
                                 {/if}
