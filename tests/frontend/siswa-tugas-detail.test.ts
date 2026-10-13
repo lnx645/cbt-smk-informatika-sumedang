@@ -12,8 +12,8 @@ const baseProps = {
         matpel: 'Matematika',
         guru: 'Budi Santoso',
         tanggal_terbit: '12 Agu 2026 08:00',
-        deadline: '19 Agu 2026 23:59',
-        deadline_at: '2026-08-19T23:59:00+07:00',
+        deadline: '19 Agu 2027 23:59',
+        deadline_at: '2027-08-19T23:59:00+07:00',
         jenis_pengumpulan: 'file' as const,
         file_name: null,
         file_size: 0,
@@ -34,7 +34,7 @@ describe('siswa/Tugas/Detail', () => {
             screen.getByText('Kerjakan di buku latihan dengan teliti.'),
         ).toBeInTheDocument();
         expect(screen.getByText(/Budi Santoso/)).toBeInTheDocument();
-        expect(screen.getByText('19 Agu 2026 23:59')).toBeInTheDocument();
+        expect(screen.getByText('19 Agu 2027 23:59')).toBeInTheDocument();
         expect(screen.getByText('Belum Dikerjakan')).toBeInTheDocument();
     });
 
