@@ -212,6 +212,14 @@ class PenilaianController extends BaseAppController implements HasMiddleware
             'keterangan' => 'Keterangan',
         ]);
 
+        // Pastikan siswa terdaftar di kelas yang diampu guru ini.
+        $terdaftar = SiswaKelas::where('siswa_nisn', $data['siswa_nisn'])
+            ->where('kelas_id', $guruKelas->kelas_id)
+            ->where('tahun_ajaran_id', $guruKelas->tahun_ajaran_id)
+            ->exists();
+
+        abort_unless($terdaftar, 404, 'Siswa tidak terdaftar di kelas ini.');
+
         DetailPenilaian::updateOrCreate(
             [
                 'penilaian_id' => $penilaian->id,

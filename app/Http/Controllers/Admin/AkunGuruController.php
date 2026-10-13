@@ -42,7 +42,7 @@ class AkunGuruController extends Controller
         $user->name = $guru->nama_lengkap;
         $user->email = $data['email'];
         $user->password = Hash::make($data['password']);
-        $user->role = 'admin';
+        $user->role = 'guru';
         $user->guru_id = $guru->id;
         $user->save();
 

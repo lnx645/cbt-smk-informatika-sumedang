@@ -91,6 +91,22 @@ class TahunAjaranController extends Controller
             'active' => 'Aktif',
         ]);
 
+        // Jangan biarkan sistem tanpa tahun ajaran aktif.
+        if ($tahunAjaran->active && ! ($data['active'] ?? false)) {
+            $adaPengganti = TahunAjaran::where('id', '!=', $tahunAjaran->id)
+                ->where('active', true)
+                ->exists();
+
+            if (! $adaPengganti) {
+                Inertia::flash('toast', [
+                    'type' => 'error',
+                    'message' => 'Tidak dapat menonaktifkan: sistem harus memiliki minimal 1 tahun ajaran aktif.',
+                ]);
+
+                return Redirect::route('admin.tahun-ajaran.index');
+            }
+        }
+
         if ($data['active']) {
             TahunAjaran::where('active', true)->update(['active' => false]);
         }
@@ -112,6 +128,30 @@ class TahunAjaranController extends Controller
      */
     public function destroy(TahunAjaran $tahunAjaran): RedirectResponse
     {
+        // Tahun ajaran yang aktif atau masih direferensikan tidak boleh dihapus.
+        if ($tahunAjaran->active) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => 'Tahun ajaran aktif tidak dapat dihapus.',
+            ]);
+
+            return Redirect::route('admin.tahun-ajaran.index');
+        }
+
+        $terpakai = $tahunAjaran->guruKelas()->exists()
+            || \App\Models\SiswaKelas::where('tahun_ajaran_id', $tahunAjaran->id)->exists()
+            || \App\Models\PeriodeUjian::where('tahun_ajaran_id', $tahunAjaran->id)->exists()
+            || \App\Models\DetailPenilaian::where('tahun_ajaran_id', $tahunAjaran->id)->exists();
+
+        if ($terpakai) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => 'Tahun ajaran tidak dapat dihapus karena masih memiliki data terkait.',
+            ]);
+
+            return Redirect::route('admin.tahun-ajaran.index');
+        }
+
         $tahunAjaran->delete();
 
         Inertia::flash('toast', [
