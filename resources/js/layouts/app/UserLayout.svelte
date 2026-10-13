@@ -12,10 +12,14 @@
     import GuruMateriController from '@/actions/App/Http/Controllers/Guru/MateriController';
     import GuruPenilaianController from '@/actions/App/Http/Controllers/Guru/PenilaianController';
     import GuruTugasController from '@/actions/App/Http/Controllers/Guru/TugasController';
+    import GuruUjianController from '@/actions/App/Http/Controllers/Guru/UjianController';
+    import GuruBankSoalController from '@/actions/App/Http/Controllers/Guru/BankSoalController';
     import SiswaMateriController from '@/actions/App/Http/Controllers/Siswa/MateriController';
     import SiswaPenilaianController from '@/actions/App/Http/Controllers/Siswa/PenilaianController';
     import SiswaTugasController from '@/actions/App/Http/Controllers/Siswa/TugasController';
+    import SiswaUjianController from '@/actions/App/Http/Controllers/Siswa/UjianController';
     import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
+    import type { BottomNavItem } from '@/components/BottomNav.svelte';
     let { children }: { children: Snippet } = $props();
     const authUser = $derived(usePage().props.auth?.user ?? null);
     const tahunAjaranAktif = $derived(
@@ -75,6 +79,18 @@
                     },
 
                     {
+                        href: GuruUjianController.index().url,
+                        label: 'Ujian (CBT)',
+                        icon: 'bi-pencil-square',
+                    },
+
+                    {
+                        href: GuruBankSoalController.index().url,
+                        label: 'Bank Soal',
+                        icon: 'bi-collection',
+                    },
+
+                    {
                         href: GuruPenilaianController.index().url,
                         label: 'Penilaian',
                         icon: 'bi-award',
@@ -102,6 +118,11 @@
                     icon: 'bi-ui-checks-grid',
                 },
                 {
+                    href: SiswaUjianController.index().url,
+                    label: 'Ujian',
+                    icon: 'bi-pencil-square',
+                },
+                {
                     href: SiswaPenilaianController.index().url,
                     label: 'Nilai',
                     icon: 'bi-award',
@@ -110,6 +131,77 @@
         }
 
         return items;
+    });
+
+    /**
+     * Navigasi bawah khusus mobile: 5 tujuan utama per peran.
+     * Guru: Dashboard, Kelas Saya, Ujian (CBT), Tugas, Materi.
+     * Siswa: Dashboard, Materi, Tugas, Ujian, Nilai.
+     */
+    const bottomNavItems = $derived.by<BottomNavItem[]>(() => {
+        if (!authUser?.gate_access) {
+            return [];
+        }
+
+        const beranda: BottomNavItem = {
+            href: DashboardController().url,
+            label: 'Beranda',
+            icon: 'bi-house-door-fill',
+        };
+
+        if (authUser?.guru || authUser?.role === 'guru') {
+            return [
+                beranda,
+                {
+                    href: MataPelajaranGuruController.index().url,
+                    label: 'Kelas',
+                    icon: 'bi-easel2-fill',
+                },
+                {
+                    href: GuruUjianController.index().url,
+                    label: 'Ujian',
+                    icon: 'bi-pencil-square',
+                },
+                {
+                    href: GuruTugasController.index().url,
+                    label: 'Tugas',
+                    icon: 'bi-clipboard-check-fill',
+                },
+                {
+                    href: GuruMateriController.index().url,
+                    label: 'Materi',
+                    icon: 'bi-journal-bookmark-fill',
+                },
+            ];
+        }
+
+        if (authUser?.siswa || authUser?.role === 'siswa') {
+            return [
+                beranda,
+                {
+                    href: SiswaMateriController.index().url,
+                    label: 'Materi',
+                    icon: 'bi-book-half',
+                },
+                {
+                    href: SiswaTugasController.index().url,
+                    label: 'Tugas',
+                    icon: 'bi-ui-checks-grid',
+                },
+                {
+                    href: SiswaUjianController.index().url,
+                    label: 'Ujian',
+                    icon: 'bi-pencil-square',
+                },
+                {
+                    href: SiswaPenilaianController.index().url,
+                    label: 'Nilai',
+                    icon: 'bi-award-fill',
+                },
+            ];
+        }
+
+        return [];
     });
 </script>
 
@@ -125,6 +217,7 @@
     description="Manajemen Guru"
     {navItems}
     {user}
+    {bottomNavItems}
 >
     {#if showTahunAjaranInfo}
         <Alert

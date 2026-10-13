@@ -16,6 +16,9 @@
     import AuthenticatedSessionController from '@/actions/App/Http/Controllers/AuthenticatedSessionController';
     import ConfirmDialog from '@/components/ConfirmDialog.svelte';
     import TahunAjaranInfo from '@/components/TahunAjaranInfo.svelte';
+    import BottomNav, {
+        type BottomNavItem,
+    } from '@/components/BottomNav.svelte';
 
     export type AppShellNavItem = {
         href?: string;
@@ -49,6 +52,7 @@
         user = { name: 'Pengguna', email: '', id: '', role: '' },
         title = 'Dashboard',
         description = '',
+        bottomNavItems = [],
     }: {
         children: Snippet;
         brandTitle?: string;
@@ -59,6 +63,8 @@
         user?: AppShellUser;
         title?: string;
         description?: string;
+        /** Item navigasi bawah khusus mobile (< 992px). Kosong = tidak tampil. */
+        bottomNavItems?: BottomNavItem[];
     } = $props();
 
     let sidebarOpen = $state(false);
@@ -66,10 +72,15 @@
     let hoverExpand = $state(false);
     let isDesktop = $state(false);
     let hoverLeaveTimer: ReturnType<typeof setTimeout> | null = null;
+    let theme = $state<'light' | 'dark'>('light');
 
     onMount(() => {
         sidebarCollapsed =
             localStorage.getItem('app-sidebar-collapsed') === 'true';
+
+        const saved = localStorage.getItem('theme') as 'light' | 'dark' | null;
+        theme = saved ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-bs-theme', theme);
 
         const mq = window.matchMedia('(min-width: 992px)');
         isDesktop = mq.matches;
@@ -94,6 +105,12 @@
 
     function toggleSidebarCollapse() {
         sidebarCollapsed = !sidebarCollapsed;
+    }
+
+    function toggleTheme() {
+        theme = theme === 'light' ? 'dark' : 'light';
+        localStorage.setItem('theme', theme);
+        document.documentElement.setAttribute('data-bs-theme', theme);
     }
 
     let sidebarMini = $derived(sidebarCollapsed && !hoverExpand);
@@ -376,6 +393,14 @@
             </div>
 
             <div class="app-shell__header-right">
+                <button
+                    class="app-shell__theme-toggle"
+                    onclick={toggleTheme}
+                    aria-label={theme === 'dark' ? 'Beralih ke mode terang' : 'Beralih ke mode gelap'}
+                    title={theme === 'dark' ? 'Mode Terang' : 'Mode Gelap'}
+                >
+                    <i class="bi {theme === 'dark' ? 'bi-sun-fill' : 'bi-moon-fill'}"></i>
+                </button>
                 <Dropdown
                     direction="down"
                     class="app-shell__user-dropdown"
@@ -472,12 +497,20 @@
         </header>
 
         <!-- Body Content -->
-        <main class="app-shell__content p-md-2 p-3 px-2">
+        <main
+            class="app-shell__content p-md-2 p-3 px-2"
+            class:app-shell__content--with-bottom-nav={bottomNavItems.length >
+                0}
+        >
             <Container fluid class="px-0">
                 {@render children?.()}
             </Container>
         </main>
     </div>
 </div>
+
+{#if bottomNavItems.length > 0}
+    <BottomNav items={bottomNavItems} />
+{/if}
 
 <ConfirmDialog />

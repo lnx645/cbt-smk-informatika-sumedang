@@ -45,7 +45,7 @@ test('admin dapat mengunduh seluruh data sebagai XLSX', function (): void {
     $response = $this->actingAs($admin)->get(route('admin.laporan.export-xlsx'));
 
     $response->assertOk();
-    $response->assertDownload('laporan-data-kelas-digital-'.date('Y-m-d').'.xlsx');
+    $response->assertDownload('laporan-seluruh-data-'.date('Y-m-d').'.xlsx');
     $response->assertHeader(
         'content-type',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -63,7 +63,7 @@ test('admin dapat mengunduh seluruh data sebagai PDF', function (): void {
     $response->assertHeader('content-type', 'application/pdf');
     $response->assertHeader(
         'content-disposition',
-        'attachment; filename=laporan-data-kelas-digital-'.date('Y-m-d').'.pdf'
+        'attachment; filename=laporan-seluruh-data-'.date('Y-m-d').'.pdf'
     );
-    expect($response->getContent())->toStartWith('%PDF-');
+    expect(file_get_contents($response->getFile()->getPathname()))->toStartWith('%PDF-');
 });
