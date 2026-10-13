@@ -55,6 +55,10 @@
     // svelte-ignore state_referenced_locally
     let pelanggaran = $state(pengerjaan.jumlah_pelanggaran);
     let submitting = $state(false);
+    // Overlay gate: tampil bila wajib fullscreen tapi belum masuk fullscreen.
+    // Browser melarang fullscreen otomatis tanpa klik pengguna, jadi harus
+    // diminta lewat tombol (user gesture).
+    let gateFullscreen = $state(false);
 
     // svelte-ignore state_referenced_locally
     for (const s of soals) {
@@ -134,20 +138,28 @@
         lapor('blur');
     }
     function onContextMenu(e: Event) {
+        // Cegah menu klik kanan, tapi JANGAN hitung pelanggaran:
+        // klik kanan tidak disengaja itu hal biasa.
         e.preventDefault();
-        lapor('contextmenu');
     }
     function onCopy(e: Event) {
+        // Sudah diblokir, jadi tidak perlu dihukum juga (double punishment).
         e.preventDefault();
-        lapor('copy');
     }
     function onPaste(e: Event) {
+        // Sudah diblokir, jadi tidak perlu dihukum juga (double punishment).
         e.preventDefault();
-        lapor('paste');
     }
     function onFullscreenChange() {
         if (ujian.wajib_fullscreen && !document.fullscreenElement) {
-            lapor('exit_fullscreen');
+            // Keluar fullscreen di tengah ujian = pelanggaran.
+            // Tapi abaikan jika gate masih terbuka (belum pernah masuk).
+            if (!gateFullscreen) {
+                lapor('exit_fullscreen');
+            }
+            gateFullscreen = true;
+        } else {
+            gateFullscreen = false;
         }
     }
 
@@ -155,10 +167,21 @@
         try {
             if (ujian.wajib_fullscreen && !document.fullscreenElement) {
                 await document.documentElement.requestFullscreen();
+                gateFullscreen = false;
             }
         } catch {
-            // Diabaikan; pelanggaran tetap tercatat lewat fullscreenchange.
+            // Gagal (mis. ditolak browser) -> tampilkan gate agar pengguna klik manual.
+            if (ujian.wajib_fullscreen && !document.fullscreenElement) {
+                gateFullscreen = true;
+            }
         }
+    }
+
+    function lewatiFullscreen() {
+        // Siswa memilih lanjut tanpa fullscreen: catat sebagai pelanggaran
+        // lalu tutup gate agar bisa mengerjakan.
+        lapor('tanpa_fullscreen');
+        gateFullscreen = false;
     }
 
     onMount(() => {
@@ -317,9 +340,64 @@
             {/if}
         </div>
     </div>
+
+    {#if gateFullscreen}
+        <div class="fullscreen-gate">
+            <div class="fullscreen-gate__card">
+                <div class="fullscreen-gate__icon">
+                    <i class="bi bi-fullscreen"></i>
+                </div>
+                <h2 class="h5 mb-2">Ujian ini wajib fullscreen</h2>
+                <p class="text-muted small mb-3">
+                    Klik tombol di bawah untuk masuk mode fullscreen.
+                    Keluar dari fullscreen selama ujian dicatat sebagai pelanggaran.
+                </p>
+                <Button color="primary" class="w-100 mb-2" onclick={masukFullscreen}>
+                    <i class="bi bi-arrows-fullscreen me-1"></i>Masuk Fullscreen
+                </Button>
+                <button type="button" class="btn btn-link btn-sm text-muted" onclick={lewatiFullscreen}>
+                    Lanjutkan tanpa fullscreen (dicatat pelanggaran)
+                </button>
+            </div>
+        </div>
+    {/if}
 </div>
 
 <style>
+    .fullscreen-gate {
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(4px);
+    }
+
+    .fullscreen-gate__card {
+        width: 100%;
+        max-width: 380px;
+        background: var(--bs-body-bg);
+        border-radius: 1rem;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.3);
+    }
+
+    .fullscreen-gate__icon {
+        width: 3.5rem;
+        height: 3.5rem;
+        margin: 0 auto 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--bs-primary-bg-subtle);
+        color: var(--bs-primary);
+        font-size: 1.5rem;
+    }
     .nav-soal {
         width: 40px;
     }
