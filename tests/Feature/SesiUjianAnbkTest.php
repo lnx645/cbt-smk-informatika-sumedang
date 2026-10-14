@@ -193,3 +193,42 @@ test('guru dapat mengubah mode sesi ujian', function (): void {
 
     expect($ujian->fresh()->mode_sesi)->toBe('terjadwal');
 });
+
+test('pesertaMap menampilkan semua siswa dalam satu sesi', function (): void {
+    $ujian = ujianAnbkSiap($this, 'terjadwal');
+    $sesi = sesiAnbk($ujian, 'Sesi 1', -30, 60);
+
+    // Buat 3 siswa tambahan.
+    $nisns = [$this->siswa->nisn];
+    for ($i = 0; $i < 2; $i++) {
+        $s = Siswa::factory()->create();
+        SiswaKelas::create([
+            'siswa_nisn' => $s->nisn,
+            'kelas_id' => $this->guruKelas->kelas_id,
+            'tahun_ajaran_id' => $this->guruKelas->tahun_ajaran_id,
+            'active' => true,
+        ]);
+        $nisns[] = $s->nisn;
+    }
+
+    $this->actingAs($this->guruUser)
+        ->post(route('app.guru.ujian.sesi.peserta.store', [$ujian, $sesi]), [
+            'nisn' => $nisns,
+        ])
+        ->assertRedirect();
+
+    // Halaman sesi harus menampilkan ketiga NISN di pesertaMap sesi tersebut.
+    $response = $this->actingAs($this->guruUser)
+        ->get(route('app.guru.ujian.sesi.index', $ujian))
+        ->assertOk();
+
+    $pesertaMap = $response->viewData('page')['props']['pesertaMap'] ?? null;
+    if ($pesertaMap === null) {
+        $pesertaMap = json_decode($response->getContent(), true)['props']['pesertaMap'] ?? [];
+    }
+    $got = $pesertaMap[$sesi->id] ?? $pesertaMap[(string) $sesi->id] ?? [];
+    sort($got);
+    $expected = $nisns;
+    sort($expected);
+    expect($got)->toBe($expected);
+});

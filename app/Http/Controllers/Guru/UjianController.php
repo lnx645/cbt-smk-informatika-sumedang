@@ -337,9 +337,9 @@ class UjianController extends BaseAppController implements HasMiddleware
 
         $pesertaMap = SesiUjianPeserta::query()
             ->where('ujian_id', $ujian->id)
-            ->pluck('siswa_nisn', 'sesi_ujian_id')
-            ->groupBy(fn ($nisn, $sesiId) => $sesiId)
-            ->map(fn ($nisns) => $nisns->values()->all())
+            ->get(['sesi_ujian_id', 'siswa_nisn'])
+            ->groupBy('sesi_ujian_id')
+            ->map(fn ($rows) => $rows->pluck('siswa_nisn')->values()->all())
             ->all();
 
         return Inertia::render('guru/Ujian/Sesi', [
