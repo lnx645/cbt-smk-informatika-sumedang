@@ -24,7 +24,7 @@
             <Button color="primary" size="sm">Periksa Tugas</Button>
             <ListGroup class="mt-3" color="warning">
                 {#each [1, 2, 3] as e}
-                    <ListGroupItem color="white" class="bg-white">
+                    <ListGroupItem style="background-color: var(--app-shell-surface); color: var(--app-shell-text);">
                         <div class="fw-bold fs-4 d-flex align-items-center">
                             Tugas 1 - Topologi Jaringan <Badge
                                 color="danger"
