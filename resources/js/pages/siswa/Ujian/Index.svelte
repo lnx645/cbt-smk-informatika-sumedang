@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { inertia, router, useForm } from '@inertiajs/svelte';
+    import { inertia } from '@inertiajs/svelte';
     import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
     import { KATEGORI_INFO, type KategoriUjian } from '@/lib/ujian';
     import UjianController from '@/actions/App/Http/Controllers/Siswa/UjianController';
@@ -25,9 +25,6 @@
 
     let { ujians }: { ujians: UjianItem[] } = $props();
 
-    const tokenForm = useForm({ token: '' });
-    let tokenUntuk = $state<number | null>(null);
-
     // Warna solid per kategori ujian untuk avatar kartu.
     const KATEGORI_AVATAR: Record<KategoriUjian, string> = {
         kuis: 'info',
@@ -35,20 +32,6 @@
         uas: 'warning',
         usbk: 'danger',
     };
-
-    function mulai(item: UjianItem) {
-        if (item.butuh_token) {
-            tokenUntuk = tokenUntuk === item.id ? null : item.id;
-            return;
-        }
-        router.post(UjianController.mulai({ ujian: item.id }).url);
-    }
-
-    function submitToken(item: UjianItem) {
-        tokenForm.post(UjianController.mulai({ ujian: item.id }).url, {
-            onSuccess: () => tokenForm.reset(),
-        });
-    }
 </script>
 
 <div class="container-fluid px-0">
@@ -141,26 +124,14 @@
                                     <Button color="secondary" class="w-100" disabled>
                                         Belum dibuka / sudah berakhir
                                     </Button>
-                                {:else if tokenUntuk === item.id}
-                                    <div class="input-group">
-                                        <input
-                                            class="form-control text-uppercase"
-                                            placeholder="Token"
-                                            bind:value={tokenForm.token}
-                                        />
-                                        <Button color="primary" onclick={() => submitToken(item)}>
-                                            Mulai
-                                        </Button>
-                                    </div>
-                                    {#if tokenForm.errors.token}
-                                        <div class="text-danger small mt-1">
-                                            {tokenForm.errors.token}
-                                        </div>
-                                    {/if}
                                 {:else}
-                                    <Button color="primary" class="w-100" onclick={() => mulai(item)}>
+                                    <a
+                                        use:inertia
+                                        href={UjianController.konfirmasi({ ujian: item.id }).url}
+                                        class="btn btn-primary w-100"
+                                    >
                                         <i class="bi bi-play-fill me-1"></i>Mulai
-                                    </Button>
+                                    </a>
                                 {/if}
                             </div>
                         </CardBody>

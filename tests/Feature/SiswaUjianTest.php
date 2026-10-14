@@ -101,7 +101,7 @@ test('siswa dapat memulai ujian tanpa token', function (): void {
     [$ujian] = ujianTerbitDenganSoal($this);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian))
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true])
         ->assertRedirect(route('app.siswa.ujian.kerjakan', $ujian));
 
     $this->assertDatabaseHas('ujian_pengerjaans', [
@@ -115,14 +115,14 @@ test('siswa tidak dapat memulai tanpa token yang benar', function (): void {
     [$ujian] = ujianTerbitDenganSoal($this, ['token' => 'ABC123', 'token_released_at' => now()]);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian), ['token' => 'SALAH1'])
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['token' => 'SALAH1', 'setuju_tata_tertib' => true])
         ->assertRedirect();
 
     $this->assertDatabaseMissing('ujian_pengerjaans', ['ujian_id' => $ujian->id]);
 
     // Token benar (case-insensitive)
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian), ['token' => 'abc123'])
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['token' => 'abc123', 'setuju_tata_tertib' => true])
         ->assertRedirect(route('app.siswa.ujian.kerjakan', $ujian));
 
     $this->assertDatabaseHas('ujian_pengerjaans', ['ujian_id' => $ujian->id]);
@@ -132,7 +132,7 @@ test('token yang belum dirilis menolak siswa', function (): void {
     [$ujian] = ujianTerbitDenganSoal($this, ['token' => 'ABC123', 'token_released_at' => null]);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian), ['token' => 'ABC123'])
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['token' => 'ABC123', 'setuju_tata_tertib' => true])
         ->assertRedirect();
 
     $this->assertDatabaseMissing('ujian_pengerjaans', ['ujian_id' => $ujian->id]);
@@ -141,7 +141,7 @@ test('token yang belum dirilis menolak siswa', function (): void {
 test('siswa dapat menyimpan jawaban lalu submit dan objektif dinilai otomatis', function (): void {
     [$ujian, $soal, $benar] = ujianTerbitDenganSoal($this);
 
-    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian));
+    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
 
     $this->actingAs($this->siswaUser)
         ->post(route('app.siswa.ujian.jawaban', $ujian), [
@@ -171,7 +171,7 @@ test('jawaban salah mendapat nilai nol', function (): void {
     [$ujian, $soal] = ujianTerbitDenganSoal($this);
     $salah = OpsiSoal::where('soal_id', $soal->id)->where('benar', false)->first();
 
-    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian));
+    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
     $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.jawaban', $ujian), [
         'soal_id' => $soal->id,
         'opsi_dipilih' => [$salah->id],
@@ -195,7 +195,7 @@ test('soal isian dinilai otomatis case-insensitive', function (): void {
     ]);
     $soal = Soal::factory()->for($ujian)->isian(['Jakarta'])->create(['poin' => 10]);
 
-    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian));
+    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
     $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.jawaban', $ujian), [
         'soal_id' => $soal->id,
         'jawaban_teks' => '  jakarta ',
@@ -220,7 +220,7 @@ test('ujian dengan esai menunggu koreksi guru sebelum nilai final', function ():
     ]);
     $soal = Soal::factory()->for($ujian)->esai()->create(['poin' => 10]);
 
-    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian));
+    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
     $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.jawaban', $ujian), [
         'soal_id' => $soal->id,
         'jawaban_teks' => 'Jawaban esai panjang',
@@ -270,7 +270,7 @@ test('batas percobaan menghalangi memulai ulang', function (): void {
     ]);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian))
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true])
         ->assertRedirect();
 
     expect(UjianPengerjaan::where('ujian_id', $ujian->id)->count())->toBe(1);
@@ -279,7 +279,7 @@ test('batas percobaan menghalangi memulai ulang', function (): void {
 test('pelanggaran melebihi ambang mendiskualifikasi siswa', function (): void {
     [$ujian] = ujianTerbitDenganSoal($this, ['maks_pelanggaran' => 2]);
 
-    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian));
+    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
 
     $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.lapor', $ujian), ['jenis' => 'blur']);
     $this->actingAs($this->siswaUser)
@@ -295,7 +295,7 @@ test('pelanggaran melebihi ambang mendiskualifikasi siswa', function (): void {
 test('nilai ujian muncul di halaman nilai siswa', function (): void {
     [$ujian, $soal, $benar] = ujianTerbitDenganSoal($this);
 
-    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian));
+    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
     $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.jawaban', $ujian), [
         'soal_id' => $soal->id,
         'opsi_dipilih' => [$benar->id],
@@ -318,7 +318,7 @@ test('siswa tidak dapat memulai ujian kelas lain', function (): void {
     [$ujian] = ujianTerbitDenganSoal($this);
 
     $this->actingAs($this->siswaLuarUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian))
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true])
         ->assertNotFound();
 });
 
@@ -333,7 +333,7 @@ test('halaman siswa ujian memblokir guru', function (): void {
 test('siswa dapat menandai jawaban ragu-ragu dan membatalkannya', function (): void {
     [$ujian, $soal, $benar] = ujianTerbitDenganSoal($this);
 
-    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian));
+    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
 
     // Tandai ragu-ragu.
     $this->actingAs($this->siswaUser)
@@ -362,7 +362,7 @@ test('siswa dapat menandai jawaban ragu-ragu dan membatalkannya', function (): v
 test('status ragu tampil di data pengerjaan', function (): void {
     [$ujian, $soal, $benar] = ujianTerbitDenganSoal($this);
 
-    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian));
+    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
     $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.jawaban', $ujian), [
         'soal_id' => $soal->id,
         'opsi_dipilih' => [$benar->id],

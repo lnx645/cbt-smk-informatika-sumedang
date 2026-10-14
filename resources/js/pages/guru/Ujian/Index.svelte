@@ -50,6 +50,7 @@
         kategori: KategoriUjian;
         judul: string;
         deskripsi: string | null;
+        tata_tertib: string | null;
         tanggal_mulai: string | null;
         tanggal_selesai: string | null;
         durasi_menit: number;
@@ -89,6 +90,7 @@
             kategori: 'kuis' as KategoriUjian,
             judul: '',
             deskripsi: '',
+            tata_tertib: '',
             tanggal_mulai: '',
             tanggal_selesai: '',
             durasi_menit: 30,
@@ -132,6 +134,7 @@
         editForm.kategori = editUjian.kategori;
         editForm.judul = editUjian.judul;
         editForm.deskripsi = editUjian.deskripsi ?? '';
+        editForm.tata_tertib = editUjian.tata_tertib ?? '';
         editForm.tanggal_mulai = editUjian.tanggal_mulai ?? '';
         editForm.tanggal_selesai = editUjian.tanggal_selesai ?? '';
         editForm.durasi_menit = editUjian.durasi_menit;
@@ -582,6 +585,17 @@
         <div class="col-12">
             <label class="form-label" for="f-deskripsi">Deskripsi</label>
             <textarea id="f-deskripsi" class="form-control" rows="2" bind:value={f.deskripsi}></textarea>
+        </div>
+        <div class="col-12">
+            <label class="form-label" for="f-tata-tertib">Tata Tertib Pengerjaan</label>
+            <textarea
+                id="f-tata-tertib"
+                class="form-control"
+                rows="3"
+                placeholder={"Contoh:\n1. Dilarang membuka tab/aplikasi lain.\n2. Dilarang bekerja sama.\n3. ..."}
+                bind:value={f.tata_tertib}
+            ></textarea>
+            <div class="form-text">Ditampilkan ke siswa dan wajib disetujui sebelum ujian dimulai.</div>
         </div>
         <div class="col-md-6">
             <label class="form-label" for="f-mulai">Jadwal Mulai</label>

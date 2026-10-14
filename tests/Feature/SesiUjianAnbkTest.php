@@ -104,7 +104,7 @@ test('siswa tanpa jatah sesi ditolak pada mode terjadwal', function (): void {
     sesiAnbk($ujian, 'Sesi 1', -30, 60);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian))
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true])
         ->assertRedirect();
 
     expect(UjianPengerjaan::where('ujian_id', $ujian->id)->count())->toBe(0);
@@ -123,7 +123,7 @@ test('siswa hanya bisa masuk sesi jatahnya yang sedang aktif', function (): void
 
     // Sesi jatah (Sesi 2) belum aktif -> ditolak.
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian))
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true])
         ->assertRedirect();
 
     expect(UjianPengerjaan::where('ujian_id', $ujian->id)->count())->toBe(0);
@@ -134,7 +134,7 @@ test('siswa hanya bisa masuk sesi jatahnya yang sedang aktif', function (): void
         ->update(['sesi_ujian_id' => $sesi1->id]);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian))
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true])
         ->assertRedirect(route('app.siswa.ujian.kerjakan', $ujian));
 
     $pengerjaan = UjianPengerjaan::where('ujian_id', $ujian->id)->first();
@@ -153,7 +153,7 @@ test('batas pengerjaan dipotong akhir sesi', function (): void {
     ]);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian))
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true])
         ->assertRedirect();
 
     $pengerjaan = UjianPengerjaan::where('ujian_id', $ujian->id)->first();

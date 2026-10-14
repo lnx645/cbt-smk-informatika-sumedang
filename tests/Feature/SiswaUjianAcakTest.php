@@ -100,7 +100,7 @@ test('acak soal nonaktif menampilkan soal sesuai urutan urutan', function (): vo
     [$ujian] = ujianDenganBanyakSoal($this, 5, ['acak_soal' => false]);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian))
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true])
         ->assertRedirect(route('app.siswa.ujian.kerjakan', $ujian));
 
     $expected = Soal::where('ujian_id', $ujian->id)->orderBy('urutan')->pluck('id')->all();
@@ -131,7 +131,7 @@ test('acak opsi nonaktif menampilkan opsi sesuai urutan', function (): void {
     [$ujian, $soals] = ujianDenganBanyakSoal($this, 2, ['acak_opsi' => false]);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian));
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
 
     $urutanAsli = OpsiSoal::where('soal_id', $soals->first()->id)
         ->orderBy('urutan')
@@ -147,7 +147,7 @@ test('acak soal aktif tetap menampilkan semua soal tanpa ada yang hilang', funct
     [$ujian, $soals] = ujianDenganBanyakSoal($this, 8, ['acak_soal' => true]);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian));
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
 
     $ids = soalIdsUntukSiswa($this, $ujian);
 
@@ -160,7 +160,7 @@ test('acak opsi aktif tetap menampilkan semua opsi tanpa ada yang hilang', funct
     [$ujian, $soals] = ujianDenganBanyakSoal($this, 3, ['acak_opsi' => true]);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian));
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
 
     $opsiAsli = OpsiSoal::where('soal_id', $soals->first()->id)->pluck('id')->all();
     $opsiTampil = opsiPertamaUntukSiswa($this, $ujian);
@@ -173,7 +173,7 @@ test('acak soal aktif menghasilkan urutan stabil dalam satu attempt', function (
     [$ujian] = ujianDenganBanyakSoal($this, 8, ['acak_soal' => true]);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian));
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
 
     $first = soalIdsUntukSiswa($this, $ujian);
     $second = soalIdsUntukSiswa($this, $ujian);
@@ -185,7 +185,7 @@ test('acak opsi aktif menghasilkan urutan stabil dalam satu attempt', function (
     [$ujian] = ujianDenganBanyakSoal($this, 2, ['acak_opsi' => true]);
 
     $this->actingAs($this->siswaUser)
-        ->post(route('app.siswa.ujian.mulai', $ujian));
+        ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
 
     $first = collect(opsiPertamaUntukSiswa($this, $ujian))->pluck('id')->all();
     $second = collect(opsiPertamaUntukSiswa($this, $ujian))->pluck('id')->all();
@@ -204,7 +204,7 @@ test('acak soal aktif menghasilkan urutan berbeda antar attempt', function (): v
 
     for ($i = 1; $i <= 2; $i++) {
         $this->actingAs($this->siswaUser)
-            ->post(route('app.siswa.ujian.mulai', $ujian));
+            ->post(route('app.siswa.ujian.mulai', $ujian), ['setuju_tata_tertib' => true]);
 
         $pengerjaan = UjianPengerjaan::where('ujian_id', $ujian->id)
             ->where('siswa_nisn', $this->siswa->nisn)
