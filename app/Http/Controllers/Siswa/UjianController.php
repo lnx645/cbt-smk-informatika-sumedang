@@ -329,6 +329,7 @@ class UjianController extends BaseAppController implements HasMiddleware
                 'jawaban' => [
                     'opsi_dipilih' => $jawabanBySoal->get($s->id)?->opsi_dipilih,
                     'jawaban_teks' => $jawabanBySoal->get($s->id)?->jawaban_teks,
+                    'ragu' => (bool) ($jawabanBySoal->get($s->id)?->ragu ?? false),
                 ],
             ])->values(),
         ]);
@@ -352,6 +353,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             'opsi_dipilih' => ['nullable', 'array'],
             'opsi_dipilih.*' => ['integer'],
             'jawaban_teks' => ['nullable', 'string', 'max:20000'],
+            'ragu' => ['nullable', 'boolean'],
         ]);
 
         if ($pengerjaan->waktuHabis()) {
@@ -363,7 +365,11 @@ class UjianController extends BaseAppController implements HasMiddleware
 
         JawabanSiswa::updateOrCreate(
             ['ujian_pengerjaan_id' => $pengerjaan->id, 'soal_id' => $data['soal_id']],
-            ['opsi_dipilih' => $data['opsi_dipilih'] ?? null, 'jawaban_teks' => $data['jawaban_teks'] ?? null],
+            [
+                'opsi_dipilih' => $data['opsi_dipilih'] ?? null,
+                'jawaban_teks' => $data['jawaban_teks'] ?? null,
+                'ragu' => $data['ragu'] ?? false,
+            ],
         );
 
         return Redirect::back();

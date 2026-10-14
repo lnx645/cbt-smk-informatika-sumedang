@@ -21,12 +21,14 @@ class JawabanSiswa extends Model
         'jawaban_teks',
         'benar',
         'skor',
+        'ragu',
     ];
 
     protected $casts = [
         'opsi_dipilih' => 'array',
         'benar' => 'boolean',
         'skor' => 'float',
+        'ragu' => 'boolean',
     ];
 
     public function pengerjaan(): BelongsTo

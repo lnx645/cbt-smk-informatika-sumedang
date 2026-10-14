@@ -24,6 +24,7 @@
         jawaban: {
             opsi_dipilih: number[] | null;
             jawaban_teks: string | null;
+            ragu: boolean;
         };
     };
 
@@ -53,6 +54,7 @@
     // State jawaban lokal (diinisialisasi dari props).
     let jawabanOpsi = $state<Record<number, number[]>>({});
     let jawabanTeks = $state<Record<number, string>>({});
+    let raguMap = $state<Record<number, boolean>>({});
     let indexAktif = $state(0);
     // svelte-ignore state_referenced_locally
     let sisaDetik = $state(pengerjaan.sisa_detik);
@@ -68,6 +70,7 @@
     for (const s of soals) {
         jawabanOpsi[s.id] = s.jawaban.opsi_dipilih ?? [];
         jawabanTeks[s.id] = s.jawaban.jawaban_teks ?? '';
+        raguMap[s.id] = s.jawaban.ragu ?? false;
     }
 
     let timer: ReturnType<typeof setInterval>;
@@ -115,9 +118,15 @@
                 soal_id: soal.id,
                 opsi_dipilih: jawabanOpsi[soal.id] ?? [],
                 jawaban_teks: jawabanTeks[soal.id] ?? '',
+                ragu: raguMap[soal.id] ?? false,
             },
             { preserveState: true, preserveScroll: true, replace: true },
         );
+    }
+
+    function toggleRagu(soal: SoalItem) {
+        raguMap[soal.id] = !(raguMap[soal.id] ?? false);
+        simpan(soal);
     }
 
     function pilihTunggal(soal: SoalItem, opsiId: number) {
@@ -303,14 +312,22 @@
                     <div class="section-title small text-muted mb-2">Navigasi Soal</div>
                     <div class="d-flex flex-wrap gap-1">
                         {#each soals as s, i (s.id)}
+                            {@const sudahIsi = (jawabanOpsi[s.id]?.length ?? 0) > 0 || (jawabanTeks[s.id]?.trim().length ?? 0) > 0}
+                            {@const ragu = raguMap[s.id] ?? false}
                             <button
                                 type="button"
-                                class="btn btn-sm nav-soal {i === indexAktif ? 'btn-primary' : (jawabanOpsi[s.id]?.length || jawabanTeks[s.id]?.trim()) ? 'btn-success' : 'btn-outline-secondary'}"
+                                class="btn btn-sm nav-soal {i === indexAktif ? 'btn-primary' : ragu ? 'btn-warning' : sudahIsi ? 'btn-success' : 'btn-outline-secondary'}"
                                 onclick={() => (indexAktif = i)}
+                                title={ragu ? 'Ragu-ragu' : sudahIsi ? 'Sudah diisi' : 'Belum diisi'}
                             >
                                 {i + 1}
                             </button>
                         {/each}
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mt-2 small text-muted">
+                        <span><span class="badge bg-success">&nbsp;</span> Diisi</span>
+                        <span><span class="badge bg-warning">&nbsp;</span> Ragu-ragu</span>
+                        <span><span class="badge bg-secondary">&nbsp;</span> Belum diisi</span>
                     </div>
                     <Button color="primary" class="w-100 mt-3" onclick={() => submit(false)} disabled={submitting}>
                         <i class="bi bi-send me-1"></i>Kumpulkan
@@ -323,9 +340,18 @@
             {#if soalAktif}
                 <Card class="border rounded-1 shadow-none">
                     <CardBody class="p-3 p-md-4">
-                        <div class="d-flex justify-content-between mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="fw-semibold">Soal {indexAktif + 1}</span>
-                            <span class="text-muted small">{soalAktif.poin} poin</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-muted small">{soalAktif.poin} poin</span>
+                                <Button
+                                    size="sm"
+                                    color={raguMap[soalAktif.id] ? 'warning' : 'outline-warning'}
+                                    onclick={() => toggleRagu(soalAktif)}
+                                >
+                                    <i class="bi bi-question-circle me-1"></i>Ragu-ragu
+                                </Button>
+                            </div>
                         </div>
                         <div class="rich-deskripsi mb-3">
                             {@html soalAktif.pertanyaan}

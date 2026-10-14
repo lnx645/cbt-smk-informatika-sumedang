@@ -329,3 +329,49 @@ test('halaman siswa ujian memblokir guru', function (): void {
         ->get(route('app.siswa.ujian.index'))
         ->assertForbidden();
 });
+
+test('siswa dapat menandai jawaban ragu-ragu dan membatalkannya', function (): void {
+    [$ujian, $soal, $benar] = ujianTerbitDenganSoal($this);
+
+    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian));
+
+    // Tandai ragu-ragu.
+    $this->actingAs($this->siswaUser)
+        ->post(route('app.siswa.ujian.jawaban', $ujian), [
+            'soal_id' => $soal->id,
+            'opsi_dipilih' => [$benar->id],
+            'ragu' => true,
+        ])
+        ->assertRedirect();
+
+    $jawaban = JawabanSiswa::where('soal_id', $soal->id)->first();
+    expect($jawaban->ragu)->toBeTrue();
+
+    // Batalkan tanda ragu-ragu.
+    $this->actingAs($this->siswaUser)
+        ->post(route('app.siswa.ujian.jawaban', $ujian), [
+            'soal_id' => $soal->id,
+            'opsi_dipilih' => [$benar->id],
+            'ragu' => false,
+        ])
+        ->assertRedirect();
+
+    expect($jawaban->fresh()->ragu)->toBeFalse();
+});
+
+test('status ragu tampil di data pengerjaan', function (): void {
+    [$ujian, $soal, $benar] = ujianTerbitDenganSoal($this);
+
+    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.mulai', $ujian));
+    $this->actingAs($this->siswaUser)->post(route('app.siswa.ujian.jawaban', $ujian), [
+        'soal_id' => $soal->id,
+        'opsi_dipilih' => [$benar->id],
+        'ragu' => true,
+    ]);
+
+    $this->actingAs($this->siswaUser)
+        ->get(route('app.siswa.ujian.kerjakan', $ujian))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('soals.0.jawaban.ragu', true));
+});
