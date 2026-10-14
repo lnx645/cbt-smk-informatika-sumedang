@@ -221,7 +221,7 @@
             style="width:auto"
         >
             <option value="bebas">Bebas (rebutan)</option>
-            <option value="terjadwal">Terjadwal (ala ANBK)</option>
+            <option value="terjadwal">Terjadwal (ala USBK)</option>
         </Input>
     </div>
     <Button color="primary" size="sm" onclick={bukaTambah}>
@@ -249,7 +249,7 @@
         {#if sesis.length === 0}
             <EmptyState
                 message="Belum ada sesi"
-                hint="Tambahkan Sesi 1, Sesi 2, dst. mengikuti gelombang ANBK/UNBK."
+                hint="Tambahkan Sesi 1, Sesi 2, dst. mengikuti gelombang USBK."
             />
         {:else}
             <Table responsive hover class="mb-0 align-middle">

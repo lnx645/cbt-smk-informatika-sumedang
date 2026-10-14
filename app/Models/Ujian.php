@@ -131,7 +131,7 @@ class Ujian extends Model
     }
 
     /**
-     * Mode 'terjadwal': siswa hanya boleh masuk sesi yang dijatahkan (ala ANBK).
+     * Mode 'terjadwal': siswa hanya boleh masuk sesi yang dijatahkan (ala USBK).
      * Mode 'bebas': siswa boleh masuk sesi aktif mana saja.
      */
     public function sesiTerjadwal(): bool

@@ -277,7 +277,7 @@ class UjianController extends BaseAppController implements HasMiddleware
     }
 
     /**
-     * Halaman kelola sesi ujian + penjadwalan siswa (ala ANBK).
+     * Halaman kelola sesi ujian + penjadwalan siswa (ala USBK).
      */
     public function sesiIndex(Request $request, Ujian $ujian): Response
     {
@@ -359,7 +359,7 @@ class UjianController extends BaseAppController implements HasMiddleware
     }
 
     /**
-     * Ubah mode pembagian sesi: bebas (rebutan) atau terjadwal (dijatah, ala ANBK).
+     * Ubah mode pembagian sesi: bebas (rebutan) atau terjadwal (dijatah, ala USBK).
      */
     public function sesiMode(Request $request, Ujian $ujian): RedirectResponse
     {
@@ -372,7 +372,7 @@ class UjianController extends BaseAppController implements HasMiddleware
         $ujian->update(['mode_sesi' => $data['mode_sesi']]);
 
         Toast::success($data['mode_sesi'] === 'terjadwal'
-            ? 'Mode sesi: terjadwal (siswa dijatahkan per sesi, ala ANBK).'
+            ? 'Mode sesi: terjadwal (siswa dijatahkan per sesi, ala USBK).'
             : 'Mode sesi: bebas (siswa boleh masuk sesi aktif mana saja).');
 
         return Redirect::back();
@@ -458,7 +458,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             ]);
         }
 
-        // Sesi ala ANBK adalah gelombang berurutan: tidak boleh tumpang tindih.
+        // Sesi ala USBK adalah gelombang berurutan: tidak boleh tumpang tindih.
         $tabrakan = $ujian->sesis()
             ->when($kecuali, fn ($q) => $q->where('id', '!=', $kecuali->id))
             ->where('waktu_mulai', '<', $selesai)

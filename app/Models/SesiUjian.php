@@ -43,7 +43,7 @@ class SesiUjian extends Model
     }
 
     /**
-     * Penjadwalan siswa ke sesi ini (mode_sesi = 'terjadwal', ala ANBK).
+     * Penjadwalan siswa ke sesi ini (mode_sesi = 'terjadwal', ala USBK).
      */
     public function pesertas(): HasMany
     {

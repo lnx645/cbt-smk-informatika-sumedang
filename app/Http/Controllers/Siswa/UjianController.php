@@ -229,7 +229,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             $mulai = now();
             $batas = $mulai->copy()->addMinutes($ujian->durasi_menit);
 
-            // Ala ANBK: pengerjaan tidak boleh melewati akhir sesi.
+            // Ala USBK: pengerjaan tidak boleh melewati akhir sesi.
             if ($sesiAktif !== null && $batas->gt($sesiAktif->waktu_selesai)) {
                 $batas = $sesiAktif->waktu_selesai->copy();
             }
@@ -266,7 +266,7 @@ class UjianController extends BaseAppController implements HasMiddleware
     private function sesiUntukSiswa(Ujian $ujian, string $nisn): ?SesiUjian
     {
         if ($ujian->sesiTerjadwal()) {
-            // Ala ANBK: siswa hanya boleh masuk sesi yang dijatahkan untuknya.
+            // Ala USBK: siswa hanya boleh masuk sesi yang dijatahkan untuknya.
             $jatah = SesiUjian::jatahUntuk($ujian->id, $nisn);
 
             if ($jatah === null) {
