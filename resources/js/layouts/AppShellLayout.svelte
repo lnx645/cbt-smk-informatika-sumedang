@@ -12,7 +12,6 @@
     import { Toaster } from 'svelte-sonner';
     import { inertia, page, router } from '@inertiajs/svelte';
     import '@/styles/modules/app-shell-layout.scss';
-    import CookieConsent from '@/components/CookieConsent.svelte';
     import AuthenticatedSessionController from '@/actions/App/Http/Controllers/AuthenticatedSessionController';
     import ConfirmDialog from '@/components/ConfirmDialog.svelte';
     import TahunAjaranInfo from '@/components/TahunAjaranInfo.svelte';
@@ -240,7 +239,6 @@
     let userMenuOpen = $state(false);
 </script>
 
-<CookieConsent />
 <Toaster richColors position="top-right" />
 
 <div class="app-shell">

@@ -171,6 +171,24 @@
             if (!ok) return;
         }
         submitting = true;
+        // Simpan dulu jawaban soal aktif (khusus esai yang belum ke-blur),
+        // tunggu selesai, baru submit — cegah jawaban terakhir hilang.
+        if (soalAktif) {
+            try {
+                await router.post(
+                    UjianController.simpanJawaban({ ujian: ujian.id }).url,
+                    {
+                        soal_id: soalAktif.id,
+                        opsi_dipilih: jawabanOpsi[soalAktif.id] ?? [],
+                        jawaban_teks: jawabanTeks[soalAktif.id] ?? '',
+                        ragu: raguMap[soalAktif.id] ?? false,
+                    },
+                    { preserveState: true, preserveScroll: true, replace: true },
+                );
+            } catch {
+                // Lanjut submit walau simpan gagal; server validasi batas waktu.
+            }
+        }
         router.post(UjianController.submit({ ujian: ujian.id }).url);
     }
 
