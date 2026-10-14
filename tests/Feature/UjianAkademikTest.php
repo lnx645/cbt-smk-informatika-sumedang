@@ -375,3 +375,39 @@ test('siswa dapat melihat dan menandai notifikasi dibaca', function (): void {
     $this->post("/app/notifikasi/{$notif->id}/baca")->assertRedirect();
     expect($notif->fresh()->dibaca_at)->not->toBeNull();
 });
+
+test('ruang yang bentrok waktu dengan sesi lain ditolak', function (): void {
+    $ujian = buatUjianAkademik($this);
+    $ruang = RuangUjian::factory()->create();
+
+    $sesi1 = SesiUjian::factory()->create([
+        'ujian_id' => $ujian->id,
+        'waktu_mulai' => now()->addHour(),
+        'waktu_selesai' => now()->addHours(2),
+        'ruang_ujian_id' => $ruang->id,
+    ]);
+    $sesi2 = SesiUjian::factory()->create([
+        'ujian_id' => $ujian->id,
+        'waktu_mulai' => now()->addHours(1)->addMinutes(30), // tumpang tindih
+        'waktu_selesai' => now()->addHours(3),
+    ]);
+
+    $this->actingAs($this->guruUser);
+    $this->put("/app/guru/ujian/{$ujian->id}/sesi/{$sesi2->id}/ruang", [
+        'ruang_ujian_id' => $ruang->id,
+    ])->assertRedirect();
+
+    // Ditolak: ruang tidak berubah.
+    expect($sesi2->fresh()->ruang_ujian_id)->toBeNull();
+
+    // Sesi yang waktunya tidak tumpang tindih boleh memakai ruang yang sama.
+    $sesi3 = SesiUjian::factory()->create([
+        'ujian_id' => $ujian->id,
+        'waktu_mulai' => now()->addHours(3),
+        'waktu_selesai' => now()->addHours(4),
+    ]);
+    $this->put("/app/guru/ujian/{$ujian->id}/sesi/{$sesi3->id}/ruang", [
+        'ruang_ujian_id' => $ruang->id,
+    ])->assertRedirect();
+    expect($sesi3->fresh()->ruang_ujian_id)->toBe($ruang->id);
+});

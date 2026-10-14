@@ -396,6 +396,25 @@ class UjianAkademikController extends BaseAppController implements HasMiddleware
             'ruang_ujian_id' => ['nullable', 'integer', 'exists:ruang_ujians,id'],
         ]);
 
+        // Cegah bentrok: ruang yang sama tidak boleh dipakai sesi lain
+        // yang waktunya tumpang tindih.
+        if ($data['ruang_ujian_id'] && $sesi->waktu_mulai && $sesi->waktu_selesai) {
+            $bentrok = SesiUjian::query()
+                ->where('ruang_ujian_id', $data['ruang_ujian_id'])
+                ->where('id', '!=', $sesi->id)
+                ->where('waktu_mulai', '<', $sesi->waktu_selesai)
+                ->where('waktu_selesai', '>', $sesi->waktu_mulai)
+                ->with('ujian')
+                ->first();
+
+            if ($bentrok) {
+                $label = $bentrok->ujian?->judul ?? 'ujian lain';
+                Toast::error("Ruang bentrok dengan {$bentrok->nama} ({$label}). Pilih ruang atau waktu lain.");
+
+                return Redirect::back();
+            }
+        }
+
         $sesi->update(['ruang_ujian_id' => $data['ruang_ujian_id']]);
         Toast::success('Ruang sesi diperbarui.');
 
