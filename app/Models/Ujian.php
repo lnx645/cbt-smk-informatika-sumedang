@@ -90,6 +90,35 @@ class Ujian extends Model
         return $this->hasMany(UjianPengerjaan::class);
     }
 
+    /**
+     * Gelombang sesi ujian (standar nasional). Kosong = tanpa sesi.
+     */
+    public function sesis(): HasMany
+    {
+        return $this->hasMany(SesiUjian::class)->orderBy('urutan')->orderBy('id');
+    }
+
+    public function memakaiSesi(): bool
+    {
+        return $this->sesis()->exists();
+    }
+
+    /**
+     * Sesi yang sedang aktif sekarang, null bila tidak ada.
+     */
+    public function sesiAktif(): ?SesiUjian
+    {
+        $now = Carbon::now();
+
+        /** @var SesiUjian|null $sesi */
+        $sesi = $this->sesis()
+            ->where('waktu_mulai', '<=', $now)
+            ->where('waktu_selesai', '>=', $now)
+            ->first();
+
+        return $sesi;
+    }
+
     public function scopeBesar(Builder $query): Builder
     {
         return $query->whereIn('kategori', self::KATEGORI_BESAR);
