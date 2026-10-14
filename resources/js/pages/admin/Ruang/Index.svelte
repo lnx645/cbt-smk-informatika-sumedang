@@ -7,7 +7,7 @@
     import PageHeader from '@/components/PageHeader.svelte';
     import EmptyState from '@/components/EmptyState.svelte';
     import { confirm } from '@/lib/confirm.svelte';
-    import Akademik from '@/actions/App/Http/Controllers/Admin/RuangController';
+    import RuangController from '@/actions/App/Http/Controllers/Admin/RuangController';
 
     type Ruang = { id: number; kode: string; nama: string; kapasitas: number; lokasi: string | null };
     let { ruangs }: { ruangs: Ruang[] } = $props();
@@ -31,9 +31,9 @@
     function simpan(e: SubmitEvent) {
         e.preventDefault();
         if (editId) {
-            form.put(Akademik.update.url({ ruang: editId }), { onSuccess: () => (modalTerbuka = false) });
+            form.put(RuangController.update.url({ ruang: editId }), { onSuccess: () => (modalTerbuka = false) });
         } else {
-            form.post(Akademik.store.url(), { onSuccess: () => (modalTerbuka = false) });
+            form.post(RuangController.store.url(), { onSuccess: () => (modalTerbuka = false) });
         }
     }
     async function hapus(r: Ruang) {
@@ -44,7 +44,7 @@
             color: 'danger',
         });
         if (!ok) return;
-        router.delete(Akademik.destroy({ ruang: r.id }).url);
+        router.delete(RuangController.destroy({ ruang: r.id }).url);
     }
 </script>
 

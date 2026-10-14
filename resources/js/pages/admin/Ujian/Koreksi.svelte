@@ -1,6 +1,6 @@
 <script lang="ts">
     import 'katex/dist/katex.min.css';
-    import { inertia, useForm } from '@inertiajs/svelte';
+    import { inertia, router } from '@inertiajs/svelte';
     import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
     import { TIPE_SOAL_INFO, type TipeSoal } from '@/lib/ujian';
     import UjianController from '@/actions/App/Http/Controllers/Admin/UjianController';
@@ -41,17 +41,33 @@
         pelanggarans: { jenis: string; terjadi_at: string }[];
     } = $props();
 
-    const skorForm = useForm({ skor: 0 });
+    let skorInput = $state<Record<number, number>>({});
+    let menyimpanId = $state<number | null>(null);
+    let skorError = $state('');
 
     function nilai(j: Jawaban) {
-        skorForm.skor = j.skor ?? 0;
-        skorForm.post(
+        const skor = skorInput[j.id] ?? j.skor ?? 0;
+        menyimpanId = j.id;
+        skorError = '';
+        router.post(
             UjianController.nilaiEsai({
                 ujian: ujian.id,
                 pengerjaan: pengerjaan.id,
                 jawaban: j.id,
             }).url,
-            { preserveScroll: true },
+            { skor },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    skorInput[j.id] = skor;
+                },
+                onError: (errors) => {
+                    skorError = (errors as Record<string, string>).skor ?? 'Gagal menyimpan.';
+                },
+                onFinish: () => {
+                    menyimpanId = null;
+                },
+            },
         );
     }
 </script>
@@ -137,14 +153,16 @@
                             min="0"
                             max={j.poin}
                             class="form-control"
-                            value={j.skor ?? 0}
-                            oninput={(e) => (skorForm.skor = Number((e.currentTarget as HTMLInputElement).value))}
+                            value={skorInput[j.id] ?? j.skor ?? 0}
+                            oninput={(e) => (skorInput[j.id] = Number((e.currentTarget as HTMLInputElement).value))}
                         />
                         <span class="input-group-text">/ {j.poin}</span>
-                        <Button color="primary" onclick={() => nilai(j)} disabled={skorForm.processing}>Simpan</Button>
+                        <Button color="primary" onclick={() => nilai(j)} disabled={menyimpanId === j.id}>
+                            {menyimpanId === j.id ? 'Menyimpan…' : 'Simpan'}
+                        </Button>
                     </div>
-                    {#if skorForm.errors.skor}
-                        <div class="text-danger small mt-1">{skorForm.errors.skor}</div>
+                    {#if skorError && menyimpanId === null}
+                        <div class="text-danger small mt-1">{skorError}</div>
                     {/if}
                 {:else}
                     <div class="small text-muted">Skor otomatis: {j.skor ?? 0}</div>
