@@ -7,6 +7,7 @@ use App\Models\Guru;
 use App\Models\GuruKelas;
 use App\Models\Penilaian;
 use App\Models\PeriodeUjian;
+use App\Models\SesiUjian;
 use App\Models\Ujian;
 use App\Services\UjianService;
 use App\Support\Toast;
@@ -14,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -201,6 +203,93 @@ class UjianController extends BaseAppController implements HasMiddleware
         }
 
         return Redirect::back();
+    }
+
+    /**
+     * Tambah gelombang sesi ujian (standar nasional).
+     */
+    public function sesiStore(Request $request, Ujian $ujian): RedirectResponse
+    {
+        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+
+        $data = $this->validateSesi($request, $ujian);
+
+        $ujian->sesis()->create($data);
+
+        Toast::success("Sesi \"{$data['nama']}\" ditambahkan.");
+
+        return Redirect::back();
+    }
+
+    /**
+     * Ubah gelombang sesi ujian.
+     */
+    public function sesiUpdate(Request $request, Ujian $ujian, SesiUjian $sesi): RedirectResponse
+    {
+        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+        abort_unless($sesi->ujian_id === $ujian->id, 404);
+
+        $data = $this->validateSesi($request, $ujian);
+
+        $sesi->update($data);
+
+        Toast::success("Sesi \"{$data['nama']}\" diperbarui.");
+
+        return Redirect::back();
+    }
+
+    /**
+     * Hapus gelombang sesi ujian (tidak boleh bila sudah dipakai pengerjaan).
+     */
+    public function sesiDestroy(Request $request, Ujian $ujian, SesiUjian $sesi): RedirectResponse
+    {
+        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+        abort_unless($sesi->ujian_id === $ujian->id, 404);
+
+        if ($sesi->pengerjaans()->exists()) {
+            Toast::error('Sesi tidak dapat dihapus karena sudah dipakai pengerjaan siswa.');
+
+            return Redirect::back();
+        }
+
+        $sesi->delete();
+
+        Toast::success('Sesi dihapus.');
+
+        return Redirect::back();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validateSesi(Request $request, Ujian $ujian): array
+    {
+        $data = $request->validate([
+            'nama' => ['required', 'string', 'max:50'],
+            'urutan' => ['nullable', 'integer', 'min:0'],
+            'waktu_mulai' => ['required', 'date'],
+            'waktu_selesai' => ['required', 'date', 'after:waktu_mulai'],
+            'kapasitas' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $data['urutan'] ??= $ujian->sesis()->count() + 1;
+
+        $mulai = Carbon::parse($data['waktu_mulai']);
+        $selesai = Carbon::parse($data['waktu_selesai']);
+
+        if ($ujian->tanggal_mulai !== null && $mulai->lt($ujian->tanggal_mulai)) {
+            throw ValidationException::withMessages([
+                'waktu_mulai' => 'Sesi tidak boleh mulai sebelum jadwal ujian.',
+            ]);
+        }
+
+        if ($ujian->tanggal_selesai !== null && $selesai->gt($ujian->tanggal_selesai)) {
+            throw ValidationException::withMessages([
+                'waktu_selesai' => 'Sesi tidak boleh berakhir setelah jadwal ujian.',
+            ]);
+        }
+
+        return $data;
     }
 
     /**

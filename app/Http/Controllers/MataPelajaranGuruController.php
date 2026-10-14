@@ -85,10 +85,20 @@ class MataPelajaranGuruController extends Controller
             ->groupBy('guru_kelas_id')
             ->pluck('total', 'guru_kelas_id');
 
+        // Materi terbaru per mata pelajaran agar siswa tahu materi apa yang baru.
+        $lastMateri = Materi::whereIn('guru_kelas_id', $penugasan->pluck('id'))
+            ->join('guru_kelas', 'materis.guru_kelas_id', '=', 'guru_kelas.id')
+            ->select('guru_kelas.matpel_id', 'materis.judul', 'materis.created_at')
+            ->orderByDesc('materis.created_at')
+            ->get()
+            ->groupBy('matpel_id')
+            ->map(fn ($group) => $group->first());
+
         $matpels = $penugasan
             ->groupBy('matpel_id')
-            ->map(function ($rows, $matpelId) use ($jumlahMateri): array {
+            ->map(function ($rows, $matpelId) use ($jumlahMateri, $lastMateri): array {
                 $matpel = $rows->first()->matpel;
+                $last = $lastMateri->get($matpelId);
 
                 return [
                     'id' => $matpel?->id ?? (int) $matpelId,
@@ -96,8 +106,17 @@ class MataPelajaranGuruController extends Controller
                     'description' => $matpel?->description,
                     'guru' => $rows->first()->guru?->nama_lengkap ?? 'Guru',
                     'total_materi' => $rows->sum(fn (GuruKelas $gk) => (int) ($jumlahMateri[$gk->id] ?? 0)),
+                    'last_materi' => $last
+                        ? [
+                            'judul' => $last->judul,
+                            'created_at' => $last->created_at?->translatedFormat('d M Y H:i'),
+                            'is_baru' => $last->created_at?->gt(now()->subDays(7)) ?? false,
+                            'sort_key' => $last->created_at?->timestamp ?? 0,
+                        ]
+                        : null,
                 ];
             })
+            ->sortByDesc(fn (array $m): int => $m['last_materi']['sort_key'] ?? 0)
             ->values()
             ->all();
 

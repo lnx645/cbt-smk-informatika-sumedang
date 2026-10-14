@@ -12,6 +12,7 @@ use App\Models\Ujian;
 use App\Models\UjianPengerjaan;
 use App\Services\UjianService;
 use App\Support\Toast;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -95,6 +96,20 @@ class UjianController extends BaseAppController implements HasMiddleware
     }
 
     /**
+     * Waktu server (ISO8601 + unix) untuk sinkronisasi countdown di browser.
+     * Countdown tidak boleh mengandalkan jam perangkat siswa.
+     */
+    public function waktuServer(Request $request): JsonResponse
+    {
+        $now = now();
+
+        return response()->json([
+            'server_time' => $now->toIso8601String(),
+            'unix' => $now->timestamp,
+        ]);
+    }
+
+    /**
      * Mulai atau lanjutkan pengerjaan (validasi token & attempt di server).
      */
     public function mulai(Request $request, Ujian $ujian): RedirectResponse
@@ -106,6 +121,24 @@ class UjianController extends BaseAppController implements HasMiddleware
             Toast::error('Ujian belum dibuka atau sudah berakhir.');
 
             return Redirect::back();
+        }
+
+        // Ujian bersesi: siswa hanya boleh mulai di dalam window sesi aktif.
+        $sesiAktif = null;
+        if ($ujian->memakaiSesi()) {
+            $sesiAktif = $ujian->sesiAktif();
+
+            if ($sesiAktif === null) {
+                Toast::error('Tidak ada sesi ujian yang sedang berlangsung.');
+
+                return Redirect::back();
+            }
+
+            if ($sesiAktif->penuh()) {
+                Toast::error("{$sesiAktif->nama} sudah penuh. Tunggu sesi berikutnya.");
+
+                return Redirect::back();
+            }
         }
 
         // Sesi berjalan yang masih valid -> lanjutkan.
@@ -146,6 +179,7 @@ class UjianController extends BaseAppController implements HasMiddleware
         UjianPengerjaan::create([
             'ujian_id' => $ujian->id,
             'siswa_nisn' => $nisn,
+            'sesi_ujian_id' => $sesiAktif?->id,
             'attempt_ke' => $terpakai + 1,
             'mulai_at' => $mulai,
             'batas_at' => $batas,

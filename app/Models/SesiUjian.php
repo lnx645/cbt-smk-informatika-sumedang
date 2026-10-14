@@ -1,0 +1,76 @@
+<?php
+
+namespace App\Models;
+
+use Database\Factories\SesiUjianFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+#[Table('sesi_ujians')]
+class SesiUjian extends Model
+{
+    /** @use HasFactory<SesiUjianFactory> */
+    use HasFactory;
+
+    protected $fillable = [
+        'ujian_id',
+        'nama',
+        'urutan',
+        'waktu_mulai',
+        'waktu_selesai',
+        'kapasitas',
+    ];
+
+    protected $casts = [
+        'urutan' => 'integer',
+        'kapasitas' => 'integer',
+        'waktu_mulai' => 'datetime',
+        'waktu_selesai' => 'datetime',
+    ];
+
+    public function ujian(): BelongsTo
+    {
+        return $this->belongsTo(Ujian::class);
+    }
+
+    public function pengerjaans(): HasMany
+    {
+        return $this->hasMany(UjianPengerjaan::class);
+    }
+
+    public function sedangAktif(): bool
+    {
+        $now = now();
+
+        return $this->waktu_mulai <= $now && $this->waktu_selesai >= $now;
+    }
+
+    public function sudahLewat(): bool
+    {
+        return $this->waktu_selesai < now();
+    }
+
+    /**
+     * Jumlah slot tersisa; null berarti tanpa batas kapasitas.
+     */
+    public function sisaKapasitas(): ?int
+    {
+        if ($this->kapasitas === null) {
+            return null;
+        }
+
+        $terisi = $this->pengerjaans()
+            ->where('status', 'berlangsung')
+            ->count();
+
+        return max(0, $this->kapasitas - $terisi);
+    }
+
+    public function penuh(): bool
+    {
+        return $this->sisaKapasitas() === 0;
+    }
+}

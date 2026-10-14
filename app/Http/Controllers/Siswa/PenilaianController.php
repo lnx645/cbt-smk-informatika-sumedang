@@ -60,7 +60,7 @@ class PenilaianController extends BaseAppController implements HasMiddleware
                 ->with(['penilaian:id,nama,tipe,nilai_maks'])
                 ->whereIn('guru_kelas_id', $guruKelasIds)
                 ->where('siswa_nisn', $siswa->nisn)
-                ->where('sumber', 'manual')
+                ->where('sumber', '!=', 'tugas')
                 ->whereHas('penilaian', fn ($q) => $q->where('aktif', true))
                 ->get();
 
