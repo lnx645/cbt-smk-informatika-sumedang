@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('nama');
             $table->text('deskripsi');
-            $table->foreignIdFor(Guru::class)->constrained('gurus')->nullOnDelete()->cascadeOnUpdate();
+            $table->foreignIdFor(Guru::class)->nullable()->constrained('gurus')->nullOnDelete()->cascadeOnUpdate();
             $table->boolean('active')->default(false);
             $table->timestamps();
         });

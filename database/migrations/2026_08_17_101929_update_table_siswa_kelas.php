@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('siswa_kelas', function (Blueprint $table) {
-            $table->boolean('pertama_masuk')->default(false)->after('nisn');
+            $table->boolean('pertama_masuk')->default(false)->after('siswa_nisn');
         });
     }
 
