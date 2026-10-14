@@ -429,7 +429,7 @@
     </div>
 
     <div class="input-group mb-3 kelas-search">
-        <span class="input-group-text bg-white">
+        <span class="input-group-text" style="background-color: var(--app-shell-surface);">
             <i class="bi bi-search"></i>
         </span>
         <input
@@ -451,7 +451,7 @@
     </div>
 
     {#if filteredTree.length}
-        <ul class="list-unstyled bg-white border rounded p-2 mb-0">
+        <ul class="list-unstyled border rounded p-2 mb-0" style="background-color: var(--app-shell-surface);">
             {#each filteredTree as parent (parent.id)}
                 {@render node(parent, 0)}
             {/each}
@@ -604,6 +604,6 @@
     }
 
     .kelas-row:hover {
-        background: var(--bs-gray-100);
+        background: var(--app-shell-primary-soft);
     }
 </style>

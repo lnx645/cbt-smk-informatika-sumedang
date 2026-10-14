@@ -186,7 +186,8 @@
                 <div class="d-flex flex-wrap gap-2 align-items-center">
                     {#each kelas_saya as item (item.id)}
                         <div
-                            class="d-inline-flex align-items-center gap-2 bg-white border rounded px-3 py-2 shadow-sm"
+                            class="d-inline-flex align-items-center gap-2 border rounded px-3 py-2 shadow-sm"
+                            style="background-color: var(--app-shell-surface);"
                         >
                             <i
                                 class="bi bi-collection text-primary"
