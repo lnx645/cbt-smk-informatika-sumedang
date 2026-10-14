@@ -347,7 +347,7 @@
     <div class="crud-filterbar d-flex flex-wrap align-items-center gap-2 mb-3">
         {#if searchable}
             <div class="input-group input-group-sm crud-search">
-                <span class="input-group-text bg-white">
+                <span class="input-group-text" style="background-color: var(--app-shell-surface);">
                     <i class="bi bi-search"></i>
                 </span>
                 <input
@@ -658,18 +658,18 @@
         width: 100%;
     }
     .crud-table thead th {
-        background: var(--bs-gray-100);
+        background: var(--app-shell-surface, #f8f9fa);
         font-weight: 600;
-        color: var(--inv-gray-700);
+        color: var(--app-shell-text-muted, var(--inv-gray-700));
         text-transform: capitalize;
         letter-spacing: 0.03em;
         font-size: 0.75rem;
-        border-bottom: 1px solid var(--bs-gray-300);
+        border-bottom: 1px solid var(--app-shell-border, #dee2e6);
         padding: 0.4rem 1rem;
     }
 
     .crud-table tbody td {
-        border-bottom: 1px solid var(--bs-gray-200);
+        border-bottom: 1px solid var(--app-shell-border, #dee2e6);
         padding: 0.3rem 1rem;
         vertical-align: middle;
         font-size: 0.75rem;

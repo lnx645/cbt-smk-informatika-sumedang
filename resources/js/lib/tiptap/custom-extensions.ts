@@ -1,6 +1,17 @@
 import { Heading } from '@tiptap/extension-heading';
 import { mergeAttributes, Node } from '@tiptap/core';
 
+declare module '@tiptap/core' {
+    interface Commands<ReturnType> {
+        daftarIsi: {
+            insertDaftarIsi: () => ReturnType;
+        };
+        audioPlayer: {
+            setAudio: (src: string) => ReturnType;
+        };
+    }
+}
+
 export type DaftarIsiItem = {
     id: string;
     text: string;
