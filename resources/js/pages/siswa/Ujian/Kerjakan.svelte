@@ -171,25 +171,29 @@
             if (!ok) return;
         }
         submitting = true;
-        // Simpan dulu jawaban soal aktif (khusus esai yang belum ke-blur),
-        // tunggu selesai, baru submit — cegah jawaban terakhir hilang.
+        // Simpan jawaban soal aktif dulu via fetch (tanpa await Inertia yang bisa hang),
+        // lalu submit. Cegah jawaban esai terakhir hilang.
         if (soalAktif) {
-            try {
-                await router.post(
-                    UjianController.simpanJawaban({ ujian: ujian.id }).url,
-                    {
-                        soal_id: soalAktif.id,
-                        opsi_dipilih: jawabanOpsi[soalAktif.id] ?? [],
-                        jawaban_teks: jawabanTeks[soalAktif.id] ?? '',
-                        ragu: raguMap[soalAktif.id] ?? false,
-                    },
-                    { preserveState: true, preserveScroll: true, replace: true },
-                );
-            } catch {
-                // Lanjut submit walau simpan gagal; server validasi batas waktu.
-            }
+            const csrf = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+            fetch(UjianController.simpanJawaban({ ujian: ujian.id }).url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-XSRF-TOKEN': csrf ? decodeURIComponent(csrf[1]) : '',
+                },
+                body: JSON.stringify({
+                    soal_id: soalAktif.id,
+                    opsi_dipilih: jawabanOpsi[soalAktif.id] ?? [],
+                    jawaban_teks: jawabanTeks[soalAktif.id] ?? '',
+                    ragu: raguMap[soalAktif.id] ?? false,
+                }),
+            }).finally(() => {
+                router.post(UjianController.submit({ ujian: ujian.id }).url);
+            });
+        } else {
+            router.post(UjianController.submit({ ujian: ujian.id }).url);
         }
-        router.post(UjianController.submit({ ujian: ujian.id }).url);
     }
 
     // ---- Proctoring handlers ----
