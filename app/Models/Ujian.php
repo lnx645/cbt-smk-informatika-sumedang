@@ -37,6 +37,7 @@ class Ujian extends Model
         'token',
         'token_released_at',
         'token_pengelola',
+        'mode_sesi',
         'nilai_maks',
         'bobot',
         'status',
@@ -101,6 +102,15 @@ class Ujian extends Model
     public function memakaiSesi(): bool
     {
         return $this->sesis()->exists();
+    }
+
+    /**
+     * Mode 'terjadwal': siswa hanya boleh masuk sesi yang dijatahkan (ala ANBK).
+     * Mode 'bebas': siswa boleh masuk sesi aktif mana saja.
+     */
+    public function sesiTerjadwal(): bool
+    {
+        return $this->mode_sesi === 'terjadwal';
     }
 
     /**

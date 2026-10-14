@@ -73,9 +73,13 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::post('guru/ujian/{ujian}/terbit', [GuruUjianController::class, 'terbit'])->name('guru.ujian.terbit');
     Route::post('guru/ujian/{ujian}/token', [GuruUjianController::class, 'generateToken'])->name('guru.ujian.token');
     Route::post('guru/ujian/{ujian}/token/toggle', [GuruUjianController::class, 'toggleToken'])->name('guru.ujian.token.toggle');
+    Route::get('guru/ujian/{ujian}/sesi', [GuruUjianController::class, 'sesiIndex'])->name('guru.ujian.sesi.index');
     Route::post('guru/ujian/{ujian}/sesi', [GuruUjianController::class, 'sesiStore'])->name('guru.ujian.sesi.store');
     Route::put('guru/ujian/{ujian}/sesi/{sesi}', [GuruUjianController::class, 'sesiUpdate'])->name('guru.ujian.sesi.update');
     Route::delete('guru/ujian/{ujian}/sesi/{sesi}', [GuruUjianController::class, 'sesiDestroy'])->name('guru.ujian.sesi.destroy');
+    Route::put('guru/ujian/{ujian}/mode-sesi', [GuruUjianController::class, 'sesiMode'])->name('guru.ujian.sesi.mode');
+    Route::post('guru/ujian/{ujian}/sesi/{sesi}/peserta', [GuruUjianController::class, 'sesiPesertaStore'])->name('guru.ujian.sesi.peserta.store');
+    Route::delete('guru/ujian/{ujian}/sesi/{sesi}/peserta/{nisn}', [GuruUjianController::class, 'sesiPesertaDestroy'])->name('guru.ujian.sesi.peserta.destroy');
     Route::get('guru/ujian/{ujian}/soal', [GuruSoalController::class, 'index'])->name('guru.ujian.soal.index');
     Route::post('guru/ujian/{ujian}/soal', [GuruSoalController::class, 'store'])->name('guru.ujian.soal.store');
     Route::put('guru/ujian/{ujian}/soal/{soal}', [GuruSoalController::class, 'update'])->name('guru.ujian.soal.update');

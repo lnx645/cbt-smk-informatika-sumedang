@@ -41,6 +41,26 @@ class SesiUjian extends Model
         return $this->hasMany(UjianPengerjaan::class);
     }
 
+    /**
+     * Penjadwalan siswa ke sesi ini (mode_sesi = 'terjadwal', ala ANBK).
+     */
+    public function pesertas(): HasMany
+    {
+        return $this->hasMany(SesiUjianPeserta::class, 'sesi_ujian_id');
+    }
+
+    /**
+     * Cari sesi yang dijatahkan untuk siswa pada ujian ini.
+     */
+    public static function jatahUntuk(int $ujianId, string $nisn): ?self
+    {
+        $peserta = SesiUjianPeserta::where('ujian_id', $ujianId)
+            ->where('siswa_nisn', $nisn)
+            ->first();
+
+        return $peserta?->sesi;
+    }
+
     public function sedangAktif(): bool
     {
         $now = now();
