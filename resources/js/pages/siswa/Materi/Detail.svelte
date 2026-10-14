@@ -1,6 +1,6 @@
 <script lang="ts">
     import { inertia, WhenVisible } from '@inertiajs/svelte';
-    import { Card, CardBody } from '@sveltestrap/sveltestrap';
+    import { Badge, Card, CardBody } from '@sveltestrap/sveltestrap';
     import DocxViewer from '@/components/DocxViewer.svelte';
     import PdfViewer from '@/components/PdfViewer.svelte';
     import PptxViewer from '@/components/PptxViewer.svelte';
@@ -68,51 +68,26 @@
 </script>
 
 <div class="container-fluid px-0">
-    <div class="detail-hero detail-hero--materi">
-        <a use:inertia href={kembaliUrl} class="detail-hero__back">
+    <div class="materi-header mb-3">
+        <a use:inertia href={kembaliUrl} class="btn btn-sm btn-outline-secondary mb-2">
             <i class="bi bi-arrow-left me-1"></i>Daftar Materi
         </a>
 
-        <div
-            class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 mt-4"
-        >
-            <div class="d-flex align-items-center gap-3 me-lg-4">
-                <img class="detail-hero__logo" src="/logo.webp" alt="Logo sekolah" />
-                <div class="min-w-0">
-                    <div class="d-flex gap-2 flex-wrap mb-2">
-                        <span class="detail-hero__tag">
-                            <i class="bi bi-journal-bookmark me-1"
-                            ></i>{materi.matpel ?? 'Matpel'}
-                        </span>
-                        <span class="detail-hero__tag">
-                            <i class="bi bi-people me-1"
-                            ></i>{materi.kelas ?? 'Kelas'}
-                        </span>
-                        {#if viewerKind}
-                            <span class="detail-hero__tag">
-                                <i class={`bi ${fileStyle?.icon} me-1`}
-                                ></i>
-                                {formatFileType(
-                                    materi.mime_type,
-                                    materi.file_name,
-                                )}
-                            </span>
-                        {/if}
-                    </div>
-                    <h1 class="detail-hero__title">{materi.judul}</h1>
-                    <div class="detail-hero__meta">
-                        <span
-                            ><i class="bi bi-person me-1"
-                            ></i>{materi.guru ?? 'Guru'}</span
-                        >
-                        <span class="detail-hero__dot">•</span>
-                        <span
-                            ><i class="bi bi-calendar3 me-1"
-                            ></i>{materi.dibuat_pada}</span
-                        >
-                    </div>
-                </div>
-            </div>
+        <div class="d-flex gap-2 flex-wrap mb-2">
+            <Badge color="primary">{materi.matpel ?? 'Matpel'}</Badge>
+            <Badge color="secondary">{materi.kelas ?? 'Kelas'}</Badge>
+            {#if viewerKind}
+                <Badge color="info">
+                    <i class={`bi ${fileStyle?.icon} me-1`}></i>
+                    {formatFileType(materi.mime_type, materi.file_name)}
+                </Badge>
+            {/if}
+        </div>
+        <h1 class="h4 fw-bold mb-1 text-break">{materi.judul}</h1>
+        <div class="text-muted small">
+            <i class="bi bi-person me-1"></i>{materi.guru ?? 'Guru'}
+            <span class="mx-1">•</span>
+            <i class="bi bi-calendar3 me-1"></i>{materi.dibuat_pada}
         </div>
     </div>
 
@@ -262,113 +237,17 @@
 </div>
 
 <style>
-    .detail-hero {
-        position: relative;
-        overflow: hidden;
-        border-radius: var(--bs-border-radius-lg)
-            var(--bs-border-radius-lg) 0 0;
-        padding: 1.5rem 1.5rem 1.75rem;
-        color: #fff;
-        background: linear-gradient(135deg, var(--bs-primary) 0%, #1d4ed8 100%);
-        box-shadow: 0 0.25rem 0.5rem rgba(13, 110, 253, 0.15);
-    }
 
-    .detail-hero--materi {
-        background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%);
-    }
 
-    .detail-hero::before,
-    .detail-hero::after {
-        content: '';
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.08);
-        pointer-events: none;
-    }
 
-    .detail-hero::before {
-        width: 220px;
-        height: 220px;
-        top: -110px;
-        right: -60px;
-    }
 
-    .detail-hero::after {
-        width: 140px;
-        height: 140px;
-        bottom: -70px;
-        left: 28%;
-    }
 
-    .detail-hero__back {
-        position: relative;
-        z-index: 1;
-        display: inline-flex;
-        align-items: center;
-        color: rgba(255, 255, 255, 0.85);
-        font-size: var(--bs-font-size-sm);
-        font-weight: 600;
-        text-decoration: none;
-        transition: color 0.15s ease;
-    }
 
-    .detail-hero__back:hover {
-        color: #fff;
-    }
 
-    .detail-hero__logo {
-        position: relative;
-        z-index: 1;
-        width: 4.5rem;
-        height: 4.5rem;
-        object-fit: contain;
-        border-radius: 0.9rem;
-        background: var(--bs-body-bg);
-        padding: 0.4rem;
-        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.18);
-        flex-shrink: 0;
-    }
 
-    .detail-hero__tag {
-        position: relative;
-        z-index: 1;
-        display: inline-flex;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.16);
-        border: 1px solid rgba(255, 255, 255, 0.24);
-        border-radius: 999px;
-        padding: 0.25rem 0.75rem;
-        font-size: var(--bs-font-size-sm);
-        font-weight: 600;
-        backdrop-filter: blur(4px);
-    }
 
-    .detail-hero__title {
-        position: relative;
-        z-index: 1;
-        margin: 0;
-        color: #fff;
-        font-size: 1.5rem;
-        font-weight: 700;
-        line-height: 1.25;
-        word-break: break-word;
-    }
 
-    .detail-hero__meta {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 0.75rem;
-        color: rgba(255, 255, 255, 0.85);
-        font-size: var(--bs-font-size-sm);
-    }
 
-    .detail-hero__dot {
-        opacity: 0.5;
-    }
 
     .detail-file-icon {
         display: inline-flex;
@@ -481,7 +360,7 @@
         border-bottom-color: var(--bs-primary);
     }
 
-    :global(.detail-hero + .card) {
+    :global(.materi-header + .card) {
         border-top: 0;
     }
 
@@ -606,9 +485,12 @@
     }
 
     @media (max-width: 575.98px) {
-        .detail-hero__logo {
-            width: 3.6rem;
-            height: 3.6rem;
         }
+    /* Header bersih tanpa gradient */
+    .materi-header {
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
     }
 </style>
