@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', 'login');
 Route::get('link/external', [LinkExternalController::class, 'link'])->name('external.link');
+// Logout harus di luar 'app-only' agar admin juga bisa logout.
+Route::middleware('auth')->post('/app/logout', [AuthenticatedSessionController::class, 'destroy'])->name('app.auth.logout');
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('auth.login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('auth.login');
@@ -33,7 +35,6 @@ Route::middleware('guest')->group(function (): void {
 Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(function (): void {
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::get('matpel/{matpel}/kelas-{id}/manage', KelasController::class)->name('kelas.room');
-    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('auth.logout');
     Route::get('matpel-saya', [MataPelajaranGuruController::class, 'index'])->name('matpel');
     Route::get('guru/materi', [GuruMateriController::class, 'index'])->name('guru.materi.index');
     Route::get('guru/materi/katalog', [GuruMateriController::class, 'katalog'])->name('guru.materi.katalog');
