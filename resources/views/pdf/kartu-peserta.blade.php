@@ -5,42 +5,99 @@
     <title>Kartu Peserta Ujian — {{ $sesi->nama }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: sans-serif; font-size: 9pt; color: #222; padding: 16pt; }
-        .kartu { border: 2px solid #4182b3; border-radius: 6pt; padding: 10pt 12pt; margin-bottom: 12pt; page-break-inside: avoid; width: 48%; display: inline-block; vertical-align: top; margin-right: 2%; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 9pt; color: #1a1a1a; padding: 14pt; background: #fff; }
+
+        .kartu {
+            width: 48%; display: inline-block; vertical-align: top; margin-right: 2%; margin-bottom: 14pt;
+            border: 1.5pt solid #1a3a5c; border-radius: 8pt; overflow: hidden;
+            page-break-inside: avoid;
+        }
         .kartu:nth-child(even) { margin-right: 0; }
-        .kop { text-align: center; border-bottom: 2px solid #4182b3; padding-bottom: 6pt; margin-bottom: 8pt; }
-        .kop h2 { font-size: 11pt; }
-        .kop p { font-size: 8pt; color: #555; }
-        .judul { text-align: center; font-size: 10pt; font-weight: bold; margin-bottom: 8pt; text-decoration: underline; }
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 2pt 0; font-size: 8.5pt; vertical-align: top; }
-        td.label { width: 34%; color: #555; }
-        .ttd { margin-top: 10pt; display: flex; justify-content: space-between; font-size: 8pt; text-align: center; }
+
+        /* Header biru navy ala kartu resmi */
+        .kepala {
+            background: linear-gradient(135deg, #1a3a5c 0%, #2b567a 100%);
+            color: #fff; padding: 8pt 10pt; text-align: center;
+        }
+        .kepala h2 { font-size: 12pt; letter-spacing: 1pt; margin-bottom: 2pt; }
+        .kepala p { font-size: 7.5pt; opacity: 0.9; }
+
+        .badan { padding: 10pt 12pt 8pt; }
+
+        /* Nama besar di atas */
+        .nama-peserta { text-align: center; margin-bottom: 8pt; }
+        .nama-peserta .nama { font-size: 13pt; font-weight: bold; color: #1a3a5c; }
+        .nama-peserta .nisn { font-size: 8.5pt; color: #555; letter-spacing: 0.5pt; margin-top: 2pt; }
+
+        /* Grid info */
+        .info { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
+        .info td { padding: 3pt 0; font-size: 8.5pt; vertical-align: top; border-bottom: 0.5pt dotted #ddd; }
+        .info td.label { width: 30%; color: #666; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.3pt; }
+        .info td.nilai { font-weight: 600; }
+
+        /* Token box menonjol */
+        .token-box {
+            background: #f0f6fd; border: 1pt dashed #2b567a; border-radius: 4pt;
+            text-align: center; padding: 6pt; margin: 8pt 0;
+        }
+        .token-box .lbl { font-size: 7pt; color: #666; text-transform: uppercase; letter-spacing: 0.5pt; }
+        .token-box .val { font-size: 16pt; font-weight: bold; color: #1a3a5c; letter-spacing: 3pt; }
+
+        /* Kredensial login */
+        .login-box { background: #fafafa; border-radius: 4pt; padding: 6pt 8pt; margin-bottom: 8pt; font-size: 8pt; }
+        .login-box .row { display: flex; justify-content: space-between; padding: 1pt 0; }
+        .login-box .k { color: #666; }
+        .login-box .v { font-weight: bold; font-family: monospace; }
+
+        .ttd { display: flex; justify-content: space-between; font-size: 7.5pt; text-align: center; color: #444; margin-top: 6pt; }
         .ttd div { width: 45%; }
-        .ttd .nama { margin-top: 36pt; text-decoration: underline; font-weight: bold; }
+        .ttd .nama { margin-top: 28pt; border-top: 1pt solid #333; padding-top: 2pt; font-weight: bold; }
+
+        .kaki {
+            background: #f5f5f5; padding: 5pt 10pt; font-size: 6.5pt; color: #888; text-align: center;
+            border-top: 0.5pt solid #ddd;
+        }
     </style>
 </head>
 <body>
     @foreach ($pesertas as $siswa)
         <div class="kartu">
-            <div class="kop">
+            <div class="kepala">
                 <h2>KARTU PESERTA UJIAN</h2>
-                <p>SMK Informatika Sumedang</p>
+                <p>SMK INFORMATIKA SUMEDANG &bull; UJIAN SEKOLAH BERBASIS KOMPUTER</p>
             </div>
-            <table>
-                <tr><td class="label">Nama</td><td>: <strong>{{ $siswa->nama_lengkap }}</strong></td></tr>
-                <tr><td class="label">NISN</td><td>: {{ $siswa->nisn }}</td></tr>
-                <tr><td class="label">Ujian</td><td>: {{ $ujian->judul }}</td></tr>
-                <tr><td class="label">Sesi</td><td>: {{ $sesi->nama }}</td></tr>
-                <tr><td class="label">Waktu</td><td>: {{ $sesi->waktu_mulai->translatedFormat('d M Y H:i') }} – {{ $sesi->waktu_selesai->translatedFormat('H:i') }}</td></tr>
-                <tr><td class="label">Ruang</td><td>: {{ $sesi->ruang?->nama ?? '-' }}</td></tr>
+            <div class="badan">
+                <div class="nama-peserta">
+                    <div class="nama">{{ $siswa->nama_lengkap }}</div>
+                    <div class="nisn">NISN: {{ $siswa->nisn }}</div>
+                </div>
+
+                <table class="info">
+                    <tr><td class="label">Ujian</td><td class="nilai">{{ $ujian->judul }}</td></tr>
+                    <tr><td class="label">Sesi</td><td class="nilai">{{ $sesi->nama }}</td></tr>
+                    <tr><td class="label">Waktu</td><td class="nilai">{{ $sesi->waktu_mulai->translatedFormat('d M Y H:i') }} &ndash; {{ $sesi->waktu_selesai->translatedFormat('H:i') }}</td></tr>
+                    <tr><td class="label">Ruang</td><td class="nilai">{{ $sesi->ruang?->nama ?? '-' }}</td></tr>
+                </table>
+
+                <div class="login-box">
+                    <div class="row"><span class="k">Username</span><span class="v">{{ $siswa->nisn }}</span></div>
+                    <div class="row"><span class="k">Password</span><span class="v">sesuai kartu login</span></div>
+                </div>
+
                 @if ($ujian->token)
-                    <tr><td class="label">Token</td><td>: <strong>{{ $ujian->token }}</strong></td></tr>
+                    <div class="token-box">
+                        <div class="lbl">Token Ujian</div>
+                        <div class="val">{{ $ujian->token }}</div>
+                    </div>
                 @endif
-            </table>
-            <div class="ttd">
-                <div>Peserta<div class="nama">{{ $siswa->nama_lengkap }}</div></div>
-                <div>Pengawas<div class="nama">( ........................ )</div></div>
+
+                <div class="ttd">
+                    <div>Peserta<div class="nama">{{ Str::limit($siswa->nama_lengkap, 20) }}</div></div>
+                    <div>Pengawas<div class="nama">( ........................ )</div></div>
+                </div>
+            </div>
+            <div class="kaki">
+                Kartu ini wajib dibawa saat ujian &bull; Dilarang memfotokopi/menyebarluaskan token
             </div>
         </div>
     @endforeach
