@@ -270,7 +270,7 @@ test('siswa di bawah KKM mendapat kesempatan remedial', function (): void {
     expect($ujian->butuhRemedial($this->siswa->nisn))->toBeTrue();
 
     $this->actingAs($this->siswaUser);
-    $this->post("/app/ujian/{$ujian->id}/mulai")->assertRedirect();
+    $this->post("/app/ujian/{$ujian->id}/mulai", ['setuju_tata_tertib' => true])->assertRedirect();
 
     $remedial = UjianPengerjaan::where('ujian_id', $ujian->id)
         ->where('siswa_nisn', $this->siswa->nisn)
