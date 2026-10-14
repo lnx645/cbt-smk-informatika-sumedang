@@ -104,7 +104,7 @@
 </script>
 
 <div class="container-fluid px-0">
-    <div class="detail-hero mb-3">
+    <div class="detail-hero detail-hero--tugas mb-3">
         <a
             use:inertia
             href={TugasController.index().url}
@@ -116,8 +116,10 @@
         <div
             class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 mt-4"
         >
-            <div class="me-lg-4">
-                <div class="d-flex gap-2 flex-wrap mb-2">
+            <div class="d-flex align-items-center gap-3 me-lg-4">
+                <img class="detail-hero__logo" src="/logo.webp" alt="Logo sekolah" />
+                <div class="min-w-0">
+                    <div class="d-flex gap-2 flex-wrap mb-2">
                     <span class="detail-hero__tag">
                         <i class="bi bi-journal-bookmark me-1"
                         ></i>{tugas.matpel ?? 'Matpel'}
@@ -145,6 +147,7 @@
                         ><i class="bi bi-calendar3 me-1"></i>Terbit: {tugas.tanggal_terbit ??
                             'Langsung'}</span
                     >
+                </div>
                 </div>
             </div>
         </div>
@@ -295,7 +298,8 @@
                                         ></i>Jawaban:
                                     </div>
                                     <p
-                                        class="mb-0 p-2 bg-white border rounded-1 text-pre-wrap"
+                                        class="mb-0 p-2 border rounded-1 text-pre-wrap"
+                                        style="background-color: var(--app-shell-surface);"
                                     >
                                         {pengumpulan.jawaban_teks}
                                     </p>
@@ -454,10 +458,12 @@
         border-radius: var(--bs-border-radius-lg);
         padding: 1.5rem 1.5rem 1.75rem;
         color: #fff;
-        background: linear-gradient(135deg, #4182b3 0%, #2b567a 100%);
-        box-shadow:
-            0 1px 2px rgba(0, 0, 0, 0.05),
-            0 8px 24px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, var(--bs-primary) 0%, #1d4ed8 100%);
+        box-shadow: 0 0.25rem 0.5rem rgba(13, 110, 253, 0.15);
+    }
+
+    .detail-hero--tugas {
+        background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
     }
 
     .detail-hero::before,
@@ -497,6 +503,19 @@
 
     .detail-hero__back:hover {
         color: #fff;
+    }
+
+    .detail-hero__logo {
+        position: relative;
+        z-index: 1;
+        width: 4.5rem;
+        height: 4.5rem;
+        object-fit: contain;
+        border-radius: 0.9rem;
+        background: #fff;
+        padding: 0.4rem;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.18);
+        flex-shrink: 0;
     }
 
     .detail-hero__tag {
@@ -600,5 +619,12 @@
     .text-pre-wrap {
         white-space: pre-wrap;
         word-break: break-word;
+    }
+
+    @media (max-width: 575.98px) {
+        .detail-hero__logo {
+            width: 3.6rem;
+            height: 3.6rem;
+        }
     }
 </style>
