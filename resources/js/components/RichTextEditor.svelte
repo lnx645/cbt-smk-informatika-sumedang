@@ -580,7 +580,7 @@
 
     :global(.rich-editor__content pre) {
         position: relative;
-        background: #f6f8fa;
+        background: var(--bs-body-bg, #f6f8fa);
         border: 1px solid var(--bs-border-color);
         border-radius: var(--bs-border-radius);
         padding: 0.75rem 1rem;
