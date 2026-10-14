@@ -121,7 +121,7 @@
                                         {/if}
                                     </div>
                                 {:else if !item.sedang_berlangsung}
-                                    <Button color="secondary" class="w-100" disabled>
+                                    <Button color="secondary" class="w-100 text-center" disabled>
                                         Belum dibuka / sudah berakhir
                                     </Button>
                                 {:else}

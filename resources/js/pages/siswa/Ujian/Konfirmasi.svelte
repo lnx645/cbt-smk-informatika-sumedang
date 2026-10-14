@@ -146,7 +146,7 @@
                 <Button color="secondary" outline href={UjianController.index().url}>
                     <i class="bi bi-arrow-left me-1"></i>Kembali
                 </Button>
-                <Button color="primary" class="flex-grow-1" disabled={memulai} onclick={mulai}>
+                <Button color="primary" class="flex-grow-1 text-center" disabled={memulai} onclick={mulai}>
                     {#if memulai}
                         <span class="spinner-border spinner-border-sm me-1"></span>Memulai…
                     {:else}

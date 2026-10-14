@@ -329,7 +329,7 @@
                         <span><span class="badge bg-warning">&nbsp;</span> Ragu-ragu</span>
                         <span><span class="badge bg-secondary">&nbsp;</span> Belum diisi</span>
                     </div>
-                    <Button color="primary" class="w-100 mt-3" onclick={() => submit(false)} disabled={submitting}>
+                    <Button color="primary" class="w-100 mt-3 text-center" onclick={() => submit(false)} disabled={submitting}>
                         <i class="bi bi-send me-1"></i>Kumpulkan
                     </Button>
                 </CardBody>
@@ -439,7 +439,7 @@
                     Klik tombol di bawah untuk masuk mode fullscreen.
                     Keluar dari fullscreen selama ujian dicatat sebagai pelanggaran.
                 </p>
-                <Button color="primary" class="w-100 mb-2" onclick={masukFullscreen}>
+                <Button color="primary" class="w-100 mb-2 text-center" onclick={masukFullscreen}>
                     <i class="bi bi-arrows-fullscreen me-1"></i>Masuk Fullscreen
                 </Button>
                 <button type="button" class="btn btn-link btn-sm text-muted" onclick={lewatiFullscreen}>
