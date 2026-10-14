@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { router, useForm } from '@inertiajs/svelte';
+    import { inertia, router, useForm } from '@inertiajs/svelte';
     import {
         Badge,
         Button,
