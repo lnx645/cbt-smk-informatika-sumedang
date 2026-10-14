@@ -82,34 +82,12 @@
     let nisnDipilih = $state<string[]>([]);
     let namaPengawasBaru = $state('');
     let peranPengawasBaru = $state('pengawas');
-    let formRuangTerbuka = $state(false);
-    let ruangBaru = $state({ kode: '', nama: '', kapasitas: null as number | null });
 
     function aturRuang(s: SesiItem, ruangId: string) {
         router.put(
             AkademikController.sesiRuang({ ujian: ujian.id, sesi: s.id }).url,
             { ruang_ujian_id: ruangId ? Number(ruangId) : null },
             { preserveScroll: true },
-        );
-    }
-
-    function tambahRuangCepat(e: SubmitEvent) {
-        e.preventDefault();
-        if (!ruangBaru.kode.trim() || !ruangBaru.nama.trim()) return;
-        router.post(
-            AkademikController.ruangStore.url(),
-            {
-                kode: ruangBaru.kode.trim(),
-                nama: ruangBaru.nama.trim(),
-                kapasitas: ruangBaru.kapasitas,
-            },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    ruangBaru = { kode: '', nama: '', kapasitas: null };
-                    formRuangTerbuka = false;
-                },
-            },
         );
     }
 
@@ -365,29 +343,16 @@
             <div class="row g-3">
                 <div class="col-md-5">
                     <Label>Ruang ujian</Label>
-                    <div class="d-flex gap-2">
-                        <Input
-                            type="select"
-                            value={sesiAktif.ruang?.id ?? ''}
-                            onchange={(e) => aturRuang(sesiAktif, (e.target as HTMLSelectElement).value)}
-                        >
-                            <option value="">— Tanpa ruang —</option>
-                            {#each ruangs as r}<option value={r.id}>{r.kode} — {r.nama}</option>{/each}
-                        </Input>
-                        <Button size="sm" color="outline-success" class="text-nowrap" onclick={() => (formRuangTerbuka = !formRuangTerbuka)} title="Tambah ruang baru">
-                            <i class="bi bi-plus-lg"></i> Ruang
-                        </Button>
-                        <a use:inertia href="/app/guru/ruang" class="btn btn-sm btn-outline-secondary text-nowrap" title="Kelola ruang">
-                            <i class="bi bi-gear"></i>
-                        </a>
-                    </div>
-                    {#if formRuangTerbuka}
-                        <form class="d-flex gap-2 mt-2" onsubmit={tambahRuangCepat}>
-                            <Input bind:value={ruangBaru.kode} placeholder="Kode (R101)" class="form-control-sm" required />
-                            <Input bind:value={ruangBaru.nama} placeholder="Nama ruang" class="form-control-sm" required />
-                            <Input type="number" min="1" bind:value={ruangBaru.kapasitas} placeholder="Kapasitas" class="form-control-sm" style="max-width:100px" />
-                            <Button size="sm" color="success" type="submit">Simpan</Button>
-                        </form>
+                    <Input
+                        type="select"
+                        value={sesiAktif.ruang?.id ?? ''}
+                        onchange={(e) => aturRuang(sesiAktif, (e.target as HTMLSelectElement).value)}
+                    >
+                        <option value="">— Tanpa ruang —</option>
+                        {#each ruangs as r}<option value={r.id}>{r.kode} — {r.nama}</option>{/each}
+                    </Input>
+                    {#if ruangs.length === 0}
+                        <div class="form-text text-warning">Belum ada ruang. Minta admin menambahkan ruang di menu Kelola Ruang.</div>
                     {/if}
                 </div>
                 <div class="col-md-7">

@@ -41,6 +41,7 @@ beforeEach(function (): void {
         'aktif' => true,
     ]);
     $this->guruUser = User::factory()->create(['guru_id' => $this->guru->id, 'role' => 'guru']);
+    $this->adminUser = User::factory()->create(['role' => 'admin']);
 
     $this->siswa = Siswa::factory()->create();
     SiswaKelas::factory()->create([
@@ -92,22 +93,30 @@ test('soal dapat menyimpan kode KD dan indikator', function (): void {
 // 9. Ruang ujian & pengawas
 // ------------------------------------------------------------------
 
-test('guru dapat CRUD ruang ujian', function (): void {
-    $this->actingAs($this->guruUser);
+test('admin dapat CRUD ruang ujian; guru tidak bisa', function (): void {
+    // Guru tidak lagi boleh mengelola ruang (404).
+    $this->actingAs($this->guruUser)
+        ->post('/app/guru/ruang', [
+            'kode' => 'R101', 'nama' => 'Ruang 101', 'kapasitas' => 40, 'lokasi' => 'Gedung A',
+        ])
+        ->assertNotFound();
 
-    $this->post('/app/guru/ruang', [
+    // Admin boleh.
+    $this->actingAs($this->adminUser);
+
+    $this->post('/admin/ruang', [
         'kode' => 'R101', 'nama' => 'Ruang 101', 'kapasitas' => 40, 'lokasi' => 'Gedung A',
     ])->assertRedirect();
 
     $ruang = RuangUjian::where('kode', 'R101')->first();
     expect($ruang)->not->toBeNull();
 
-    $this->put("/app/guru/ruang/{$ruang->id}", [
+    $this->put("/admin/ruang/{$ruang->id}", [
         'kode' => 'R101', 'nama' => 'Ruang 101 Baru', 'kapasitas' => 35, 'lokasi' => null,
     ])->assertRedirect();
     expect($ruang->fresh()->nama)->toBe('Ruang 101 Baru');
 
-    $this->delete("/app/guru/ruang/{$ruang->id}")->assertRedirect();
+    $this->delete("/admin/ruang/{$ruang->id}")->assertRedirect();
     expect(RuangUjian::find($ruang->id))->toBeNull();
 });
 

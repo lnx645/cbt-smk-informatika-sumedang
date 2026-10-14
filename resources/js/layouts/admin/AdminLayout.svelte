@@ -21,6 +21,7 @@ import PenilaianController from '@/actions/App/Http/Controllers/Admin/PenilaianC
 import LaporanController from '@/actions/App/Http/Controllers/Admin/LaporanController';
 import UjianController from '@/actions/App/Http/Controllers/Admin/UjianController';
 import PeriodeUjianController from '@/actions/App/Http/Controllers/Admin/PeriodeUjianController';
+import RuangController from '@/actions/App/Http/Controllers/Admin/RuangController';
 import BankSoalController from '@/actions/App/Http/Controllers/Admin/BankSoalController';
 
     let {
@@ -89,6 +90,11 @@ import BankSoalController from '@/actions/App/Http/Controllers/Admin/BankSoalCon
                     href: PeriodeUjianController.index().url,
                     label: 'Periode Ujian',
                     icon: 'bi-calendar-range',
+                },
+                {
+                    href: RuangController.index().url,
+                    label: 'Kelola Ruang',
+                    icon: 'bi-door-open',
                 },
                 {
                     href: BankSoalController.index().url,

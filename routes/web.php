@@ -109,10 +109,6 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::put('guru/ujian/{ujian}/remedial/kkm', [GuruUjianAkademikController::class, 'remedialKkm'])->name('guru.ujian.remedial.kkm');
     Route::delete('guru/ujian/{ujian}/pengerjaan/{pengerjaan}/reset', [GuruUjianAkademikController::class, 'resetPengerjaan'])->name('guru.ujian.pengerjaan.reset');
     Route::post('guru/ujian/{ujian}/notifikasi-jadwal', [GuruUjianAkademikController::class, 'kirimNotifikasiJadwal'])->name('guru.ujian.notifikasi.jadwal');
-    Route::get('guru/ruang', [GuruUjianAkademikController::class, 'ruangIndex'])->name('guru.ruang.index');
-    Route::post('guru/ruang', [GuruUjianAkademikController::class, 'ruangStore'])->name('guru.ruang.store');
-    Route::put('guru/ruang/{ruang}', [GuruUjianAkademikController::class, 'ruangUpdate'])->name('guru.ruang.update');
-    Route::delete('guru/ruang/{ruang}', [GuruUjianAkademikController::class, 'ruangDestroy'])->name('guru.ruang.destroy');
 
     // Guru: Bank Soal
     Route::get('guru/bank-soal', [GuruBankSoalController::class, 'index'])->name('guru.bank-soal.index');

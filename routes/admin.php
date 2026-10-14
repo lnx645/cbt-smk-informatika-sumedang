@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\PengajarController;
 use App\Http\Controllers\Admin\PenilaianController;
 use App\Http\Controllers\Admin\PeriodeUjianController;
 use App\Http\Controllers\Admin\ProfilController;
+use App\Http\Controllers\Admin\RuangController;
 use App\Http\Controllers\Admin\SiswaController;
 use App\Http\Controllers\Admin\SiswaKelasController;
 use App\Http\Controllers\Admin\TahunAjaranController;
@@ -167,6 +168,13 @@ Route::controller(PeriodeUjianController::class)->group(function (): void {
     Route::post('periode-ujian', 'store')->name('periode-ujian.store');
     Route::put('periode-ujian/{periodeUjian}', 'update')->name('periode-ujian.update');
     Route::delete('periode-ujian/{periodeUjian}', 'destroy')->name('periode-ujian.destroy');
+});
+
+Route::controller(RuangController::class)->group(function (): void {
+    Route::get('ruang', 'index')->name('ruang.index');
+    Route::post('ruang', 'store')->name('ruang.store');
+    Route::put('ruang/{ruang}', 'update')->name('ruang.update');
+    Route::delete('ruang/{ruang}', 'destroy')->name('ruang.destroy');
 });
 
 Route::controller(UjianController::class)->group(function (): void {

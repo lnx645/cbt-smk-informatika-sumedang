@@ -387,53 +387,6 @@ class UjianAkademikController extends BaseAppController implements HasMiddleware
     // 9. Ruang ujian & pengawas
     // ------------------------------------------------------------------
 
-    public function ruangIndex(Request $request): InertiaResponse
-    {
-        $ruangs = RuangUjian::orderBy('kode')->get();
-
-        return Inertia::render('guru/Ruang/Index', [
-            'ruangs' => $ruangs,
-        ]);
-    }
-
-    public function ruangStore(Request $request): RedirectResponse
-    {
-        $data = $request->validate([
-            'kode' => ['required', 'string', 'max:20', 'unique:ruang_ujians,kode'],
-            'nama' => ['required', 'string', 'max:100'],
-            'kapasitas' => ['required', 'integer', 'min:0'],
-            'lokasi' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        RuangUjian::create($data);
-        Toast::success('Ruang ujian ditambahkan.');
-
-        return Redirect::back();
-    }
-
-    public function ruangUpdate(Request $request, RuangUjian $ruang): RedirectResponse
-    {
-        $data = $request->validate([
-            'kode' => ['required', 'string', 'max:20', 'unique:ruang_ujians,kode,'.$ruang->id],
-            'nama' => ['required', 'string', 'max:100'],
-            'kapasitas' => ['required', 'integer', 'min:0'],
-            'lokasi' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        $ruang->update($data);
-        Toast::success('Ruang ujian diperbarui.');
-
-        return Redirect::back();
-    }
-
-    public function ruangDestroy(Request $request, RuangUjian $ruang): RedirectResponse
-    {
-        $ruang->delete();
-        Toast::success('Ruang ujian dihapus.');
-
-        return Redirect::back();
-    }
-
     public function sesiRuang(Request $request, Ujian $ujian, SesiUjian $sesi): RedirectResponse
     {
         $this->milikGuru($request, $ujian);
