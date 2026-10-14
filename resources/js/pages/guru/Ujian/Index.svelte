@@ -5,6 +5,10 @@
         Button,
         Card,
         CardBody,
+        Dropdown,
+        DropdownItem,
+        DropdownMenu,
+        DropdownToggle,
         Modal,
         ModalBody,
         ModalFooter,
@@ -404,14 +408,14 @@
                                         {/if}
                                     </td>
                                     <td class="text-end">
-                                        <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
+                                        <div class="d-inline-flex gap-1 align-items-center">
                                             <a
                                                 use:inertia
                                                 href={SoalController.index({ ujian: item.id }).url}
                                                 class="btn btn-sm btn-outline-primary"
                                                 title="Kelola soal"
                                             >
-                                                <i class="bi bi-list-check"></i>
+                                                <i class="bi bi-list-check me-1"></i>Soal
                                             </a>
                                             <a
                                                 use:inertia
@@ -419,91 +423,58 @@
                                                 class="btn btn-sm btn-outline-info"
                                                 title="Lihat hasil"
                                             >
-                                                <i class="bi bi-bar-chart"></i>
+                                                <i class="bi bi-bar-chart me-1"></i>Hasil
                                             </a>
-                                            <a
-                                                use:inertia
-                                                href={UjianController.sesiIndex({ ujian: item.id }).url}
-                                                class="btn btn-sm btn-outline-warning"
-                                                title="Kelola sesi ujian"
-                                            >
-                                                <i class="bi bi-clock-history"></i>
-                                            </a>
-                                            <a
-                                                use:inertia
-                                                href={AkademikController.analisisIndex({ ujian: item.id }).url}
-                                                class="btn btn-sm btn-outline-dark"
-                                                title="Analisis butir soal"
-                                            >
-                                                <i class="bi bi-graph-up"></i>
-                                            </a>
-                                            <a
-                                                use:inertia
-                                                href={AkademikController.beritaAcaraIndex({ ujian: item.id }).url}
-                                                class="btn btn-sm btn-outline-dark"
-                                                title="Berita acara"
-                                            >
-                                                <i class="bi bi-file-earmark-text"></i>
-                                            </a>
-                                            <a
-                                                use:inertia
-                                                href={AkademikController.remedialIndex({ ujian: item.id }).url}
-                                                class="btn btn-sm btn-outline-dark"
-                                                title="Remedial"
-                                            >
-                                                <i class="bi bi-arrow-repeat"></i>
-                                            </a>
-                                            <Button
-                                                size="sm"
-                                                color="outline-secondary"
-                                                onclick={() => buatToken(item)}
-                                                title="Buat/regenerasi token"
-                                                disabled={item.token_pengelola === 'admin'}
-                                            >
-                                                <i class="bi bi-key"></i>
-                                            </Button>
-                                            {#if item.token && item.token_pengelola === 'guru'}
-                                                <Button
-                                                    size="sm"
-                                                    color={item.token_released ? 'outline-warning' : 'outline-success'}
-                                                    onclick={() => toggleToken(item)}
-                                                    title={item.token_released ? 'Tahan token' : 'Rilis token'}
-                                                >
-                                                    <i class={`bi ${item.token_released ? 'bi-lock' : 'bi-unlock'}`}></i>
-                                                </Button>
-                                            {/if}
-                                            <Button
-                                                size="sm"
-                                                color={item.status === 'terbit' ? 'outline-warning' : 'outline-success'}
-                                                onclick={() => terbitkan(item)}
-                                                title={item.status === 'terbit' ? 'Tarik ke draft' : 'Terbitkan'}
-                                            >
-                                                <i class={`bi ${item.status === 'terbit' ? 'bi-eye-slash' : 'bi-send'}`}></i>
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                color="outline-secondary"
-                                                onclick={() => bukaEdit(item)}
-                                                title="Edit"
-                                            >
-                                                <i class="bi bi-pencil"></i>
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                color="outline-info"
-                                                onclick={() => duplikat(item)}
-                                                title="Duplikat ujian"
-                                            >
-                                                <i class="bi bi-copy"></i>
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                color="outline-danger"
-                                                onclick={() => hapus(item)}
-                                                title="Hapus"
-                                            >
-                                                <i class="bi bi-trash"></i>
-                                            </Button>
+                                            <Dropdown size="sm">
+                                                <DropdownToggle color="outline-secondary" caret>
+                                                    <i class="bi bi-three-dots"></i>
+                                                </DropdownToggle>
+                                                <DropdownMenu end>
+                                                    <DropdownItem>
+                                                        <a use:inertia href={UjianController.sesiIndex({ ujian: item.id }).url} class="text-decoration-none text-dark d-block">
+                                                            <i class="bi bi-clock-history me-2"></i>Kelola Sesi
+                                                        </a>
+                                                    </DropdownItem>
+                                                    <DropdownItem>
+                                                        <a use:inertia href={AkademikController.analisisIndex({ ujian: item.id }).url} class="text-decoration-none text-dark d-block">
+                                                            <i class="bi bi-graph-up me-2"></i>Analisis Soal
+                                                        </a>
+                                                    </DropdownItem>
+                                                    <DropdownItem>
+                                                        <a use:inertia href={AkademikController.beritaAcaraIndex({ ujian: item.id }).url} class="text-decoration-none text-dark d-block">
+                                                            <i class="bi bi-file-earmark-text me-2"></i>Berita Acara
+                                                        </a>
+                                                    </DropdownItem>
+                                                    <DropdownItem>
+                                                        <a use:inertia href={AkademikController.remedialIndex({ ujian: item.id }).url} class="text-decoration-none text-dark d-block">
+                                                            <i class="bi bi-arrow-repeat me-2"></i>Remedial
+                                                        </a>
+                                                    </DropdownItem>
+                                                    <DropdownItem divider />
+                                                    <DropdownItem onclick={() => bukaEdit(item)}>
+                                                        <i class="bi bi-pencil me-2"></i>Edit Ujian
+                                                    </DropdownItem>
+                                                    <DropdownItem onclick={() => duplikat(item)}>
+                                                        <i class="bi bi-copy me-2"></i>Duplikat
+                                                    </DropdownItem>
+                                                    <DropdownItem onclick={() => terbitkan(item)}>
+                                                        <i class={`bi ${item.status === 'terbit' ? 'bi-eye-slash' : 'bi-send'} me-2`}></i>{item.status === 'terbit' ? 'Tarik ke Draft' : 'Terbitkan'}
+                                                    </DropdownItem>
+                                                    <DropdownItem divider />
+                                                    <DropdownItem onclick={() => buatToken(item)} disabled={item.token_pengelola === 'admin'}>
+                                                        <i class="bi bi-key me-2"></i>Buat Token
+                                                    </DropdownItem>
+                                                    {#if item.token && item.token_pengelola === 'guru'}
+                                                        <DropdownItem onclick={() => toggleToken(item)}>
+                                                            <i class={`bi ${item.token_released ? 'bi-lock' : 'bi-unlock'} me-2`}></i>{item.token_released ? 'Tahan Token' : 'Rilis Token'}
+                                                        </DropdownItem>
+                                                    {/if}
+                                                    <DropdownItem divider />
+                                                    <DropdownItem onclick={() => hapus(item)} class="text-danger">
+                                                        <i class="bi bi-trash me-2"></i>Hapus
+                                                    </DropdownItem>
+                                                </DropdownMenu>
+                                            </Dropdown>
                                         </div>
                                     </td>
                                 </tr>
