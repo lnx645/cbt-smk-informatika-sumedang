@@ -276,7 +276,8 @@ class UjianController extends Controller
     {
         abort_unless($pengerjaan->ujian_id === $ujian->id, 404);
 
-        $pengerjaan->load(['jawabans.soal.opsi', 'pelanggarans', 'siswa']);
+        $pengerjaan->load(['jawabans', 'pelanggarans', 'siswa']);
+        $ujian->load(['soals.opsi']);
         $ujian->load(['soals.opsi']);
 
         $jawabanMap = $pengerjaan->jawabans->keyBy('soal_id');

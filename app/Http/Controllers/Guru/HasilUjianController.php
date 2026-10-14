@@ -55,7 +55,9 @@ class HasilUjianController extends BaseAppController implements HasMiddleware
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
         abort_unless($pengerjaan->ujian_id === $ujian->id, 404);
 
-        $pengerjaan->load(['jawabans.soal.opsi', 'pelanggarans', 'siswa']);
+        // Hanya load relasi yang dipakai: jawabans untuk keyBy, soals+opsi untuk daftar lengkap.
+        // (soal.opsi tidak perlu via jawabans lagi karena diambil dari $ujian->soals)
+        $pengerjaan->load(['jawabans', 'pelanggarans', 'siswa']);
         $ujian->load(['soals.opsi']);
 
         // Petakan jawaban per soal_id untuk lookup cepat.
