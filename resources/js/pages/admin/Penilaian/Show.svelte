@@ -17,7 +17,7 @@
 <Card class="border rounded-1 shadow-none mt-4">
     <CardHeader>Informasi Penilaian</CardHeader>
     <CardBody>
-        <Table striped>
+        <Table striped responsive>
             <tbody>
                 <tr>
                     <th>Nama</th>

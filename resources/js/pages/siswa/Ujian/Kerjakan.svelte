@@ -486,10 +486,16 @@
         font-size: 1.5rem;
     }
     .nav-soal {
-        width: 40px;
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
     }
     .opsi {
         cursor: pointer;
+        min-height: 48px;
     }
     .opsi:hover {
         background: var(--bs-primary-bg-subtle);
