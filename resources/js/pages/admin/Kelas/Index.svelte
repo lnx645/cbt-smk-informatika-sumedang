@@ -13,6 +13,7 @@
     import Select from '@/components/Select.svelte';
     import EmptyState from '@/components/EmptyState.svelte';
     import ToggleSwitch from '@/components/ToggleSwitch.svelte';
+    import { confirm } from '@/lib/confirm.svelte';
     import KelasController from '@/actions/App/Http/Controllers/Admin/KelasController';
     import { extractId } from '@/lib/utils';
     import type {
@@ -311,7 +312,7 @@
         return total;
     }
 
-    function confirmDelete(node: KelasTreeNode) {
+    async function confirmDelete(node: KelasTreeNode) {
         const count = countDescendants(node);
         const siswa = totalSiswa(node);
         const parts = [`Hapus kelas "${node.nama}"?`];
@@ -323,7 +324,13 @@
                 `Kelas ini memiliki ${siswa} siswa — penghapusan akan ditolak.`,
             );
         }
-        if (!confirm(parts.join('\n'))) {
+        const ok = await confirm.show({
+            title: 'Hapus Kelas',
+            message: parts.join('\n'),
+            confirmText: 'Ya, Hapus',
+            color: 'danger',
+        });
+        if (!ok) {
             return;
         }
         router.delete(KelasController.destroy({ kelas: node.id }).url);

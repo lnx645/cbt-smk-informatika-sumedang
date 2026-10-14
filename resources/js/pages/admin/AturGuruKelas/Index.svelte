@@ -21,6 +21,7 @@
     import PageHeader from '@/components/PageHeader.svelte';
     import Avatar from '@/components/Avatar.svelte';
     import ToggleSwitch from '@/components/ToggleSwitch.svelte';
+    import { confirm } from '@/lib/confirm.svelte';
     import { extractId } from '@/lib/utils';
     import type { SelectOption } from '@/types/models';
 
@@ -134,13 +135,15 @@
         }
     }
 
-    function confirmDelete(item: MatpelItem) {
+    async function confirmDelete(item: MatpelItem) {
         const label = item.nama ?? 'mata pelajaran';
-        if (
-            !confirm(
-                `Hapus penugasan "${label}" untuk guru ini?\nPenugasan ini akan dihapus secara permanen.`,
-            )
-        ) {
+        const ok = await confirm.show({
+            title: 'Hapus Penugasan',
+            message: `Hapus penugasan "${label}" untuk guru ini?\nPenugasan ini akan dihapus secara permanen.`,
+            confirmText: 'Ya, Hapus',
+            color: 'danger',
+        });
+        if (!ok) {
             return;
         }
         router.delete(

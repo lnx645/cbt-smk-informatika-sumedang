@@ -104,7 +104,7 @@
         return (usePage().url as string).split('?')[0];
     }
 
-    function buildQueryParams(page?: number): Record<string, unknown> {
+    function buildQueryParams(page?: number): Record<string, string | number | undefined> {
         return {
             ...(page !== undefined ? { page } : {}),
             kategori: filterKategori ?? undefined,

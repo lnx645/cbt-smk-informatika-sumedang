@@ -12,7 +12,7 @@
 
     // ── Types ─────────────────────────────────────────────────────────────────
     type TahunAjaranOption = { value: number; label: string };
-    type EntityItem = { key: string; label: string; icon: string; count: number };
+    type EntityItem = { key: string; label: string; icon: string; count: number; master?: boolean };
 
     // ── Props ─────────────────────────────────────────────────────────────────
     let {
