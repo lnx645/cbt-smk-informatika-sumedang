@@ -282,7 +282,7 @@
 </script>
 
 <div class="container-fluid px-0 ujian-runtime">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 sticky-top bg-white py-2 border-bottom" style="z-index: 100">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 sticky-top bg-body py-2 border-bottom" style="z-index: 100">
         <div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <h1 class="h5 mb-0">{ujian.judul}</h1>
@@ -348,12 +348,14 @@
 
         <div class="col-lg-9 order-1 order-lg-2">
             {#if soalAktif}
-                <Card class="border rounded-1 shadow-none">
-                    <CardBody class="p-3 p-md-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-semibold">Soal {indexAktif + 1}</span>
+                <Card class="border-0 shadow-sm">
+                    <CardBody class="p-4 p-md-5">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                            <div>
+                                <span class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-2">Soal {indexAktif + 1} / {soals.length}</span>
+                            </div>
                             <div class="d-flex align-items-center gap-2">
-                                <span class="text-muted small">{soalAktif.poin} poin</span>
+                                <span class="text-muted small"><i class="bi bi-award me-1"></i>{soalAktif.poin} poin</span>
                                 <Button
                                     size="sm"
                                     color={raguMap[soalAktif.id] ? 'warning' : 'outline-warning'}
@@ -369,7 +371,7 @@
                         {#if soalAktif.media_url}
                             <div class="mb-3">
                                 {#if soalAktif.media_type === 'gambar'}
-                                    <img src={soalAktif.media_url} alt="Media soal" style="max-width:100%;max-height:320px;border-radius:8px;border:1px solid #ddd" />
+                                    <img src={soalAktif.media_url} alt="Media soal" class="img-fluid rounded border" style="max-height:320px" />
                                 {:else}
                                     <audio controls src={soalAktif.media_url} style="max-width:100%"></audio>
                                 {/if}
@@ -515,14 +517,14 @@
         padding: 0.45rem 1rem;
         border-radius: 999px;
         color: #fff;
-        box-shadow: 0 0.2rem 0.5rem rgba(37, 99, 235, 0.25);
+        box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.15);
     }
 
     .timer.bg-primary {
-        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        background-color: var(--bs-primary) !important;
     }
 
     .timer.bg-danger {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
+        background-color: var(--bs-danger) !important;
     }
 </style>

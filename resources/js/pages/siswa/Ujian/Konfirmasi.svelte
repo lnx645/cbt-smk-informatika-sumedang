@@ -97,7 +97,7 @@
             </div>
 
             <h6 class="fw-bold"><i class="bi bi-list-check me-1"></i>Tata Tertib Pengerjaan</h6>
-            <div class="border rounded p-3 mb-3 bg-light" style="white-space: pre-wrap;">
+            <div class="border rounded p-3 mb-3 bg-body-tertiary" style="white-space: pre-wrap;">
                 {#if ujian.tata_tertib}{ujian.tata_tertib}{:else}<span class="text-muted fst-italic">Tata tertib belum diatur oleh guru.</span>{/if}
             </div>
 

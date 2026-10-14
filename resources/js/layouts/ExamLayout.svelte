@@ -6,7 +6,7 @@
 
 <!-- Layout minimal untuk halaman ujian: tanpa sidebar, tanpa bottom nav.
      Siswa fokus penuh ke soal. -->
-<div class="exam-layout min-vh-100 bg-light">
+<div class="exam-layout min-vh-100 bg-body-tertiary">
     <main class="container py-3 py-md-4" style="max-width: 1140px">
         {@render children()}
     </main>
