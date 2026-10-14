@@ -1,6 +1,7 @@
 import { createInertiaApp } from '@inertiajs/svelte';
 import MainLayout from '@/layouts/MainLayout.svelte';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import '../css/dash-clean.css';
 import { initializeFlashToast } from './lib/flash-toast.svelte';
 import AdminLayout from './layouts/admin/AdminLayout.svelte';
 import UserLayout from './layouts/app/UserLayout.svelte';
