@@ -220,23 +220,12 @@
         openGroups[label] = !openGroups[label];
     }
 
-    function getCsrfToken(): string {
-        const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-        return match ? decodeURIComponent(match[1]) : '';
-    }
-
     function logout() {
-        // Pakai form native agar selalu jalan (tidak tergantung Inertia).
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = AuthenticatedSessionController.destroy().url;
-        const token = document.createElement('input');
-        token.type = 'hidden';
-        token.name = '_token';
-        token.value = getCsrfToken();
-        form.appendChild(token);
-        document.body.appendChild(form);
-        form.submit();
+        router.post(AuthenticatedSessionController.destroy().url, {}, {
+            onFinish: () => {
+                sidebarOpen = false;
+            },
+        });
     }
 
     let userInitials = $derived(
