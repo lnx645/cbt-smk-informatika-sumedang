@@ -5,6 +5,7 @@ import '../css/dash-clean.css';
 import { initializeFlashToast } from './lib/flash-toast.svelte';
 import AdminLayout from './layouts/admin/AdminLayout.svelte';
 import UserLayout from './layouts/app/UserLayout.svelte';
+import ExamLayout from './layouts/ExamLayout.svelte';
 import ErrorPage from './pages/ErrorPage.svelte';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -13,6 +14,10 @@ createInertiaApp({
     layout(name, page) {
         if (name.startsWith('ErrorPage')) {
             return ErrorPage;
+        }
+        // Halaman ujian siswa: layout independen tanpa sidebar/nav agar fokus.
+        if (name === 'siswa/Ujian/Kerjakan') {
+            return ExamLayout;
         }
         let url = page.url;
         if (url.startsWith('/admin')) {

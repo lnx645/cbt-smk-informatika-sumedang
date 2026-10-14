@@ -66,6 +66,11 @@
     // diminta lewat tombol (user gesture).
     let gateFullscreen = $state(false);
 
+    // Di HP, fullscreen bikin browser auto-rotate ke landscape — jangan paksa.
+    function isMobile(): boolean {
+        return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    }
+
     // svelte-ignore state_referenced_locally
     for (const s of soals) {
         jawabanOpsi[s.id] = s.jawaban.opsi_dipilih ?? [];
@@ -195,6 +200,8 @@
         e.preventDefault();
     }
     function onFullscreenChange() {
+        // Di HP, fullscreen bikin browser auto-rotate ke landscape — jangan paksa.
+        if (isMobile()) return;
         if (ujian.wajib_fullscreen && !document.fullscreenElement) {
             // Keluar fullscreen di tengah ujian = pelanggaran.
             // Tapi abaikan jika gate masih terbuka (belum pernah masuk).
@@ -253,7 +260,10 @@
         document.addEventListener('paste', onPaste);
         document.addEventListener('fullscreenchange', onFullscreenChange);
 
-        masukFullscreen();
+        // Di HP jangan paksa fullscreen (bikin auto-rotate landscape).
+        if (!isMobile()) {
+            masukFullscreen();
+        }
     });
 
     onDestroy(() => {
