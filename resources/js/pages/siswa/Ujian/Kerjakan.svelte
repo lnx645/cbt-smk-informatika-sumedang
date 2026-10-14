@@ -68,6 +68,32 @@
 
     let timer: ReturnType<typeof setInterval>;
     let lastReport = 0;
+    // Selisih jam server - jam perangkat (ms). Countdown selalu berlabuh
+    // ke waktu server agar tidak bisa diakali lewat pengaturan jam HP.
+    let offsetMs = $state(0);
+
+    /**
+     * Ambil waktu server lalu hitung ulang sisa detik dari batas_at.
+     * Dipanggil saat mount, tiap 30 detik, dan saat tab kembali terlihat.
+     */
+    async function sinkronWaktu() {
+        try {
+            const res = await fetch(UjianController.waktuServer().url, {
+                headers: { Accept: 'application/json' },
+            });
+            if (!res.ok) {
+                return;
+            }
+
+            const data = await res.json();
+            offsetMs = data.unix * 1000 - Date.now();
+            const batasMs = new Date(pengerjaan.batas_at).getTime();
+            sisaDetik = Math.max(0, Math.round((batasMs - (Date.now() + offsetMs)) / 1000));
+        } catch {
+            // Gagal sinkron: lanjutkan dengan timer lokal, server tetap
+            // menegakkan batas_at saat simpan/submit.
+        }
+    }
 
     const soalAktif = $derived(soals[indexAktif]);
     const terjawab = $derived(
@@ -132,7 +158,12 @@
 
     // ---- Proctoring handlers ----
     function onVisibility() {
-        if (document.hidden) lapor('blur');
+        if (document.hidden) {
+            lapor('blur');
+        } else {
+            // Tab kembali terlihat: sinkron ulang ke waktu server.
+            sinkronWaktu();
+        }
     }
     function onBlur() {
         lapor('blur');
@@ -185,8 +216,17 @@
     }
 
     onMount(() => {
+        sinkronWaktu();
+        let detikSejakSinkron = 0;
         timer = setInterval(() => {
             sisaDetik -= 1;
+            detikSejakSinkron += 1;
+            // Sinkron ulang tiap 30 detik agar drift timer lokal terkoreksi.
+            if (detikSejakSinkron >= 30) {
+                detikSejakSinkron = 0;
+                sinkronWaktu();
+            }
+
             if (sisaDetik <= 0) {
                 clearInterval(timer);
                 submit(true);

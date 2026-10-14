@@ -91,3 +91,8 @@ $focus-ring-dark: 0 0 0 3px rgba($dark, 0.25);
 @import 'utilities';
 @import 'components/sonner';
 @import 'components/misc';
+
+// ==========================================
+// 8. DARK MODE OVERRIDES
+// ==========================================
+@import 'dark';
