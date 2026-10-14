@@ -6,6 +6,11 @@
         Button,
         Card,
         CardBody,
+        Dropdown,
+        DropdownItem,
+        DropdownMenu,
+        DropdownToggle,
+        Input,
         Modal,
         ModalBody,
         ModalFooter,
@@ -394,20 +399,30 @@
                                 </div>
                             {/if}
                         </div>
-                        <div class="d-inline-flex gap-1">
-                            <label class="btn btn-sm btn-outline-info mb-0" title="Unggah media (gambar/audio)">
-                                <i class="bi bi-paperclip"></i>
-                                <input type="file" accept="image/*,audio/*" class="d-none" onchange={(e) => unggahMedia(s, e)} />
-                            </label>
-                            <Button size="sm" color="outline-primary" onclick={() => bukaSimpanBank(s)} title="Simpan ke bank">
-                                <i class="bi bi-bookmark-plus"></i>
-                            </Button>
+                        <div class="d-inline-flex gap-1 align-items-start">
                             <Button size="sm" color="outline-secondary" onclick={() => bukaEdit(s)}>
-                                <i class="bi bi-pencil"></i>
+                                <i class="bi bi-pencil me-1"></i>Edit
                             </Button>
-                            <Button size="sm" color="outline-danger" onclick={() => hapus(s)}>
-                                <i class="bi bi-trash"></i>
-                            </Button>
+                            <Dropdown size="sm">
+                                <DropdownToggle color="outline-secondary" caret>
+                                    <i class="bi bi-three-dots"></i>
+                                </DropdownToggle>
+                                <DropdownMenu end>
+                                    <DropdownItem>
+                                        <label class="d-block mb-0" style="cursor:pointer">
+                                            <i class="bi bi-paperclip me-2"></i>Unggah Media
+                                            <input type="file" accept="image/*,audio/*" class="d-none" onchange={(e) => unggahMedia(s, e)} />
+                                        </label>
+                                    </DropdownItem>
+                                    <DropdownItem onclick={() => bukaSimpanBank(s)}>
+                                        <i class="bi bi-bookmark-plus me-2"></i>Simpan ke Bank
+                                    </DropdownItem>
+                                    <DropdownItem divider />
+                                    <DropdownItem onclick={() => hapus(s)} class="text-danger">
+                                        <i class="bi bi-trash me-2"></i>Hapus Soal
+                                    </DropdownItem>
+                                </DropdownMenu>
+                            </Dropdown>
                         </div>
                     </div>
                 </CardBody>

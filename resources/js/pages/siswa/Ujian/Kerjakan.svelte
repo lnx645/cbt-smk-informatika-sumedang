@@ -272,7 +272,7 @@
 </script>
 
 <div class="container-fluid px-0 ujian-runtime">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 sticky-top bg-white py-2 border-bottom" style="z-index: 100">
         <div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <h1 class="h5 mb-0">{ujian.judul}</h1>

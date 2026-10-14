@@ -6,6 +6,10 @@
         Card,
         CardBody,
         CardHeader,
+        Dropdown,
+        DropdownItem,
+        DropdownMenu,
+        DropdownToggle,
         Input,
         Label,
         Modal,
@@ -280,14 +284,6 @@
                             {/if}
                             <td class="text-center">{s.jumlah_terisi}</td>
                             <td class="text-end text-nowrap">
-                                <div class="btn-group btn-group-sm me-1" role="group" title="Cetak dokumen">
-                                    <a class="btn btn-outline-dark" href={AkademikController.kartuPeserta({ ujian: ujian.id, sesi: s.id }).url} target="_blank" rel="noopener" title="Kartu peserta">
-                                        <i class="bi bi-person-badge"></i>
-                                    </a>
-                                    <a class="btn btn-outline-dark" href={AkademikController.daftarHadir({ ujian: ujian.id, sesi: s.id }).url} target="_blank" rel="noopener" title="Daftar hadir">
-                                        <i class="bi bi-clipboard-check"></i>
-                                    </a>
-                                </div>
                                 {#if ujian.mode_sesi === 'terjadwal'}
                                     <Button
                                         color={pilihSesiId === s.id ? 'primary' : 'outline-primary'}
@@ -298,14 +294,32 @@
                                         Kelola siswa
                                     </Button>
                                 {/if}
-                                <Button color="outline-secondary" size="sm" class="me-1" onclick={() => bukaEdit(s)}>
-                                    <i class="bi bi-pencil"></i>
-                                </Button>
-                                {#if s.bisa_hapus}
-                                    <Button color="outline-danger" size="sm" onclick={() => hapusSesi(s)}>
-                                        <i class="bi bi-trash"></i>
-                                    </Button>
-                                {/if}
+                                <Dropdown size="sm" class="d-inline-block">
+                                    <DropdownToggle color="outline-secondary" caret>
+                                        <i class="bi bi-three-dots"></i>
+                                    </DropdownToggle>
+                                    <DropdownMenu end>
+                                        <DropdownItem>
+                                            <a href={AkademikController.kartuPeserta({ ujian: ujian.id, sesi: s.id }).url} target="_blank" rel="noopener" class="text-decoration-none text-dark d-block">
+                                                <i class="bi bi-person-badge me-2"></i>Kartu Peserta
+                                            </a>
+                                        </DropdownItem>
+                                        <DropdownItem>
+                                            <a href={AkademikController.daftarHadir({ ujian: ujian.id, sesi: s.id }).url} target="_blank" rel="noopener" class="text-decoration-none text-dark d-block">
+                                                <i class="bi bi-clipboard-check me-2"></i>Daftar Hadir
+                                            </a>
+                                        </DropdownItem>
+                                        <DropdownItem divider />
+                                        <DropdownItem onclick={() => bukaEdit(s)}>
+                                            <i class="bi bi-pencil me-2"></i>Edit Sesi
+                                        </DropdownItem>
+                                        {#if s.bisa_hapus}
+                                            <DropdownItem onclick={() => hapusSesi(s)} class="text-danger">
+                                                <i class="bi bi-trash me-2"></i>Hapus Sesi
+                                            </DropdownItem>
+                                        {/if}
+                                    </DropdownMenu>
+                                </Dropdown>
                             </td>
                         </tr>
                     {/each}
