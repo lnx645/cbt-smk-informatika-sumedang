@@ -18,6 +18,8 @@
         tipe: TipeSoal;
         pertanyaan: string;
         poin: number;
+        media_url: string | null;
+        media_type: string | null;
         opsi: Opsi[];
         jawaban: {
             opsi_dipilih: number[] | null;
@@ -328,6 +330,15 @@
                         <div class="rich-deskripsi mb-3">
                             {@html soalAktif.pertanyaan}
                         </div>
+                        {#if soalAktif.media_url}
+                            <div class="mb-3">
+                                {#if soalAktif.media_type === 'gambar'}
+                                    <img src={soalAktif.media_url} alt="Media soal" style="max-width:100%;max-height:320px;border-radius:8px;border:1px solid #ddd" />
+                                {:else}
+                                    <audio controls src={soalAktif.media_url} style="max-width:100%"></audio>
+                                {/if}
+                            </div>
+                        {/if}
 
                         {#if soalAktif.tipe === 'pg' || soalAktif.tipe === 'benar_salah'}
                             {#each soalAktif.opsi as opsi (opsi.id)}

@@ -8,11 +8,13 @@ use App\Http\Controllers\Guru\MateriController as GuruMateriController;
 use App\Http\Controllers\Guru\PenilaianController as GuruPenilaianController;
 use App\Http\Controllers\Guru\SoalController as GuruSoalController;
 use App\Http\Controllers\Guru\TugasController as GuruTugasController;
+use App\Http\Controllers\Guru\UjianAkademikController as GuruUjianAkademikController;
 use App\Http\Controllers\Guru\UjianController as GuruUjianController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LinkExternalController;
 use App\Http\Controllers\MataPelajaranGuruController;
 use App\Http\Controllers\Siswa\MateriController as SiswaMateriController;
+use App\Http\Controllers\Siswa\NotifikasiController as SiswaNotifikasiController;
 use App\Http\Controllers\Siswa\PenilaianController as SiswaPenilaianController;
 use App\Http\Controllers\Siswa\TugasController as SiswaTugasController;
 use App\Http\Controllers\Siswa\UjianController as SiswaUjianController;
@@ -87,6 +89,30 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::post('guru/ujian/{ujian}/soal-ambil-bank', [GuruSoalController::class, 'ambilDariBank'])->name('guru.ujian.soal.ambil-bank');
     Route::post('guru/ujian/{ujian}/soal-generate-bank', [GuruSoalController::class, 'generateDariBank'])->name('guru.ujian.soal.generate-bank');
     Route::post('guru/ujian/{ujian}/soal/{soal}/simpan-bank', [GuruSoalController::class, 'simpanKeBank'])->name('guru.ujian.soal.simpan-bank');
+    Route::post('guru/ujian/{ujian}/soal/{soal}/media', [GuruSoalController::class, 'uploadMedia'])->name('guru.ujian.soal.media');
+    Route::delete('guru/ujian/{ujian}/soal/{soal}/media', [GuruSoalController::class, 'hapusMedia'])->name('guru.ujian.soal.media.hapus');
+
+    // Guru: Fitur akademik penunjang ujian
+    Route::get('guru/ujian/{ujian}/sesi/{sesi}/kartu-peserta', [GuruUjianAkademikController::class, 'kartuPeserta'])->name('guru.ujian.sesi.kartu');
+    Route::get('guru/ujian/{ujian}/sesi/{sesi}/daftar-hadir', [GuruUjianAkademikController::class, 'daftarHadir'])->name('guru.ujian.sesi.hadir');
+    Route::put('guru/ujian/{ujian}/sesi/{sesi}/ruang', [GuruUjianAkademikController::class, 'sesiRuang'])->name('guru.ujian.sesi.ruang');
+    Route::post('guru/ujian/{ujian}/sesi/{sesi}/pengawas', [GuruUjianAkademikController::class, 'pengawasStore'])->name('guru.ujian.sesi.pengawas.store');
+    Route::delete('guru/ujian/{ujian}/sesi/{sesi}/pengawas/{pengawas}', [GuruUjianAkademikController::class, 'pengawasDestroy'])->name('guru.ujian.sesi.pengawas.destroy');
+    Route::get('guru/ujian/{ujian}/berita-acara', [GuruUjianAkademikController::class, 'beritaAcaraIndex'])->name('guru.ujian.berita-acara.index');
+    Route::post('guru/ujian/{ujian}/berita-acara', [GuruUjianAkademikController::class, 'beritaAcaraStore'])->name('guru.ujian.berita-acara.store');
+    Route::get('guru/ujian/{ujian}/berita-acara/{beritaAcara}/pdf', [GuruUjianAkademikController::class, 'beritaAcaraPdf'])->name('guru.ujian.berita-acara.pdf');
+    Route::get('guru/ujian/{ujian}/analisis', [GuruUjianAkademikController::class, 'analisisIndex'])->name('guru.ujian.analisis.index');
+    Route::get('guru/ujian/{ujian}/import-template', [GuruUjianAkademikController::class, 'importTemplate'])->name('guru.ujian.import.template');
+    Route::post('guru/ujian/{ujian}/import', [GuruUjianAkademikController::class, 'importStore'])->name('guru.ujian.import.store');
+    Route::post('guru/ujian/{ujian}/duplikat', [GuruUjianAkademikController::class, 'duplikat'])->name('guru.ujian.duplikat');
+    Route::get('guru/ujian/{ujian}/remedial', [GuruUjianAkademikController::class, 'remedialIndex'])->name('guru.ujian.remedial.index');
+    Route::put('guru/ujian/{ujian}/remedial/kkm', [GuruUjianAkademikController::class, 'remedialKkm'])->name('guru.ujian.remedial.kkm');
+    Route::delete('guru/ujian/{ujian}/pengerjaan/{pengerjaan}/reset', [GuruUjianAkademikController::class, 'resetPengerjaan'])->name('guru.ujian.pengerjaan.reset');
+    Route::post('guru/ujian/{ujian}/notifikasi-jadwal', [GuruUjianAkademikController::class, 'kirimNotifikasiJadwal'])->name('guru.ujian.notifikasi.jadwal');
+    Route::get('guru/ruang', [GuruUjianAkademikController::class, 'ruangIndex'])->name('guru.ruang.index');
+    Route::post('guru/ruang', [GuruUjianAkademikController::class, 'ruangStore'])->name('guru.ruang.store');
+    Route::put('guru/ruang/{ruang}', [GuruUjianAkademikController::class, 'ruangUpdate'])->name('guru.ruang.update');
+    Route::delete('guru/ruang/{ruang}', [GuruUjianAkademikController::class, 'ruangDestroy'])->name('guru.ruang.destroy');
 
     // Guru: Bank Soal
     Route::get('guru/bank-soal', [GuruBankSoalController::class, 'index'])->name('guru.bank-soal.index');
@@ -106,6 +132,9 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::post('ujian/{ujian}/submit', [SiswaUjianController::class, 'submit'])->name('siswa.ujian.submit');
     Route::post('ujian/{ujian}/lapor', [SiswaUjianController::class, 'lapor'])->name('siswa.ujian.lapor');
     Route::get('ujian/{ujian}/hasil', [SiswaUjianController::class, 'hasil'])->name('siswa.ujian.hasil');
+    Route::get('notifikasi', [SiswaNotifikasiController::class, 'index'])->name('siswa.notifikasi.index');
+    Route::post('notifikasi/baca-semua', [SiswaNotifikasiController::class, 'bacaSemua'])->name('siswa.notifikasi.baca-semua');
+    Route::post('notifikasi/{notifikasi}/baca', [SiswaNotifikasiController::class, 'baca'])->name('siswa.notifikasi.baca');
 });
 
 Route::prefix('admin')->middleware(['auth', 'admin-only'])->name('admin.')->group(base_path('routes/admin.php'));
