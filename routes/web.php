@@ -96,8 +96,6 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::get('guru/ujian/{ujian}/sesi/{sesi}/kartu-peserta', [GuruUjianAkademikController::class, 'kartuPeserta'])->name('guru.ujian.sesi.kartu');
     Route::get('guru/ujian/{ujian}/sesi/{sesi}/daftar-hadir', [GuruUjianAkademikController::class, 'daftarHadir'])->name('guru.ujian.sesi.hadir');
     Route::put('guru/ujian/{ujian}/sesi/{sesi}/ruang', [GuruUjianAkademikController::class, 'sesiRuang'])->name('guru.ujian.sesi.ruang');
-    Route::post('guru/ujian/{ujian}/sesi/{sesi}/pengawas', [GuruUjianAkademikController::class, 'pengawasStore'])->name('guru.ujian.sesi.pengawas.store');
-    Route::delete('guru/ujian/{ujian}/sesi/{sesi}/pengawas/{pengawas}', [GuruUjianAkademikController::class, 'pengawasDestroy'])->name('guru.ujian.sesi.pengawas.destroy');
     Route::get('guru/ujian/{ujian}/berita-acara', [GuruUjianAkademikController::class, 'beritaAcaraIndex'])->name('guru.ujian.berita-acara.index');
     Route::post('guru/ujian/{ujian}/berita-acara', [GuruUjianAkademikController::class, 'beritaAcaraStore'])->name('guru.ujian.berita-acara.store');
     Route::get('guru/ujian/{ujian}/berita-acara/{beritaAcara}/pdf', [GuruUjianAkademikController::class, 'beritaAcaraPdf'])->name('guru.ujian.berita-acara.pdf');

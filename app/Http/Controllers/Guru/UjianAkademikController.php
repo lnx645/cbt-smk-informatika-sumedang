@@ -421,34 +421,6 @@ class UjianAkademikController extends BaseAppController implements HasMiddleware
         return Redirect::back();
     }
 
-    public function pengawasStore(Request $request, Ujian $ujian, SesiUjian $sesi): RedirectResponse
-    {
-        $this->milikGuru($request, $ujian);
-        abort_unless($sesi->ujian_id === $ujian->id, 404);
-
-        $data = $request->validate([
-            'guru_id' => ['nullable', 'integer', 'exists:gurus,id'],
-            'nama_pengawas' => ['required', 'string', 'max:100'],
-            'peran' => ['required', 'in:pengawas,penanggung_jawab'],
-        ]);
-
-        SesiPengawas::create([...$data, 'sesi_ujian_id' => $sesi->id]);
-        Toast::success('Pengawas ditambahkan.');
-
-        return Redirect::back();
-    }
-
-    public function pengawasDestroy(Request $request, Ujian $ujian, SesiUjian $sesi, SesiPengawas $pengawas): RedirectResponse
-    {
-        $this->milikGuru($request, $ujian);
-        abort_unless($pengawas->sesi_ujian_id === $sesi->id && $sesi->ujian_id === $ujian->id, 404);
-
-        $pengawas->delete();
-        Toast::success('Pengawas dihapus.');
-
-        return Redirect::back();
-    }
-
     // ------------------------------------------------------------------
     // 10. Reset pengerjaan siswa
     // ------------------------------------------------------------------

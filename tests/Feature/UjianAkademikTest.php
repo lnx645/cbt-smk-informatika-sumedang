@@ -90,7 +90,7 @@ test('soal dapat menyimpan kode KD dan indikator', function (): void {
 });
 
 // ------------------------------------------------------------------
-// 9. Ruang ujian & pengawas
+// 9. Ruang ujian
 // ------------------------------------------------------------------
 
 test('admin dapat CRUD ruang ujian; guru tidak bisa', function (): void {
@@ -120,7 +120,7 @@ test('admin dapat CRUD ruang ujian; guru tidak bisa', function (): void {
     expect(RuangUjian::find($ruang->id))->toBeNull();
 });
 
-test('sesi dapat diberi ruang dan pengawas', function (): void {
+test('sesi dapat diberi ruang', function (): void {
     $ujian = buatUjianAkademik($this);
     $sesi = SesiUjian::factory()->create(['ujian_id' => $ujian->id]);
     $ruang = RuangUjian::factory()->create();
@@ -130,16 +130,6 @@ test('sesi dapat diberi ruang dan pengawas', function (): void {
         'ruang_ujian_id' => $ruang->id,
     ])->assertRedirect();
     expect($sesi->fresh()->ruang_ujian_id)->toBe($ruang->id);
-
-    $this->post("/app/guru/ujian/{$ujian->id}/sesi/{$sesi->id}/pengawas", [
-        'nama_pengawas' => 'Pak Budi', 'peran' => 'pengawas',
-    ])->assertRedirect();
-
-    $pw = SesiPengawas::where('sesi_ujian_id', $sesi->id)->first();
-    expect($pw->nama_pengawas)->toBe('Pak Budi');
-
-    $this->delete("/app/guru/ujian/{$ujian->id}/sesi/{$sesi->id}/pengawas/{$pw->id}")->assertRedirect();
-    expect(SesiPengawas::find($pw->id))->toBeNull();
 });
 
 // ------------------------------------------------------------------

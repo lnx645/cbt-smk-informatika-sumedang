@@ -287,7 +287,7 @@ class UjianController extends BaseAppController implements HasMiddleware
 
         $sesis = $ujian->sesis()
             ->withCount(['pengerjaans', 'pesertas'])
-            ->with(['ruang:id,nama,kode', 'pengawas'])
+            ->with(['ruang:id,nama,kode'])
             ->get()
             ->map(fn (SesiUjian $sesi) => [
                 'id' => $sesi->id,
@@ -297,9 +297,6 @@ class UjianController extends BaseAppController implements HasMiddleware
                 'waktu_selesai' => $sesi->waktu_selesai->format('Y-m-d H:i'),
                 'kapasitas' => $sesi->kapasitas,
                 'ruang' => $sesi->ruang ? ['id' => $sesi->ruang->id, 'nama' => $sesi->ruang->nama] : null,
-                'pengawas' => $sesi->pengawas->map(fn ($p): array => [
-                    'id' => $p->id, 'nama' => $p->nama_pengawas, 'peran' => $p->peran,
-                ])->values()->all(),
                 'sedang_aktif' => $sesi->sedangAktif(),
                 'sudah_lewat' => $sesi->sudahLewat(),
                 'jumlah_peserta' => $sesi->pesertas_count,
