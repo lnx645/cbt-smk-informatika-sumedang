@@ -25,6 +25,7 @@ class Ujian extends Model
         'kategori',
         'judul',
         'deskripsi',
+        'tata_tertib',
         'tanggal_mulai',
         'tanggal_selesai',
         'durasi_menit',

@@ -115,10 +115,58 @@ class UjianController extends BaseAppController implements HasMiddleware
     /**
      * Mulai atau lanjutkan pengerjaan (validasi token & attempt di server).
      */
+    /**
+     * Halaman konfirmasi pra-ujian: informasi ujian + tata tertib yang wajib
+     * disetujui siswa sebelum mulai mengerjakan.
+     */
+    public function konfirmasi(Request $request, Ujian $ujian): Response|RedirectResponse
+    {
+        $nisn = $request->user()->siswa->nisn;
+        $this->pastikanBolehAkses($ujian, $nisn);
+
+        if (! $ujian->sedangBerlangsung()) {
+            Toast::error('Ujian belum dibuka atau sudah berakhir.');
+
+            return Redirect::route('app.siswa.ujian.index');
+        }
+
+        // Sudah ada sesi berjalan -> langsung lanjutkan.
+        if ($this->sesiBerjalan($ujian, $nisn)) {
+            return Redirect::route('app.siswa.ujian.kerjakan', $ujian);
+        }
+
+        $ujian->loadCount('soals');
+
+        return Inertia::render('siswa/Ujian/Konfirmasi', [
+            'ujian' => [
+                'id' => $ujian->id,
+                'judul' => $ujian->judul,
+                'kategori' => $ujian->kategori,
+                'matpel' => $ujian->guruKelas?->matpel?->name,
+                'guru' => $ujian->guru?->nama_lengkap,
+                'deskripsi' => $ujian->deskripsi,
+                'tata_tertib' => $ujian->tata_tertib,
+                'durasi_menit' => $ujian->durasi_menit,
+                'jumlah_soal' => $ujian->soals_count,
+                'nilai_maks' => $ujian->nilai_maks,
+                'butuh_token' => $ujian->token !== null,
+                'wajib_fullscreen' => $ujian->wajib_fullscreen,
+                'maks_pelanggaran' => $ujian->maks_pelanggaran,
+            ],
+        ]);
+    }
+
     public function mulai(Request $request, Ujian $ujian): RedirectResponse
     {
         $nisn = $request->user()->siswa->nisn;
         $this->pastikanBolehAkses($ujian, $nisn);
+
+        // Wajib menyetujui tata tertib sebelum mulai.
+        $request->validate([
+            'setuju_tata_tertib' => ['required', 'accepted'],
+        ], [], [
+            'setuju_tata_tertib' => 'Persetujuan tata tertib',
+        ]);
 
         if (! $ujian->sedangBerlangsung()) {
             Toast::error('Ujian belum dibuka atau sudah berakhir.');

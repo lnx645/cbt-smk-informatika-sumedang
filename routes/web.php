@@ -123,6 +123,7 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::get('ujian', [SiswaUjianController::class, 'index'])->name('siswa.ujian.index');
     Route::get('waktu-server', [SiswaUjianController::class, 'waktuServer'])->name('siswa.waktu-server');
     Route::post('ujian/{ujian}/mulai', [SiswaUjianController::class, 'mulai'])->name('siswa.ujian.mulai');
+    Route::get('ujian/{ujian}/konfirmasi', [SiswaUjianController::class, 'konfirmasi'])->name('siswa.ujian.konfirmasi');
     Route::get('ujian/{ujian}/kerjakan', [SiswaUjianController::class, 'kerjakan'])->name('siswa.ujian.kerjakan');
     Route::post('ujian/{ujian}/jawaban', [SiswaUjianController::class, 'simpanJawaban'])->name('siswa.ujian.jawaban');
     Route::post('ujian/{ujian}/submit', [SiswaUjianController::class, 'submit'])->name('siswa.ujian.submit');
