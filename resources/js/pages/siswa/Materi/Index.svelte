@@ -207,7 +207,7 @@
                                         <Badge color="primary">{item.matpel ?? '—'}</Badge>
                                         <Badge color="secondary">{item.kelas ?? '—'}</Badge>
                                     </div>
-                                    <h2 class="h6 fw-semibold mb-0 text-truncate">{item.judul}</h2>
+                                    <h2 class="h6 fw-semibold mb-0 materi-judul">{item.judul}</h2>
                                 </div>
                             </div>
                             {#if item.deskripsi}
@@ -453,5 +453,14 @@
         .materi-hero__title {
             font-size: 1.25rem;
         }
+    }
+    /* Judul materi: wrap maksimal 2 baris, tidak overflow di HP */
+    .materi-judul {
+        overflow-wrap: break-word;
+        word-break: break-word;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 </style>
