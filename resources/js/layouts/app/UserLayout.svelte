@@ -213,8 +213,8 @@
     brandTitle="Pembelajaran"
     brandSubtitle="Modul Pembelajaran"
     {brandIconNode}
-    title="GURU"
-    description="Manajemen Guru"
+    title={authUser?.guru || authUser?.role === 'guru' ? 'GURU' : 'SISWA'}
+    description={authUser?.guru || authUser?.role === 'guru' ? 'Manajemen Guru' : 'Portal Siswa'}
     {navItems}
     {user}
     {bottomNavItems}

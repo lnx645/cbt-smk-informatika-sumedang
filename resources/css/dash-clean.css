@@ -9,15 +9,15 @@
     align-items: center;
     gap: 0.9rem;
     padding: 1rem 1.1rem;
-    background: #fff;
-    border: 1px solid #e5e7eb;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
     border-radius: 0.75rem;
     text-decoration: none;
     color: inherit;
     transition: border-color 0.15s, box-shadow 0.15s;
 }
 .dash-aksi:hover {
-    border-color: #0d6efd;
+    border-color: var(--bs-primary);
     box-shadow: 0 2px 12px rgba(13, 110, 253, 0.08);
     color: inherit;
 }
@@ -29,8 +29,8 @@
     align-items: center;
     justify-content: center;
     border-radius: 0.65rem;
-    background: #eef4ff;
-    color: #0d6efd;
+    background: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary);
     font-size: 1.25rem;
 }
 .dash-aksi__label {
@@ -41,7 +41,28 @@
 .dash-aksi__deskripsi {
     display: block;
     font-size: 0.8rem;
-    color: #6b7280;
+    color: var(--bs-secondary-color);
+}
+
+/* Mobile: kartu lebih compact, teks tidak terjepit */
+@media (max-width: 767.98px) {
+    .dash-aksi {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.6rem;
+        padding: 1.1rem 0.75rem;
+    }
+    .dash-aksi__ikon {
+        width: 52px;
+        height: 52px;
+        font-size: 1.5rem;
+    }
+    .dash-aksi__label {
+        font-size: 0.9rem;
+    }
+    .dash-aksi__deskripsi {
+        font-size: 0.75rem;
+    }
 }
 
 /* ── Judul section: sederhana ── */
@@ -54,23 +75,23 @@
 
 /* ── Sapaan: bersih tanpa pattern ── */
 .dash-sapaan {
-    background: #fff;
-    border: 1px solid #e5e7eb;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
     border-radius: 0.75rem;
     padding: 1.25rem 1.5rem;
 }
 .dash-sapaan__tanggal {
     font-size: 0.8rem;
-    color: #6b7280;
+    color: var(--bs-secondary-color);
 }
 .dash-sapaan__judul {
     font-size: 1.4rem;
     font-weight: 700;
     margin: 0.25rem 0;
-    color: #111827;
+    color: var(--bs-body-color);
 }
 .dash-sapaan__sub {
     font-size: 0.9rem;
-    color: #6b7280;
+    color: var(--bs-secondary-color);
     margin: 0;
 }
