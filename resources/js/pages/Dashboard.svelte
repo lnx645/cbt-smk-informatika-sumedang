@@ -266,37 +266,6 @@
         </section>
     </IsRole>
 
-    <!-- ══════════ STATISTIK SISWA ══════════ -->
-    <IsRole role="siswa">
-        {#if ringkasan.length > 0}
-            <div class="row g-3 mb-4">
-                <div class="col-6 col-lg-3">
-                    <Card class="h-100"><CardBody class="d-flex align-items-center gap-3">
-                        <i class="bi bi-journal-bookmark fs-3 text-primary"></i>
-                        <div><div class="fs-4 fw-bold">{ringkasan.length}</div><div class="small text-muted">Mata Pelajaran</div></div>
-                    </CardBody></Card>
-                </div>
-                <div class="col-6 col-lg-3">
-                    <Card class="h-100"><CardBody class="d-flex align-items-center gap-3">
-                        <i class="bi bi-files fs-3 text-info"></i>
-                        <div><div class="fs-4 fw-bold">{totalMateri}</div><div class="small text-muted">Total Materi</div></div>
-                    </CardBody></Card>
-                </div>
-                <div class="col-6 col-lg-3">
-                    <Card class="h-100"><CardBody class="d-flex align-items-center gap-3">
-                        <i class="bi bi-hourglass-split fs-3 text-warning"></i>
-                        <div><div class="fs-4 fw-bold">{tugasBelum.length}</div><div class="small text-muted">Tugas Menunggu</div></div>
-                    </CardBody></Card>
-                </div>
-                <div class="col-6 col-lg-3">
-                    <Card class="h-100"><CardBody class="d-flex align-items-center gap-3">
-                        <i class="bi bi-check2-circle fs-3 text-success"></i>
-                        <div><div class="fs-4 fw-bold">{materiTerbaru.length}</div><div class="small text-muted">Materi Terbaru</div></div>
-                    </CardBody></Card>
-                </div>
-            </div>
-        {/if}
-    </IsRole>
 
     <!-- ══════════ TUGAS & MATERI SISWA ══════════ -->
     <IsRole role="siswa">
