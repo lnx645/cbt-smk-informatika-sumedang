@@ -365,11 +365,14 @@
                         <Button
                             color="primary"
                             size="sm"
-                            disabled={nisnDipilih.length === 0}
                             onclick={jadwalkan}
+                            title={nisnDipilih.length === 0 ? 'Pilih siswa terlebih dahulu' : `Jadwalkan ${nisnDipilih.length} siswa`}
                         >
                             Jadwalkan {nisnDipilih.length > 0 ? `(${nisnDipilih.length})` : ''} ke {sesiAktif.nama}
                         </Button>
+                        {#if nisnDipilih.length === 0}
+                            <div class="form-text">Pilih siswa dari daftar di atas untuk mengaktifkan tombol.</div>
+                        {/if}
                     {/if}
                 </CardBody>
             </Card>

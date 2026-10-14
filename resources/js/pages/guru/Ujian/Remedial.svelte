@@ -14,7 +14,7 @@
 
     function simpanKkm(e: SubmitEvent) {
         e.preventDefault();
-        $kkmForm.put(Akademik.remedialKkm.url({ ujian: ujian.id }));
+        kkmForm.put(Akademik.remedialKkm.url({ ujian: ujian.id }));
     }
 </script>
 
@@ -25,9 +25,9 @@
         <form onsubmit={simpanKkm} class="d-flex gap-2 align-items-end">
             <div>
                 <Label>KKM</Label>
-                <Input type="number" min={0} max={100} bind:value={$kkmForm.kkm} style="width:120px" />
+                <Input type="number" min={0} max={100} bind:value={kkmForm.kkm} style="width:120px" />
             </div>
-            <Button color="primary" type="submit" disabled={$kkmForm.processing}>Simpan KKM</Button>
+            <Button color="primary" type="submit" disabled={kkmForm.processing}>Simpan KKM</Button>
         </form>
         <p class="text-muted small mt-2 mb-0">Siswa di bawah KKM dapat diberi kesempatan remedial melalui attempt tambahan bertanda remedial.</p>
     </CardBody>

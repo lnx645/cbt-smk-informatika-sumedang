@@ -26,8 +26,16 @@
     let setuju = $state(false);
     let token = $state('');
     let memulai = $state(false);
+    let peringatan = $state('');
 
     function mulai() {
+        if (!setuju) {
+            peringatan = 'Centang persetujuan tata tertib di atas terlebih dahulu.';
+            document.getElementById('setuju')?.focus();
+            document.getElementById('setuju-box')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        peringatan = '';
         memulai = true;
         router.post(
             UjianController.mulai({ ujian: ujian.id }).url,
@@ -115,23 +123,30 @@
                 </div>
             {/if}
 
-            <div class="form-check mb-3">
+            <div class="form-check mb-3" id="setuju-box">
                 <input
                     id="setuju"
                     type="checkbox"
                     class="form-check-input"
                     bind:checked={setuju}
+                    onchange={() => (peringatan = '')}
                 />
                 <label class="form-check-label fw-semibold" for="setuju">
                     Saya telah membaca informasi ujian dan <u>menyetujui tata tertib</u> di atas.
                 </label>
             </div>
 
+            {#if peringatan}
+                <Alert color="danger" class="small py-2">
+                    <i class="bi bi-exclamation-triangle me-1"></i>{peringatan}
+                </Alert>
+            {/if}
+
             <div class="d-flex gap-2">
                 <Button color="secondary" outline href={UjianController.index().url}>
                     <i class="bi bi-arrow-left me-1"></i>Kembali
                 </Button>
-                <Button color="primary" class="flex-grow-1" disabled={!setuju || memulai} onclick={mulai}>
+                <Button color="primary" class="flex-grow-1" disabled={memulai} onclick={mulai}>
                     {#if memulai}
                         <span class="spinner-border spinner-border-sm me-1"></span>Memulai…
                     {:else}
