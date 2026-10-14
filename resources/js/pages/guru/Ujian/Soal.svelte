@@ -20,6 +20,7 @@
     } from '@/lib/ujian';
     import SoalController from '@/actions/App/Http/Controllers/Guru/SoalController';
     import UjianController from '@/actions/App/Http/Controllers/Guru/UjianController';
+    import AkademikController from '@/actions/App/Http/Controllers/Guru/UjianAkademikController';
     import RichTextEditor from '@/components/RichTextEditor.svelte';
     import 'katex/dist/katex.min.css';
 
@@ -41,6 +42,11 @@
         urutan: number;
         kunci_isian: string[] | null;
         isian_case_sensitive: boolean;
+        kode_kd: string | null;
+        indikator: string | null;
+        media_path: string | null;
+        media_type: string | null;
+        media_url: string | null;
         opsi: { id: number; teks: string; benar: boolean }[];
     };
 
@@ -79,6 +85,8 @@
         ] as Opsi[],
         kunci_isian: [''] as string[],
         isian_case_sensitive: false,
+        kode_kd: '',
+        indikator: '',
     });
 
     let modalOpen = $state(false);
@@ -113,6 +121,8 @@
               ];
         form.kunci_isian = s.kunci_isian?.length ? [...s.kunci_isian] : [''];
         form.isian_case_sensitive = s.isian_case_sensitive;
+        form.kode_kd = s.kode_kd ?? '';
+        form.indikator = s.indikator ?? '';
         form.clearErrors();
         modalOpen = true;
     }
@@ -190,6 +200,41 @@
     // ---- Bank soal ----
     let bankModalOpen = $state(false);
     let generateModalOpen = $state(false);
+    let importModalOpen = $state(false);
+    let importFile: FileList | undefined = $state();
+
+    function kirimImport(e: SubmitEvent) {
+        e.preventDefault();
+        if (!importFile?.[0]) return;
+        router.post(
+            AkademikController.importStore({ ujian: ujian.id }).url,
+            { file: importFile[0] },
+            { forceFormData: true, onSuccess: () => { importModalOpen = false; importFile = undefined; } },
+        );
+    }
+
+    function unggahMedia(s: SoalItem, e: Event) {
+        const input = e.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file) return;
+        router.post(
+            SoalController.uploadMedia({ ujian: ujian.id, soal: s.id }).url,
+            { media: file },
+            { forceFormData: true },
+        );
+        input.value = '';
+    }
+
+    async function hapusMedia(s: SoalItem) {
+        const ok = await confirm.show({
+            title: 'Hapus Media',
+            message: 'Hapus lampiran media soal ini?',
+            confirmText: 'Ya, Hapus',
+            color: 'danger',
+        });
+        if (!ok) return;
+        router.delete(SoalController.hapusMedia({ ujian: ujian.id, soal: s.id }).url);
+    }
     let simpanBankOpen = $state(false);
     let simpanBankSoal = $state<SoalItem | null>(null);
     let bankTerpilih = $state<number[]>([]);
@@ -279,6 +324,12 @@
         <Button color="outline-primary" size="sm" onclick={() => (generateModalOpen = true)}>
             <i class="bi bi-shuffle me-1"></i>Generate Acak
         </Button>
+        <a class="btn btn-sm btn-outline-success" href={AkademikController.importTemplate({ ujian: ujian.id }).url}>
+            <i class="bi bi-download me-1"></i>Template Excel
+        </a>
+        <Button color="outline-success" size="sm" onclick={() => (importModalOpen = true)}>
+            <i class="bi bi-upload me-1"></i>Import Excel
+        </Button>
     </div>
 
     {#if soals.length === 0}
@@ -301,6 +352,21 @@
                                 <span class="text-muted small">{s.poin} poin</span>
                             </div>
                             <div class="rich-deskripsi">{@html s.pertanyaan}</div>
+                            {#if s.kode_kd}
+                                <div class="small text-muted mt-1"><i class="bi bi-tag me-1"></i>{s.kode_kd}{s.indikator ? ` — ${s.indikator}` : ''}</div>
+                            {/if}
+                            {#if s.media_url}
+                                <div class="mt-2">
+                                    {#if s.media_type === 'gambar'}
+                                        <img src={s.media_url} alt="Media soal" style="max-width:280px;max-height:180px;border-radius:6px;border:1px solid #ddd" />
+                                    {:else}
+                                        <audio controls src={s.media_url} style="max-width:280px"></audio>
+                                    {/if}
+                                    <div>
+                                        <Button size="sm" color="link" class="text-danger p-0 small" onclick={() => hapusMedia(s)}>Hapus media</Button>
+                                    </div>
+                                </div>
+                            {/if}
                             {#if s.opsi.length}
                                 <div class="mt-2 d-flex flex-column gap-1">
                                     {#each s.opsi as o, i (o.id)}
@@ -329,6 +395,10 @@
                             {/if}
                         </div>
                         <div class="d-inline-flex gap-1">
+                            <label class="btn btn-sm btn-outline-info mb-0" title="Unggah media (gambar/audio)">
+                                <i class="bi bi-paperclip"></i>
+                                <input type="file" accept="image/*,audio/*" class="d-none" onchange={(e) => unggahMedia(s, e)} />
+                            </label>
                             <Button size="sm" color="outline-primary" onclick={() => bukaSimpanBank(s)} title="Simpan ke bank">
                                 <i class="bi bi-bookmark-plus"></i>
                             </Button>
@@ -367,6 +437,14 @@
                 <div class="col-md-4">
                     <label class="form-label" for="s-poin">Poin</label>
                     <input id="s-poin" type="number" min="1" class="form-control" bind:value={form.poin} />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="s-kd">Kode KD</label>
+                    <input id="s-kd" type="text" class="form-control" placeholder="mis. KD 3.1" bind:value={form.kode_kd} />
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label" for="s-indikator">Indikator</label>
+                    <input id="s-indikator" type="text" class="form-control" placeholder="Indikator pencapaian..." bind:value={form.indikator} />
                 </div>
                 <div class="col-12">
                     <label class="form-label" for="s-pertanyaan">Pertanyaan</label>
@@ -596,5 +674,19 @@
             <Button color="secondary" onclick={() => (simpanBankOpen = false)}>Batal</Button>
             <Button color="primary" onclick={simpanKeBank} disabled={simpanForm.processing}>Simpan ke Bank</Button>
         </ModalFooter>
+    </Modal>
+
+    <Modal isOpen={importModalOpen} toggle={() => (importModalOpen = false)}>
+        <ModalHeader>Import Soal dari Excel</ModalHeader>
+        <form onsubmit={kirimImport}>
+            <ModalBody>
+                <p class="small text-muted">Unduh template Excel terlebih dahulu, isi sesuai format, lalu unggah file .xlsx (maks 5 MB).</p>
+                <Input type="file" accept=".xlsx" bind:files={importFile} />
+            </ModalBody>
+            <ModalFooter>
+                <Button color="secondary" onclick={() => (importModalOpen = false)}>Batal</Button>
+                <Button color="success" type="submit" disabled={!importFile?.[0]}>Impor</Button>
+            </ModalFooter>
+        </form>
     </Modal>
 </div>

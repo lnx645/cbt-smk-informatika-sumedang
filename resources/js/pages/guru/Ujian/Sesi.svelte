@@ -18,6 +18,7 @@
     import EmptyState from '@/components/EmptyState.svelte';
     import { confirm } from '@/lib/confirm.svelte';
     import UjianController from '@/actions/App/Http/Controllers/Guru/UjianController';
+    import AkademikController from '@/actions/App/Http/Controllers/Guru/UjianAkademikController';
 
     function formatTanggal(iso: string | null): string {
         if (!iso) return '–';
@@ -36,6 +37,8 @@
         waktu_mulai: string;
         waktu_selesai: string;
         kapasitas: number | null;
+        ruang: { id: number; nama: string } | null;
+        pengawas: { id: number; nama: string; peran: string }[];
         sedang_aktif: boolean;
         sudah_lewat: boolean;
         jumlah_peserta: number;
@@ -44,6 +47,7 @@
     };
 
     type SiswaItem = { nisn: string; nama: string };
+    type RuangItem = { id: number; kode: string; nama: string };
 
     let {
         ujian,
@@ -65,6 +69,7 @@
         sesis: SesiItem[];
         siswaKelas: SiswaItem[];
         pesertaMap: Record<number, string[]>;
+        ruangs: RuangItem[];
     } = $props();
 
     // svelte-ignore state_referenced_locally
@@ -74,6 +79,33 @@
     // svelte-ignore state_referenced_locally
     let pilihSesiId = $state<number | null>(sesis[0]?.id ?? null);
     let nisnDipilih = $state<string[]>([]);
+    let namaPengawasBaru = $state('');
+    let peranPengawasBaru = $state('pengawas');
+
+    function aturRuang(s: SesiItem, ruangId: string) {
+        router.put(
+            AkademikController.sesiRuang({ ujian: ujian.id, sesi: s.id }).url,
+            { ruang_ujian_id: ruangId ? Number(ruangId) : null },
+            { preserveScroll: true },
+        );
+    }
+
+    function tambahPengawas(e: SubmitEvent, s: SesiItem) {
+        e.preventDefault();
+        if (!namaPengawasBaru.trim()) return;
+        router.post(
+            AkademikController.pengawasStore({ ujian: ujian.id, sesi: s.id }).url,
+            { nama_pengawas: namaPengawasBaru.trim(), peran: peranPengawasBaru },
+            { preserveScroll: true, onSuccess: () => (namaPengawasBaru = '') },
+        );
+    }
+
+    async function hapusPengawas(s: SesiItem, pengawasId: number) {
+        router.delete(
+            AkademikController.pengawasDestroy({ ujian: ujian.id, sesi: s.id, pengawas: pengawasId }).url,
+            { preserveScroll: true },
+        );
+    }
 
     function baseSesiForm() {
         return { nama: '', waktu_mulai: '', waktu_selesai: '', kapasitas: null as number | null };
@@ -243,6 +275,7 @@
                         <th>Jadwal</th>
                         <th>Status</th>
                         <th class="text-center">Kapasitas</th>
+                        <th>Ruang</th>
                         {#if ujian.mode_sesi === 'terjadwal'}
                             <th class="text-center">Terjadwal</th>
                         {/if}
@@ -261,11 +294,20 @@
                             </td>
                             <td><Badge color={st.color} pill>{st.label}</Badge></td>
                             <td class="text-center">{s.kapasitas ?? '∞'}</td>
+                            <td class="small">{s.ruang?.nama ?? '–'}</td>
                             {#if ujian.mode_sesi === 'terjadwal'}
                                 <td class="text-center">{s.jumlah_peserta}</td>
                             {/if}
                             <td class="text-center">{s.jumlah_terisi}</td>
                             <td class="text-end text-nowrap">
+                                <div class="btn-group btn-group-sm me-1" role="group" title="Cetak dokumen">
+                                    <a class="btn btn-outline-dark" href={AkademikController.kartuPeserta({ ujian: ujian.id, sesi: s.id }).url} target="_blank" rel="noopener" title="Kartu peserta">
+                                        <i class="bi bi-person-badge"></i>
+                                    </a>
+                                    <a class="btn btn-outline-dark" href={AkademikController.daftarHadir({ ujian: ujian.id, sesi: s.id }).url} target="_blank" rel="noopener" title="Daftar hadir">
+                                        <i class="bi bi-clipboard-check"></i>
+                                    </a>
+                                </div>
                                 {#if ujian.mode_sesi === 'terjadwal'}
                                     <Button
                                         color={pilihSesiId === s.id ? 'primary' : 'outline-primary'}
@@ -293,8 +335,54 @@
     </CardBody>
 </Card>
 
-{#if ujian.mode_sesi === 'terjadwal' && sesiAktif}
-    <div class="row g-3">
+{#if sesiAktif}
+    <Card class="mb-3">
+        <CardHeader>Ruang &amp; Pengawas — {sesiAktif.nama}</CardHeader>
+        <CardBody>
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <Label>Ruang ujian</Label>
+                    <div class="d-flex gap-2">
+                        <Input
+                            type="select"
+                            value={sesiAktif.ruang?.id ?? ''}
+                            onchange={(e) => aturRuang(sesiAktif, (e.target as HTMLSelectElement).value)}
+                        >
+                            <option value="">— Tanpa ruang —</option>
+                            {#each ruangs as r}<option value={r.id}>{r.kode} — {r.nama}</option>{/each}
+                        </Input>
+                        <a use:inertia href="/app/guru/ruang" class="btn btn-sm btn-outline-secondary text-nowrap" title="Kelola ruang">
+                            <i class="bi bi-gear"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <Label>Pengawas</Label>
+                    <div class="d-flex flex-wrap gap-1 mb-2">
+                        {#each sesiAktif.pengawas as p}
+                            <span class="badge bg-secondary d-inline-flex align-items-center gap-1">
+                                {p.nama} ({p.peran === 'penanggung_jawab' ? 'PJ' : 'Pengawas'})
+                                <button type="button" class="btn-close btn-close-white btn-sm" style="font-size:.6rem" aria-label="Hapus" onclick={() => hapusPengawas(sesiAktif, p.id)}></button>
+                            </span>
+                        {:else}
+                            <span class="text-muted small">Belum ada pengawas.</span>
+                        {/each}
+                    </div>
+                    <form class="d-flex gap-2" onsubmit={(e) => tambahPengawas(e, sesiAktif)}>
+                        <Input bind:value={namaPengawasBaru} placeholder="Nama pengawas" class="form-control-sm" />
+                        <Input type="select" bind:value={peranPengawasBaru} class="form-control-sm" style="max-width:150px">
+                            <option value="pengawas">Pengawas</option>
+                            <option value="penanggung_jawab">Penanggung jawab</option>
+                        </Input>
+                        <Button size="sm" color="primary" type="submit">Tambah</Button>
+                    </form>
+                </div>
+            </div>
+        </CardBody>
+    </Card>
+{/if}
+
+{#if ujian.mode_sesi === 'terjadwal' && sesiAktif}    <div class="row g-3">
         <div class="col-md-6">
             <Card>
                 <CardHeader>

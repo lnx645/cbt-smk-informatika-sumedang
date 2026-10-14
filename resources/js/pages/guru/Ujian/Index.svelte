@@ -23,6 +23,7 @@
     import UjianController from '@/actions/App/Http/Controllers/Guru/UjianController';
     import SoalController from '@/actions/App/Http/Controllers/Guru/SoalController';
     import HasilUjianController from '@/actions/App/Http/Controllers/Guru/HasilUjianController';
+    import AkademikController from '@/actions/App/Http/Controllers/Guru/UjianAkademikController';
     import type { PaginationMeta, PenugasanOption } from '@/types/models';
 
     type UjianItem = {
@@ -214,6 +215,19 @@
         });
         if (!ok) return;
         router.delete(UjianController.destroy({ ujian: item.id }).url, {
+            preserveScroll: true,
+        });
+    }
+
+    async function duplikat(item: UjianItem) {
+        const ok = await confirm.show({
+            title: 'Duplikat Ujian',
+            message: `Buat salinan "${item.judul}" sebagai draft beserta soal dan sesinya?`,
+            confirmText: 'Ya, Duplikat',
+            color: 'primary',
+        });
+        if (!ok) return;
+        router.post(AkademikController.duplikat({ ujian: item.id }).url, {}, {
             preserveScroll: true,
         });
     }
@@ -412,6 +426,30 @@
                                             >
                                                 <i class="bi bi-clock-history"></i>
                                             </a>
+                                            <a
+                                                use:inertia
+                                                href={AkademikController.analisisIndex({ ujian: item.id }).url}
+                                                class="btn btn-sm btn-outline-dark"
+                                                title="Analisis butir soal"
+                                            >
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                            <a
+                                                use:inertia
+                                                href={AkademikController.beritaAcaraIndex({ ujian: item.id }).url}
+                                                class="btn btn-sm btn-outline-dark"
+                                                title="Berita acara"
+                                            >
+                                                <i class="bi bi-file-earmark-text"></i>
+                                            </a>
+                                            <a
+                                                use:inertia
+                                                href={AkademikController.remedialIndex({ ujian: item.id }).url}
+                                                class="btn btn-sm btn-outline-dark"
+                                                title="Remedial"
+                                            >
+                                                <i class="bi bi-arrow-repeat"></i>
+                                            </a>
                                             <Button
                                                 size="sm"
                                                 color="outline-secondary"
@@ -446,6 +484,14 @@
                                                 title="Edit"
                                             >
                                                 <i class="bi bi-pencil"></i>
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                color="outline-info"
+                                                onclick={() => duplikat(item)}
+                                                title="Duplikat ujian"
+                                            >
+                                                <i class="bi bi-copy"></i>
                                             </Button>
                                             <Button
                                                 size="sm"
