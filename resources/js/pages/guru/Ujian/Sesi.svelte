@@ -54,6 +54,7 @@
         sesis,
         siswaKelas,
         pesertaMap,
+        ruangs,
     }: {
         ujian: {
             id: number;
@@ -81,12 +82,34 @@
     let nisnDipilih = $state<string[]>([]);
     let namaPengawasBaru = $state('');
     let peranPengawasBaru = $state('pengawas');
+    let formRuangTerbuka = $state(false);
+    let ruangBaru = $state({ kode: '', nama: '', kapasitas: null as number | null });
 
     function aturRuang(s: SesiItem, ruangId: string) {
         router.put(
             AkademikController.sesiRuang({ ujian: ujian.id, sesi: s.id }).url,
             { ruang_ujian_id: ruangId ? Number(ruangId) : null },
             { preserveScroll: true },
+        );
+    }
+
+    function tambahRuangCepat(e: SubmitEvent) {
+        e.preventDefault();
+        if (!ruangBaru.kode.trim() || !ruangBaru.nama.trim()) return;
+        router.post(
+            AkademikController.ruangStore.url(),
+            {
+                kode: ruangBaru.kode.trim(),
+                nama: ruangBaru.nama.trim(),
+                kapasitas: ruangBaru.kapasitas,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    ruangBaru = { kode: '', nama: '', kapasitas: null };
+                    formRuangTerbuka = false;
+                },
+            },
         );
     }
 
@@ -351,10 +374,21 @@
                             <option value="">— Tanpa ruang —</option>
                             {#each ruangs as r}<option value={r.id}>{r.kode} — {r.nama}</option>{/each}
                         </Input>
+                        <Button size="sm" color="outline-success" class="text-nowrap" onclick={() => (formRuangTerbuka = !formRuangTerbuka)} title="Tambah ruang baru">
+                            <i class="bi bi-plus-lg"></i> Ruang
+                        </Button>
                         <a use:inertia href="/app/guru/ruang" class="btn btn-sm btn-outline-secondary text-nowrap" title="Kelola ruang">
                             <i class="bi bi-gear"></i>
                         </a>
                     </div>
+                    {#if formRuangTerbuka}
+                        <form class="d-flex gap-2 mt-2" onsubmit={tambahRuangCepat}>
+                            <Input bind:value={ruangBaru.kode} placeholder="Kode (R101)" class="form-control-sm" required />
+                            <Input bind:value={ruangBaru.nama} placeholder="Nama ruang" class="form-control-sm" required />
+                            <Input type="number" min="1" bind:value={ruangBaru.kapasitas} placeholder="Kapasitas" class="form-control-sm" style="max-width:100px" />
+                            <Button size="sm" color="success" type="submit">Simpan</Button>
+                        </form>
+                    {/if}
                 </div>
                 <div class="col-md-7">
                     <Label>Pengawas</Label>
