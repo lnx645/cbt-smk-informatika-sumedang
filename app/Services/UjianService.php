@@ -7,6 +7,7 @@ use App\Models\JawabanSiswa;
 use App\Models\Soal;
 use App\Models\Ujian;
 use App\Models\UjianPengerjaan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class UjianService
@@ -246,5 +247,57 @@ class UjianService
                 'bobot' => 1,
             ],
         };
+    }
+
+    /**
+     * Duplikat ujian beserta soal, opsi, dan sesi (tanpa peserta & pengerjaan).
+     * Hasil selalu berstatus draft agar guru meninjau ulang sebelum terbit.
+     */
+    public function duplikat(Ujian $ujian, ?int $guruKelasId = null): Ujian
+    {
+        return DB::transaction(function () use ($ujian, $guruKelasId): Ujian {
+            $baru = $ujian->replicate([
+                'token', 'token_released_at', 'token_pengelola',
+            ]);
+            $baru->judul = $ujian->judul.' (Salinan)';
+            $baru->status = 'draft';
+            $baru->token = null;
+            $baru->token_released_at = null;
+
+            if ($guruKelasId !== null) {
+                $baru->guru_kelas_id = $guruKelasId;
+            }
+
+            $baru->save();
+
+            $ujian->load('soals.opsi');
+
+            foreach ($ujian->soals as $soal) {
+                $soalBaru = $soal->replicate();
+                $soalBaru->ujian_id = $baru->id;
+                $soalBaru->save();
+
+                foreach ($soal->opsi as $opsi) {
+                    $opsiBaru = $opsi->replicate();
+                    $opsiBaru->soal_id = $soalBaru->id;
+                    $opsiBaru->save();
+                }
+            }
+
+            foreach ($ujian->sesis()->with('pengawas')->get() as $sesi) {
+                $sesiBaru = $sesi->replicate(['ruang_ujian_id']);
+                $sesiBaru->ujian_id = $baru->id;
+                $sesiBaru->ruang_ujian_id = null;
+                $sesiBaru->save();
+
+                foreach ($sesi->pengawas as $pw) {
+                    $pwBaru = $pw->replicate();
+                    $pwBaru->sesi_ujian_id = $sesiBaru->id;
+                    $pwBaru->save();
+                }
+            }
+
+            return $baru->fresh();
+        });
     }
 }

@@ -29,6 +29,7 @@ class UjianPengerjaan extends Model
         'nilai_esai',
         'nilai_total',
         'jumlah_pelanggaran',
+        'is_remedial',
     ];
 
     protected $casts = [
@@ -40,6 +41,7 @@ class UjianPengerjaan extends Model
         'nilai_esai' => 'float',
         'nilai_total' => 'float',
         'jumlah_pelanggaran' => 'integer',
+        'is_remedial' => 'boolean',
     ];
 
     public function ujian(): BelongsTo

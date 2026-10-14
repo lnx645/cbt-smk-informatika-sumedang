@@ -218,6 +218,7 @@
     {navItems}
     {user}
     {bottomNavItems}
+    notifBelumDibaca={usePage().props.notifBelumDibaca ?? 0}
 >
     {#if showTahunAjaranInfo}
         <Alert

@@ -53,6 +53,7 @@
         title = 'Dashboard',
         description = '',
         bottomNavItems = [],
+        notifBelumDibaca = 0,
     }: {
         children: Snippet;
         brandTitle?: string;
@@ -65,6 +66,8 @@
         description?: string;
         /** Item navigasi bawah khusus mobile (< 992px). Kosong = tidak tampil. */
         bottomNavItems?: BottomNavItem[];
+        /** Jumlah notifikasi belum dibaca (dari shared prop). */
+        notifBelumDibaca?: number;
     } = $props();
 
     let sidebarOpen = $state(false);
@@ -393,6 +396,21 @@
             </div>
 
             <div class="app-shell__header-right">
+                {#if user.role === 'siswa'}
+                    <a
+                        href="/app/notifikasi"
+                        class="app-shell__theme-toggle position-relative"
+                        aria-label="Notifikasi"
+                        title="Notifikasi"
+                    >
+                        <i class="bi bi-bell-fill"></i>
+                        {#if notifBelumDibaca > 0}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem">
+                                {notifBelumDibaca > 9 ? '9+' : notifBelumDibaca}
+                            </span>
+                        {/if}
+                    </a>
+                {/if}
                 <button
                     class="app-shell__theme-toggle"
                     onclick={toggleTheme}

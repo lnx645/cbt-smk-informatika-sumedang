@@ -1,10 +1,23 @@
 <script lang="ts">
     import 'katex/dist/katex.min.css';
-    import { inertia } from '@inertiajs/svelte';
+    import { inertia, router } from '@inertiajs/svelte';
     import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
     import { KATEGORI_INFO, STATUS_PENGERJAAN_INFO, type KategoriUjian } from '@/lib/ujian';
     import HasilUjianController from '@/actions/App/Http/Controllers/Guru/HasilUjianController';
     import UjianController from '@/actions/App/Http/Controllers/Guru/UjianController';
+    import AkademikController from '@/actions/App/Http/Controllers/Guru/UjianAkademikController';
+    import { confirm } from '@/lib/confirm.svelte';
+
+    async function resetPengerjaan(nama: string, pengerjaanId: number) {
+        const ok = await confirm.show({
+            title: 'Reset Pengerjaan',
+            message: `Reset pengerjaan ${nama}? Jawaban & pelanggaran dihapus, siswa dapat mengulang dari awal.`,
+            confirmText: 'Ya, Reset',
+            color: 'danger',
+        });
+        if (!ok) return;
+        router.delete(AkademikController.resetPengerjaan({ ujian: ujian.id, pengerjaan: pengerjaanId }).url);
+    }
 
     type SiswaHasil = {
         nisn: string;
@@ -110,6 +123,14 @@
                                         >
                                             <i class="bi bi-eye"></i> Detail
                                         </a>
+                                        <Button
+                                            size="sm"
+                                            color="outline-danger"
+                                            onclick={() => resetPengerjaan(s.nama, s.pengerjaan_id!)}
+                                            title="Reset pengerjaan (hapus jawaban, siswa mengulang)"
+                                        >
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </Button>
                                     {:else}
                                         <span class="text-muted small">Belum mengerjakan</span>
                                     {/if}
