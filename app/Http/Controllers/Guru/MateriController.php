@@ -7,6 +7,7 @@ use App\Models\Guru;
 use App\Models\GuruKelas;
 use App\Models\Materi;
 use App\Models\TahunAjaran;
+use App\Support\HtmlSanitizer;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -285,7 +286,7 @@ class MateriController extends BaseAppController implements HasMiddleware
         $materi->fill([
             'guru_kelas_id' => $data['guru_kelas_id'],
             'judul' => $data['judul'],
-            'deskripsi' => $data['deskripsi'] ?? null,
+            'deskripsi' => HtmlSanitizer::clean($data['deskripsi'] ?? null),
             'konten' => $data['konten'] ?? null,
         ])->save();
 
@@ -342,7 +343,7 @@ class MateriController extends BaseAppController implements HasMiddleware
             'guru_id' => $guru->id,
             'guru_kelas_id' => $data['guru_kelas_id'],
             'judul' => $data['judul'],
-            'deskripsi' => $data['deskripsi'] ?? null,
+            'deskripsi' => HtmlSanitizer::clean($data['deskripsi'] ?? null),
             'konten' => $data['konten'] ?? null,
             'file_path' => $file?->store('materi', 'public'),
             'file_name' => $file?->getClientOriginalName(),

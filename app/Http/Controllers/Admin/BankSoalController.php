@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\BankSoal;
 use App\Models\Matpel;
 use App\Models\Soal;
+use App\Support\HtmlSanitizer;
 use App\Support\Toast;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -101,7 +103,7 @@ class BankSoalController extends Controller
 
     // ── Private: Query & Mapping ─────────────────────────────────────────────
 
-    private function queryBankSoal(Request $request): \Illuminate\Database\Eloquent\Builder
+    private function queryBankSoal(Request $request): Builder
     {
         return BankSoal::query()
             ->with(['matpel:id,name', 'guru:id,nama_lengkap', 'opsi:id,bank_soal_id,teks,benar'])
@@ -231,7 +233,7 @@ class BankSoalController extends Controller
         return [
             'matpel_id' => $data['matpel_id'],
             'tipe' => $data['tipe'],
-            'pertanyaan' => $data['pertanyaan'],
+            'pertanyaan' => HtmlSanitizer::clean($data['pertanyaan']),
             'poin' => $data['poin'],
             'topik' => $data['topik'] ?? null,
             'kesulitan' => $data['kesulitan'],

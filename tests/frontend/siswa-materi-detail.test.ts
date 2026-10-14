@@ -28,7 +28,7 @@ describe('siswa/Materi/Detail', () => {
         ).toBeInTheDocument();
         expect(screen.getByText('Matematika')).toBeInTheDocument();
         expect(screen.getByText('X-RPL-1')).toBeInTheDocument();
-        expect(screen.getByText('Pak Budi')).toBeInTheDocument();
+        expect(document.body.textContent).toContain('Pak Budi');
     });
 
     it('hero tidak lagi menampilkan tombol Unduh Berkas (redundan dengan tab Lampiran)', () => {

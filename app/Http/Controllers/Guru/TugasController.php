@@ -10,6 +10,7 @@ use App\Models\Penilaian;
 use App\Models\SiswaKelas;
 use App\Models\Tugas;
 use App\Models\TugasPengumpulan;
+use App\Support\HtmlSanitizer;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -116,7 +117,7 @@ class TugasController extends BaseAppController implements HasMiddleware
             'guru_id' => $guru->id,
             'guru_kelas_id' => $data['guru_kelas_id'],
             'judul' => $data['judul'],
-            'deskripsi' => $data['deskripsi'] ?? null,
+            'deskripsi' => HtmlSanitizer::clean($data['deskripsi'] ?? null),
             'tanggal_terbit' => $data['tanggal_terbit'] ?? now(),
             'deadline' => $data['deadline'],
             'jenis_pengumpulan' => $data['jenis_pengumpulan'] ?? 'file',
@@ -129,7 +130,7 @@ class TugasController extends BaseAppController implements HasMiddleware
 
         $penilaian = Penilaian::create([
             'nama' => 'Tugas: '.$tugas->judul,
-            'deskripsi' => $data['deskripsi'] ?? null,
+            'deskripsi' => HtmlSanitizer::clean($data['deskripsi'] ?? null),
             'tipe' => 'tugas',
             'nilai_maks' => $tugas->poin,
             'bobot' => 1,
@@ -173,7 +174,7 @@ class TugasController extends BaseAppController implements HasMiddleware
         $tugas->fill([
             'guru_kelas_id' => $data['guru_kelas_id'],
             'judul' => $data['judul'],
-            'deskripsi' => $data['deskripsi'] ?? null,
+            'deskripsi' => HtmlSanitizer::clean($data['deskripsi'] ?? null),
             'tanggal_terbit' => $data['tanggal_terbit'] ?? now(),
             'deadline' => $data['deadline'],
             'jenis_pengumpulan' => $data['jenis_pengumpulan'] ?? $tugas->jenis_pengumpulan,

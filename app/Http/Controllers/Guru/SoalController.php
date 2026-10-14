@@ -8,6 +8,7 @@ use App\Models\OpsiSoal;
 use App\Models\Soal;
 use App\Models\Ujian;
 use App\Services\BankSoalService;
+use App\Support\HtmlSanitizer;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -62,7 +63,7 @@ class SoalController extends BaseAppController implements HasMiddleware
 
             $soal = $ujian->soals()->create([
                 'tipe' => $data['tipe'],
-                'pertanyaan' => $data['pertanyaan'],
+                'pertanyaan' => HtmlSanitizer::clean($data['pertanyaan']),
                 'poin' => $data['poin'],
                 'urutan' => $urutan,
                 'kunci_isian' => $this->kunciIsian($data),
@@ -97,7 +98,7 @@ class SoalController extends BaseAppController implements HasMiddleware
         DB::transaction(function () use ($soal, $data): void {
             $soal->update([
                 'tipe' => $data['tipe'],
-                'pertanyaan' => $data['pertanyaan'],
+                'pertanyaan' => HtmlSanitizer::clean($data['pertanyaan']),
                 'poin' => $data['poin'],
                 'kunci_isian' => $this->kunciIsian($data),
                 'isian_case_sensitive' => $data['isian_case_sensitive'] ?? false,

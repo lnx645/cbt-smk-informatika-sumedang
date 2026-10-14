@@ -8,6 +8,7 @@ use App\Models\Guru;
 use App\Models\GuruKelas;
 use App\Models\Matpel;
 use App\Models\Soal;
+use App\Support\HtmlSanitizer;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -98,7 +99,7 @@ class BankSoalController extends BaseAppController implements HasMiddleware
                 'matpel_id' => $data['matpel_id'],
                 'guru_id' => $guru->id,
                 'tipe' => $data['tipe'],
-                'pertanyaan' => $data['pertanyaan'],
+                'pertanyaan' => HtmlSanitizer::clean($data['pertanyaan']),
                 'poin' => $data['poin'],
                 'topik' => $data['topik'] ?? null,
                 'kesulitan' => $data['kesulitan'],
@@ -125,7 +126,7 @@ class BankSoalController extends BaseAppController implements HasMiddleware
             $bankSoal->update([
                 'matpel_id' => $data['matpel_id'],
                 'tipe' => $data['tipe'],
-                'pertanyaan' => $data['pertanyaan'],
+                'pertanyaan' => HtmlSanitizer::clean($data['pertanyaan']),
                 'poin' => $data['poin'],
                 'topik' => $data['topik'] ?? null,
                 'kesulitan' => $data['kesulitan'],
