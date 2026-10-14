@@ -114,14 +114,16 @@
         </Card>
     {/if}
 
-    {#each jawabans as j, i (j.id)}
+    {#each jawabans as j, i (j.soal_id)}
         <Card class="border rounded-1 shadow-none mb-2">
             <CardBody class="p-3">
                 <div class="d-flex align-items-center gap-2 mb-1">
                     <span class="fw-semibold">Soal {i + 1}</span>
                     <Badge color="light" class="text-dark border">{TIPE_SOAL_INFO[j.tipe].label}</Badge>
                     <span class="text-muted small">{j.poin} poin</span>
-                    {#if j.benar === true}
+                    {#if !j.dijawab}
+                        <Badge color="secondary" pill>Tidak dijawab</Badge>
+                    {:else if j.benar === true}
                         <Badge color="success" pill>Benar</Badge>
                     {:else if j.benar === false}
                         <Badge color="danger" pill>Salah</Badge>

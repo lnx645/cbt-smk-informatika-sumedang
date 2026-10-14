@@ -56,6 +56,34 @@ class HasilUjianController extends BaseAppController implements HasMiddleware
         abort_unless($pengerjaan->ujian_id === $ujian->id, 404);
 
         $pengerjaan->load(['jawabans.soal.opsi', 'pelanggarans', 'siswa']);
+        $ujian->load(['soals.opsi']);
+
+        // Petakan jawaban per soal_id untuk lookup cepat.
+        $jawabanMap = $pengerjaan->jawabans->keyBy('soal_id');
+
+        // Tampilkan SEMUA soal ujian, bukan cuma yang dijawab.
+        // Soal yang tidak dijawab tampil dengan status "Tidak dijawab" dan skor 0.
+        $semuaJawaban = $ujian->soals->map(function ($soal) use ($jawabanMap): array {
+            $j = $jawabanMap->get($soal->id);
+
+            return [
+                'id' => $j?->id,
+                'soal_id' => $soal->id,
+                'tipe' => $soal->tipe,
+                'pertanyaan' => $soal->pertanyaan,
+                'poin' => $soal->poin,
+                'opsi_dipilih' => $j?->opsi_dipilih,
+                'jawaban_teks' => $j?->jawaban_teks,
+                'benar' => $j?->benar,
+                'skor' => $j?->skor ?? 0,
+                'dijawab' => $j !== null,
+                'opsi' => $soal->opsi->map(fn ($o): array => [
+                    'id' => $o->id,
+                    'teks' => $o->teks,
+                    'benar' => $o->benar,
+                ])->values(),
+            ];
+        })->values();
 
         return Inertia::render('guru/Ujian/Koreksi', [
             'ujian' => [
@@ -75,22 +103,7 @@ class HasilUjianController extends BaseAppController implements HasMiddleware
                 'jumlah_pelanggaran' => $pengerjaan->jumlah_pelanggaran,
                 'submitted_at' => $pengerjaan->submitted_at?->translatedFormat('d M Y H:i'),
             ],
-            'jawabans' => $pengerjaan->jawabans->map(fn (JawabanSiswa $j): array => [
-                'id' => $j->id,
-                'soal_id' => $j->soal_id,
-                'tipe' => $j->soal?->tipe,
-                'pertanyaan' => $j->soal?->pertanyaan,
-                'poin' => $j->soal?->poin,
-                'opsi_dipilih' => $j->opsi_dipilih,
-                'jawaban_teks' => $j->jawaban_teks,
-                'benar' => $j->benar,
-                'skor' => $j->skor,
-                'opsi' => $j->soal?->opsi->map(fn ($o): array => [
-                    'id' => $o->id,
-                    'teks' => $o->teks,
-                    'benar' => $o->benar,
-                ])->values(),
-            ])->values(),
+            'jawabans' => $semuaJawaban,
             'pelanggarans' => $pengerjaan->pelanggarans->map(fn ($p): array => [
                 'jenis' => $p->jenis,
                 'terjadi_at' => $p->terjadi_at?->translatedFormat('d M Y H:i:s'),

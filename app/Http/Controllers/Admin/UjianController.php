@@ -14,8 +14,10 @@ use App\Models\Ujian;
 use App\Models\UjianPengerjaan;
 use App\Services\UjianService;
 use App\Support\Toast;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -275,6 +277,31 @@ class UjianController extends Controller
         abort_unless($pengerjaan->ujian_id === $ujian->id, 404);
 
         $pengerjaan->load(['jawabans.soal.opsi', 'pelanggarans', 'siswa']);
+        $ujian->load(['soals.opsi']);
+
+        $jawabanMap = $pengerjaan->jawabans->keyBy('soal_id');
+
+        $semuaJawaban = $ujian->soals->map(function ($soal) use ($jawabanMap): array {
+            $j = $jawabanMap->get($soal->id);
+
+            return [
+                'id' => $j?->id,
+                'soal_id' => $soal->id,
+                'tipe' => $soal->tipe,
+                'pertanyaan' => $soal->pertanyaan,
+                'poin' => $soal->poin,
+                'opsi_dipilih' => $j?->opsi_dipilih,
+                'jawaban_teks' => $j?->jawaban_teks,
+                'benar' => $j?->benar,
+                'skor' => $j?->skor ?? 0,
+                'dijawab' => $j !== null,
+                'opsi' => $soal->opsi->map(fn ($o): array => [
+                    'id' => $o->id,
+                    'teks' => $o->teks,
+                    'benar' => $o->benar,
+                ])->values(),
+            ];
+        })->values();
 
         return Inertia::render('admin/Ujian/Koreksi', [
             'ujian' => [
@@ -294,22 +321,7 @@ class UjianController extends Controller
                 'jumlah_pelanggaran' => $pengerjaan->jumlah_pelanggaran,
                 'submitted_at' => $pengerjaan->submitted_at?->translatedFormat('d M Y H:i'),
             ],
-            'jawabans' => $pengerjaan->jawabans->map(fn (JawabanSiswa $j): array => [
-                'id' => $j->id,
-                'soal_id' => $j->soal_id,
-                'tipe' => $j->soal?->tipe,
-                'pertanyaan' => $j->soal?->pertanyaan,
-                'poin' => $j->soal?->poin,
-                'opsi_dipilih' => $j->opsi_dipilih,
-                'jawaban_teks' => $j->jawaban_teks,
-                'benar' => $j->benar,
-                'skor' => $j->skor,
-                'opsi' => $j->soal?->opsi->map(fn (OpsiSoal $o): array => [
-                    'id' => $o->id,
-                    'teks' => $o->teks,
-                    'benar' => $o->benar,
-                ])->values(),
-            ])->values(),
+            'jawabans' => $semuaJawaban,
             'pelanggarans' => $pengerjaan->pelanggarans->map(fn ($p): array => [
                 'jenis' => $p->jenis,
                 'terjadi_at' => $p->terjadi_at?->translatedFormat('d M Y H:i:s'),
@@ -341,7 +353,7 @@ class UjianController extends Controller
 
     // ── Private: Query & Mapping ────────────────────────────────────────────
 
-    private function queryUjian(Request $request): \Illuminate\Database\Eloquent\Builder
+    private function queryUjian(Request $request): Builder
     {
         return Ujian::query()
             ->with(['guru:id,nama_lengkap', 'guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name'])
@@ -369,7 +381,7 @@ class UjianController extends Controller
             ->all();
     }
 
-    private function mapSiswaResult(SiswaKelas $sk, \Illuminate\Support\Collection $pengerjaanByNisn): array
+    private function mapSiswaResult(SiswaKelas $sk, Collection $pengerjaanByNisn): array
     {
         $p = $pengerjaanByNisn->get($sk->siswa_nisn);
 
