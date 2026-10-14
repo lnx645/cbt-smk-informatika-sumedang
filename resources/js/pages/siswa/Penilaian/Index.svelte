@@ -241,7 +241,7 @@
         height: 4.5rem;
         object-fit: contain;
         border-radius: 0.9rem;
-        background: #fff;
+        background: var(--bs-body-bg);
         padding: 0.4rem;
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.25);
         flex-shrink: 0;

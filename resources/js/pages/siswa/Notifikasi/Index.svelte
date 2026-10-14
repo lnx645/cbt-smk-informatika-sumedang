@@ -38,7 +38,7 @@
                         action
                         onclick={() => buka(n)}
                         class={n.dibaca ? '' : 'fw-bold'}
-                        style={!n.dibaca ? 'background:#f0f6fd' : ''}
+                        style={!n.dibaca ? 'background:var(--bs-primary-bg-subtle)' : ''}
                     >
                         <div class="d-flex justify-content-between align-items-start gap-2">
                             <div>
