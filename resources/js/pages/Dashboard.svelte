@@ -403,58 +403,5 @@
         </div>
     </IsRole>
 
-    <!-- ══════════ MATERI PER MAPEL ══════════ -->
-    {#if ringkasan.length > 0}
-        <IsRole role="siswa">
-            <h2 class="dash-judul mb-3">
-                <i class="bi bi-grid-1x2 me-2"></i>Jelajahi per Mata Pelajaran
-            </h2>
-            <div class="row g-3 mb-4">
-                {#each ringkasan as item (item.id)}
-                    <div class="col-6 col-md-4 col-lg-3">
-                        {#if item.id}
-                            <a
-                                use:inertia
-                                href={`${materiUrl}?matpel=${item.id}`}
-                                class="text-decoration-none d-block h-100"
-                            >
-                                <Card class="h-100">
-                                    <CardBody class="p-3 d-flex align-items-center gap-3">
-                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width:44px;height:44px;flex:none">
-                                            {inisialMapel(item.matpel)}
-                                        </div>
-                                        <div class="min-w-0">
-                                            <div class="fw-semibold text-truncate">
-                                                {item.matpel}
-                                            </div>
-                                            <div class="text-muted small">
-                                                {item.total} materi
-                                            </div>
-                                        </div>
-                                    </CardBody>
-                                </Card>
-                            </a>
-                        {:else}
-                            <Card class="h-100">
-                                <CardBody class="p-3 d-flex align-items-center gap-3">
-                                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width:44px;height:44px;flex:none">
-                                        {inisialMapel(item.matpel)}
-                                    </div>
-                                    <div class="min-w-0">
-                                        <div class="fw-semibold text-truncate">
-                                            {item.matpel}
-                                        </div>
-                                        <div class="text-muted small">
-                                            {item.total} materi
-                                        </div>
-                                    </div>
-                                </CardBody>
-                            </Card>
-                        {/if}
-                    </div>
-                {/each}
-            </div>
-        </IsRole>
-    {/if}
 </div>
 
