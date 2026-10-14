@@ -15,6 +15,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -66,6 +67,8 @@ class SoalController extends BaseAppController implements HasMiddleware
                 'urutan' => $urutan,
                 'kunci_isian' => $this->kunciIsian($data),
                 'isian_case_sensitive' => $data['isian_case_sensitive'] ?? false,
+                'kode_kd' => $data['kode_kd'] ?? null,
+                'indikator' => $data['indikator'] ?? null,
             ]);
 
             $this->simpanOpsi($soal, $data);
@@ -98,6 +101,8 @@ class SoalController extends BaseAppController implements HasMiddleware
                 'poin' => $data['poin'],
                 'kunci_isian' => $this->kunciIsian($data),
                 'isian_case_sensitive' => $data['isian_case_sensitive'] ?? false,
+                'kode_kd' => $data['kode_kd'] ?? null,
+                'indikator' => $data['indikator'] ?? null,
             ]);
 
             $soal->opsi()->delete();
@@ -250,6 +255,11 @@ class SoalController extends BaseAppController implements HasMiddleware
                 'urutan' => $s->urutan,
                 'kunci_isian' => $s->kunci_isian,
                 'isian_case_sensitive' => $s->isian_case_sensitive,
+                'kode_kd' => $s->kode_kd,
+                'indikator' => $s->indikator,
+                'media_path' => $s->media_path,
+                'media_type' => $s->media_type,
+                'media_url' => $s->media_path ? Storage::url($s->media_path) : null,
                 'opsi' => $s->opsi->map(fn (OpsiSoal $o): array => [
                     'id' => $o->id,
                     'teks' => $o->teks,
@@ -275,6 +285,8 @@ class SoalController extends BaseAppController implements HasMiddleware
             'kunci_isian' => ['array'],
             'kunci_isian.*' => ['nullable', 'string', 'max:255'],
             'isian_case_sensitive' => ['boolean'],
+            'kode_kd' => ['nullable', 'string', 'max:50'],
+            'indikator' => ['nullable', 'string', 'max:255'],
         ]);
 
         $this->validateStruktur($data);
@@ -351,5 +363,51 @@ class SoalController extends BaseAppController implements HasMiddleware
                 'urutan' => $i,
             ]);
         }
+    }
+
+    /**
+     * Unggah lampiran media (gambar/audio) untuk soal.
+     */
+    public function uploadMedia(Request $request, Ujian $ujian, Soal $soal): RedirectResponse
+    {
+        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+        abort_unless($soal->ujian_id === $ujian->id, 404);
+
+        $data = $request->validate([
+            'media' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,mp3,ogg,wav', 'max:10240'],
+        ]);
+
+        $file = $data['media'];
+        $mime = $file->getMimeType();
+        $tipe = str_starts_with($mime, 'image/') ? 'gambar' : 'audio';
+
+        if ($soal->media_path) {
+            Storage::disk('public')->delete($soal->media_path);
+        }
+
+        $path = $file->store('soal-media', 'public');
+        $soal->update(['media_path' => $path, 'media_type' => $tipe]);
+
+        Toast::success('Media soal diunggah.');
+
+        return Redirect::back();
+    }
+
+    /**
+     * Hapus lampiran media soal.
+     */
+    public function hapusMedia(Request $request, Ujian $ujian, Soal $soal): RedirectResponse
+    {
+        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+        abort_unless($soal->ujian_id === $ujian->id, 404);
+
+        if ($soal->media_path) {
+            Storage::disk('public')->delete($soal->media_path);
+        }
+
+        $soal->update(['media_path' => null, 'media_type' => null]);
+        Toast::success('Media soal dihapus.');
+
+        return Redirect::back();
     }
 }

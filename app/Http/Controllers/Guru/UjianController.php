@@ -7,12 +7,15 @@ use App\Models\Guru;
 use App\Models\GuruKelas;
 use App\Models\Penilaian;
 use App\Models\PeriodeUjian;
+use App\Models\RuangUjian;
 use App\Models\SesiUjian;
 use App\Models\SesiUjianPeserta;
 use App\Models\SiswaKelas;
 use App\Models\Ujian;
+use App\Services\NotifikasiService;
 use App\Services\UjianService;
 use App\Support\Toast;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -145,7 +148,8 @@ class UjianController extends BaseAppController implements HasMiddleware
             }
 
             $ujian->update(['status' => 'terbit']);
-            Toast::success('Ujian diterbitkan.');
+            app(NotifikasiService::class)->jadwalUjian($ujian->fresh());
+            Toast::success('Ujian diterbitkan dan notifikasi jadwal dikirim ke siswa.');
         } else {
             $ujian->update(['status' => 'draft']);
             Toast::info('Ujian ditarik ke draft.');
@@ -283,6 +287,7 @@ class UjianController extends BaseAppController implements HasMiddleware
 
         $sesis = $ujian->sesis()
             ->withCount(['pengerjaans', 'pesertas'])
+            ->with(['ruang:id,nama,kode', 'pengawas'])
             ->get()
             ->map(fn (SesiUjian $sesi) => [
                 'id' => $sesi->id,
@@ -291,6 +296,10 @@ class UjianController extends BaseAppController implements HasMiddleware
                 'waktu_mulai' => $sesi->waktu_mulai->format('Y-m-d H:i'),
                 'waktu_selesai' => $sesi->waktu_selesai->format('Y-m-d H:i'),
                 'kapasitas' => $sesi->kapasitas,
+                'ruang' => $sesi->ruang ? ['id' => $sesi->ruang->id, 'nama' => $sesi->ruang->nama] : null,
+                'pengawas' => $sesi->pengawas->map(fn ($p): array => [
+                    'id' => $p->id, 'nama' => $p->nama_pengawas, 'peran' => $p->peran,
+                ])->values()->all(),
                 'sedang_aktif' => $sesi->sedangAktif(),
                 'sudah_lewat' => $sesi->sudahLewat(),
                 'jumlah_peserta' => $sesi->pesertas_count,
@@ -308,7 +317,7 @@ class UjianController extends BaseAppController implements HasMiddleware
         $kelasId = $guruKelas?->kelas_id;
 
         if ($kelasId && $tahunAjaranId) {
-            /** @var \Illuminate\Database\Eloquent\Collection<int, SiswaKelas> $daftar */
+            /** @var Collection<int, SiswaKelas> $daftar */
             $daftar = SiswaKelas::query()
                 ->with('siswa:nisn,nama_lengkap')
                 ->where('kelas_id', $kelasId)
@@ -348,6 +357,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             'sesis' => $sesis,
             'siswaKelas' => $siswaKelas,
             'pesertaMap' => $pesertaMap,
+            'ruangs' => RuangUjian::orderBy('kode')->get(['id', 'kode', 'nama']),
         ]);
     }
 

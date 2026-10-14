@@ -26,6 +26,10 @@ class BankSoal extends Model
         'kesulitan',
         'kunci_isian',
         'isian_case_sensitive',
+        'kode_kd',
+        'indikator',
+        'media_path',
+        'media_type',
     ];
 
     protected $casts = [

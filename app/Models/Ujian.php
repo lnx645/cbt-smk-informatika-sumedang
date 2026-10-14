@@ -39,6 +39,7 @@ class Ujian extends Model
         'token_pengelola',
         'mode_sesi',
         'nilai_maks',
+        'kkm',
         'bobot',
         'status',
     ];
@@ -56,6 +57,7 @@ class Ujian extends Model
         'maks_pelanggaran' => 'integer',
         'token_released_at' => 'datetime',
         'nilai_maks' => 'integer',
+        'kkm' => 'integer',
         'bobot' => 'integer',
     ];
 
@@ -97,6 +99,29 @@ class Ujian extends Model
     public function sesis(): HasMany
     {
         return $this->hasMany(SesiUjian::class)->orderBy('urutan')->orderBy('id');
+    }
+
+    public function beritaAcaras(): HasMany
+    {
+        return $this->hasMany(BeritaAcaraUjian::class);
+    }
+
+    /**
+     * Siswa butuh remedial bila nilai terbaiknya di bawah KKM.
+     */
+    public function butuhRemedial(string $nisn): bool
+    {
+        if ($this->kkm === null) {
+            return false;
+        }
+
+        $terbaik = $this->pengerjaans()
+            ->where('siswa_nisn', $nisn)
+            ->where('is_remedial', false)
+            ->whereIn('status', ['selesai', 'auto_submit'])
+            ->max('nilai_total');
+
+        return $terbaik !== null && $terbaik < $this->kkm;
     }
 
     public function memakaiSesi(): bool

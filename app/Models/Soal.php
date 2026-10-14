@@ -24,6 +24,10 @@ class Soal extends Model
         'urutan',
         'kunci_isian',
         'isian_case_sensitive',
+        'kode_kd',
+        'indikator',
+        'media_path',
+        'media_type',
     ];
 
     protected $casts = [

@@ -21,6 +21,7 @@ use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -148,17 +149,28 @@ class UjianController extends BaseAppController implements HasMiddleware
             ->whereIn('status', ['selesai', 'auto_submit', 'diskualifikasi'])
             ->count();
 
+        // Remedial: siswa di bawah KKM mendapat 1 kesempatan tambahan bertanda remedial.
+        $isRemedial = false;
         if ($terpakai >= $ujian->maks_attempt) {
-            Toast::error('Kesempatan mengerjakan sudah habis.');
+            $sudahRemedial = UjianPengerjaan::where('ujian_id', $ujian->id)
+                ->where('siswa_nisn', $nisn)
+                ->where('is_remedial', true)
+                ->exists();
 
-            return Redirect::back();
+            if (! $sudahRemedial && $ujian->butuhRemedial($nisn)) {
+                $isRemedial = true;
+            } else {
+                Toast::error('Kesempatan mengerjakan sudah habis.');
+
+                return Redirect::back();
+            }
         }
 
         // Ujian bersesi: tentukan sesi siswa, lalu buat pengerjaan dalam transaksi
         // terkunci agar kapasitas tidak jebol oleh request bersamaan.
         $pakaiSesi = $ujian->memakaiSesi();
 
-        $pengerjaan = DB::transaction(function () use ($ujian, $nisn, $terpakai, $pakaiSesi) {
+        $pengerjaan = DB::transaction(function () use ($ujian, $nisn, $terpakai, $pakaiSesi, $isRemedial) {
             $sesiAktif = $pakaiSesi ? $this->sesiUntukSiswa($ujian, $nisn) : null;
 
             if ($pakaiSesi && $sesiAktif === null) {
@@ -183,6 +195,7 @@ class UjianController extends BaseAppController implements HasMiddleware
                 'siswa_nisn' => $nisn,
                 'sesi_ujian_id' => $sesiAktif?->id,
                 'attempt_ke' => $terpakai + 1,
+                'is_remedial' => $isRemedial,
                 'mulai_at' => $mulai,
                 'batas_at' => $batas,
                 'status' => 'berlangsung',
@@ -193,7 +206,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             return Redirect::back();
         }
 
-        Toast::success('Ujian dimulai. Kerjakan dengan jujur.');
+        Toast::success($isRemedial ? 'Remedial dimulai. Kerjakan dengan jujur.' : 'Ujian dimulai. Kerjakan dengan jujur.');
 
         return Redirect::route('app.siswa.ujian.kerjakan', $ujian);
     }
@@ -305,6 +318,8 @@ class UjianController extends BaseAppController implements HasMiddleware
                 'tipe' => $s->tipe,
                 'pertanyaan' => $s->pertanyaan,
                 'poin' => $s->poin,
+                'media_url' => $s->media_path ? Storage::url($s->media_path) : null,
+                'media_type' => $s->media_type,
                 'opsi' => $s->butuhOpsi()
                     ? $this->urutkanOpsi($s, $ujian, $pengerjaan)->map(fn ($o): array => [
                         'id' => $o->id,

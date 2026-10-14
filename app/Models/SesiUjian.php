@@ -22,6 +22,7 @@ class SesiUjian extends Model
         'waktu_mulai',
         'waktu_selesai',
         'kapasitas',
+        'ruang_ujian_id',
     ];
 
     protected $casts = [
@@ -47,6 +48,21 @@ class SesiUjian extends Model
     public function pesertas(): HasMany
     {
         return $this->hasMany(SesiUjianPeserta::class, 'sesi_ujian_id');
+    }
+
+    public function ruang(): BelongsTo
+    {
+        return $this->belongsTo(RuangUjian::class, 'ruang_ujian_id');
+    }
+
+    public function pengawas(): HasMany
+    {
+        return $this->hasMany(SesiPengawas::class, 'sesi_ujian_id');
+    }
+
+    public function beritaAcara(): HasMany
+    {
+        return $this->hasMany(BeritaAcaraUjian::class, 'sesi_ujian_id');
     }
 
     /**

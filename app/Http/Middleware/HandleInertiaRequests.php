@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Notifikasi;
 use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -43,6 +44,9 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user()?->load('siswa', 'siswa.kelas.jurusan')->load('guru'),
             ],
+            'notifBelumDibaca' => $request->user()
+                ? Notifikasi::where('user_id', $request->user()->id)->belumDibaca()->count()
+                : 0,
         ];
     }
 }
