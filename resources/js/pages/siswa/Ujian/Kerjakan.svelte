@@ -29,6 +29,7 @@
         ujian,
         pengerjaan,
         soals,
+        sesi = null,
     }: {
         ujian: {
             id: number;
@@ -44,6 +45,7 @@
             jumlah_pelanggaran: number;
         };
         soals: SoalItem[];
+        sesi: { nama: string; waktu_selesai: string } | null;
     } = $props();
 
     // State jawaban lokal (diinisialisasi dari props).
@@ -270,6 +272,14 @@
             <div class="text-muted small">
                 Terjawab {terjawab}/{soals.length}
             </div>
+            {#if sesi}
+                <div class="mt-1">
+                    <Badge color="info" pill>
+                        <i class="bi bi-clock-history me-1"></i>
+                        {sesi.nama}
+                    </Badge>
+                </div>
+            {/if}
         </div>
         <div class="d-flex align-items-center gap-2">
             {#if ujian.maks_pelanggaran > 0}

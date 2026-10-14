@@ -6,6 +6,7 @@ use App\Http\Controllers\BaseAppController;
 use App\Models\JawabanSiswa;
 use App\Models\OpsiSoal;
 use App\Models\PelanggaranLog;
+use App\Models\SesiUjian;
 use App\Models\SiswaKelas;
 use App\Models\Soal;
 use App\Models\Ujian;
@@ -18,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -123,24 +125,6 @@ class UjianController extends BaseAppController implements HasMiddleware
             return Redirect::back();
         }
 
-        // Ujian bersesi: siswa hanya boleh mulai di dalam window sesi aktif.
-        $sesiAktif = null;
-        if ($ujian->memakaiSesi()) {
-            $sesiAktif = $ujian->sesiAktif();
-
-            if ($sesiAktif === null) {
-                Toast::error('Tidak ada sesi ujian yang sedang berlangsung.');
-
-                return Redirect::back();
-            }
-
-            if ($sesiAktif->penuh()) {
-                Toast::error("{$sesiAktif->nama} sudah penuh. Tunggu sesi berikutnya.");
-
-                return Redirect::back();
-            }
-        }
-
         // Sesi berjalan yang masih valid -> lanjutkan.
         $berjalan = $this->sesiBerjalan($ujian, $nisn);
         if ($berjalan) {
@@ -170,25 +154,101 @@ class UjianController extends BaseAppController implements HasMiddleware
             return Redirect::back();
         }
 
-        $mulai = now();
-        $batas = $mulai->copy()->addMinutes($ujian->durasi_menit);
-        if ($ujian->tanggal_selesai !== null && $batas->gt($ujian->tanggal_selesai)) {
-            $batas = $ujian->tanggal_selesai;
-        }
+        // Ujian bersesi: tentukan sesi siswa, lalu buat pengerjaan dalam transaksi
+        // terkunci agar kapasitas tidak jebol oleh request bersamaan.
+        $pakaiSesi = $ujian->memakaiSesi();
 
-        UjianPengerjaan::create([
-            'ujian_id' => $ujian->id,
-            'siswa_nisn' => $nisn,
-            'sesi_ujian_id' => $sesiAktif?->id,
-            'attempt_ke' => $terpakai + 1,
-            'mulai_at' => $mulai,
-            'batas_at' => $batas,
-            'status' => 'berlangsung',
-        ]);
+        $pengerjaan = DB::transaction(function () use ($ujian, $nisn, $terpakai, $pakaiSesi) {
+            $sesiAktif = $pakaiSesi ? $this->sesiUntukSiswa($ujian, $nisn) : null;
+
+            if ($pakaiSesi && $sesiAktif === null) {
+                // Ditolak: sesiUntukSiswa sudah menampilkan Toast penolakan.
+                return null;
+            }
+
+            $mulai = now();
+            $batas = $mulai->copy()->addMinutes($ujian->durasi_menit);
+
+            // Ala ANBK: pengerjaan tidak boleh melewati akhir sesi.
+            if ($sesiAktif !== null && $batas->gt($sesiAktif->waktu_selesai)) {
+                $batas = $sesiAktif->waktu_selesai->copy();
+            }
+
+            if ($ujian->tanggal_selesai !== null && $batas->gt($ujian->tanggal_selesai)) {
+                $batas = $ujian->tanggal_selesai;
+            }
+
+            return UjianPengerjaan::create([
+                'ujian_id' => $ujian->id,
+                'siswa_nisn' => $nisn,
+                'sesi_ujian_id' => $sesiAktif?->id,
+                'attempt_ke' => $terpakai + 1,
+                'mulai_at' => $mulai,
+                'batas_at' => $batas,
+                'status' => 'berlangsung',
+            ]);
+        });
+
+        if ($pengerjaan === null) {
+            return Redirect::back();
+        }
 
         Toast::success('Ujian dimulai. Kerjakan dengan jujur.');
 
         return Redirect::route('app.siswa.ujian.kerjakan', $ujian);
+    }
+
+    /**
+     * Tentukan sesi yang boleh dimasuki siswa pada ujian bersesi.
+     * Mengembalikan null (dengan Toast penolakan) bila siswa tidak boleh masuk.
+     */
+    private function sesiUntukSiswa(Ujian $ujian, string $nisn): ?SesiUjian
+    {
+        if ($ujian->sesiTerjadwal()) {
+            // Ala ANBK: siswa hanya boleh masuk sesi yang dijatahkan untuknya.
+            $jatah = SesiUjian::jatahUntuk($ujian->id, $nisn);
+
+            if ($jatah === null) {
+                Toast::error('Anda belum dijadwalkan ke sesi ujian manapun. Hubungi guru.');
+
+                return null;
+            }
+
+            // Kunci baris sesi agar pengecekan kapasitas aman dari race.
+            $jatah = SesiUjian::whereKey($jatah->id)->lockForUpdate()->first();
+
+            if (! $jatah->sedangAktif()) {
+                $kapan = $jatah->waktu_mulai->isFuture() ? 'belum dimulai' : 'sudah berakhir';
+                Toast::error("Sesi Anda ({$jatah->nama}) {$kapan}. Jadwal: {$jatah->waktu_mulai->format('H:i')}–{$jatah->waktu_selesai->format('H:i')}.");
+
+                return null;
+            }
+
+            return $jatah;
+        }
+
+        // Mode bebas: sesi aktif mana saja, kapasitas first-come.
+        $sesiAktif = SesiUjian::query()
+            ->where('ujian_id', $ujian->id)
+            ->where('waktu_mulai', '<=', now())
+            ->where('waktu_selesai', '>=', now())
+            ->orderBy('urutan')
+            ->lockForUpdate()
+            ->first();
+
+        if ($sesiAktif === null) {
+            Toast::error('Tidak ada sesi ujian yang sedang berlangsung.');
+
+            return null;
+        }
+
+        if ($sesiAktif->penuh()) {
+            Toast::error("{$sesiAktif->nama} sudah penuh. Tunggu sesi berikutnya.");
+
+            return null;
+        }
+
+        return $sesiAktif;
     }
 
     /**
@@ -236,6 +296,10 @@ class UjianController extends BaseAppController implements HasMiddleware
                 'sisa_detik' => $pengerjaan->sisaDetik(),
                 'jumlah_pelanggaran' => $pengerjaan->jumlah_pelanggaran,
             ],
+            'sesi' => $pengerjaan->sesi ? [
+                'nama' => $pengerjaan->sesi->nama,
+                'waktu_selesai' => $pengerjaan->sesi->waktu_selesai->toIso8601String(),
+            ] : null,
             'soals' => $soals->map(fn (Soal $s): array => [
                 'id' => $s->id,
                 'tipe' => $s->tipe,

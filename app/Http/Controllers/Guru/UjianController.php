@@ -8,6 +8,8 @@ use App\Models\GuruKelas;
 use App\Models\Penilaian;
 use App\Models\PeriodeUjian;
 use App\Models\SesiUjian;
+use App\Models\SesiUjianPeserta;
+use App\Models\SiswaKelas;
 use App\Models\Ujian;
 use App\Services\UjianService;
 use App\Support\Toast;
@@ -229,7 +231,18 @@ class UjianController extends BaseAppController implements HasMiddleware
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
         abort_unless($sesi->ujian_id === $ujian->id, 404);
 
-        $data = $this->validateSesi($request, $ujian);
+        $data = $this->validateSesi($request, $ujian, $sesi);
+
+        // Waktu sesi yang sedang dipakai siswa tidak boleh diubah.
+        $waktuBerubah = isset($data['waktu_mulai'], $data['waktu_selesai'])
+            && ($data['waktu_mulai'] !== $sesi->waktu_mulai->format('Y-m-d H:i')
+                || $data['waktu_selesai'] !== $sesi->waktu_selesai->format('Y-m-d H:i'));
+
+        if ($waktuBerubah && $sesi->pengerjaans()->where('status', 'berlangsung')->exists()) {
+            Toast::error('Waktu sesi tidak dapat diubah karena ada siswa yang sedang mengerjakan.');
+
+            return Redirect::back();
+        }
 
         $sesi->update($data);
 
@@ -260,9 +273,158 @@ class UjianController extends BaseAppController implements HasMiddleware
     }
 
     /**
+     * Halaman kelola sesi ujian + penjadwalan siswa (ala ANBK).
+     */
+    public function sesiIndex(Request $request, Ujian $ujian): Response
+    {
+        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+
+        $ujian->load(['guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name']);
+
+        $sesis = $ujian->sesis()
+            ->withCount(['pengerjaans', 'pesertas'])
+            ->get()
+            ->map(fn (SesiUjian $sesi) => [
+                'id' => $sesi->id,
+                'nama' => $sesi->nama,
+                'urutan' => $sesi->urutan,
+                'waktu_mulai' => $sesi->waktu_mulai->format('Y-m-d H:i'),
+                'waktu_selesai' => $sesi->waktu_selesai->format('Y-m-d H:i'),
+                'kapasitas' => $sesi->kapasitas,
+                'sedang_aktif' => $sesi->sedangAktif(),
+                'sudah_lewat' => $sesi->sudahLewat(),
+                'jumlah_peserta' => $sesi->pesertas_count,
+                'jumlah_terisi' => $sesi->pengerjaans_count,
+                'bisa_hapus' => ! $sesi->pengerjaans()->exists(),
+            ])
+            ->values()
+            ->all();
+
+        // Daftar siswa kelas ujian pada tahun ajaran penugasan.
+        /** @var array<int, array{nisn: string, nama: string}> $siswaKelas */
+        $siswaKelas = [];
+        $guruKelas = $ujian->guru_kelas_id ? GuruKelas::find($ujian->guru_kelas_id) : null;
+        $tahunAjaranId = $guruKelas?->tahun_ajaran_id;
+        $kelasId = $guruKelas?->kelas_id;
+
+        if ($kelasId && $tahunAjaranId) {
+            /** @var \Illuminate\Database\Eloquent\Collection<int, SiswaKelas> $daftar */
+            $daftar = SiswaKelas::query()
+                ->with('siswa:nisn,nama_lengkap')
+                ->where('kelas_id', $kelasId)
+                ->where('tahun_ajaran_id', $tahunAjaranId)
+                ->where('active', true)
+                ->get();
+
+            $siswaKelas = $daftar
+                ->map(fn (SiswaKelas $sk) => [
+                    'nisn' => $sk->siswa_nisn,
+                    'nama' => $sk->siswa?->nama_lengkap ?? $sk->siswa_nisn,
+                ])
+                ->sortBy('nama')
+                ->values()
+                ->all();
+        }
+
+        $pesertaMap = SesiUjianPeserta::query()
+            ->where('ujian_id', $ujian->id)
+            ->pluck('siswa_nisn', 'sesi_ujian_id')
+            ->groupBy(fn ($nisn, $sesiId) => $sesiId)
+            ->map(fn ($nisns) => $nisns->values()->all())
+            ->all();
+
+        return Inertia::render('guru/Ujian/Sesi', [
+            'ujian' => [
+                'id' => $ujian->id,
+                'judul' => $ujian->judul,
+                'kategori' => $ujian->kategori,
+                'kelas' => $ujian->guruKelas?->kelas?->nama,
+                'matpel' => $ujian->guruKelas?->matpel?->name,
+                'tanggal_mulai' => $ujian->tanggal_mulai?->format('Y-m-d H:i'),
+                'tanggal_selesai' => $ujian->tanggal_selesai?->format('Y-m-d H:i'),
+                'durasi_menit' => $ujian->durasi_menit,
+                'mode_sesi' => $ujian->mode_sesi ?? 'bebas',
+            ],
+            'sesis' => $sesis,
+            'siswaKelas' => $siswaKelas,
+            'pesertaMap' => $pesertaMap,
+        ]);
+    }
+
+    /**
+     * Ubah mode pembagian sesi: bebas (rebutan) atau terjadwal (dijatah, ala ANBK).
+     */
+    public function sesiMode(Request $request, Ujian $ujian): RedirectResponse
+    {
+        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+
+        $data = $request->validate([
+            'mode_sesi' => ['required', 'in:bebas,terjadwal'],
+        ]);
+
+        $ujian->update(['mode_sesi' => $data['mode_sesi']]);
+
+        Toast::success($data['mode_sesi'] === 'terjadwal'
+            ? 'Mode sesi: terjadwal (siswa dijatahkan per sesi, ala ANBK).'
+            : 'Mode sesi: bebas (siswa boleh masuk sesi aktif mana saja).');
+
+        return Redirect::back();
+    }
+
+    /**
+     * Jadwalkan siswa ke sebuah sesi (mode terjadwal).
+     */
+    public function sesiPesertaStore(Request $request, Ujian $ujian, SesiUjian $sesi): RedirectResponse
+    {
+        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+        abort_unless($sesi->ujian_id === $ujian->id, 404);
+
+        $data = $request->validate([
+            'nisn' => ['required', 'array', 'min:1'],
+            'nisn.*' => ['string', 'max:10'],
+        ]);
+
+        $sekarang = now();
+
+        foreach ($data['nisn'] as $nisn) {
+            SesiUjianPeserta::updateOrCreate(
+                ['ujian_id' => $ujian->id, 'siswa_nisn' => $nisn],
+                ['sesi_ujian_id' => $sesi->id, 'created_at' => $sekarang, 'updated_at' => $sekarang],
+            );
+        }
+
+        // Kapasitas sesi mengikuti jumlah peserta bila mode terjadwal.
+        if ($sesi->kapasitas !== null && $sesi->pesertas()->count() > $sesi->kapasitas) {
+            Toast::warning('Peserta melebihi kapasitas sesi. Sesuaikan kapasitas bila perlu.');
+        } else {
+            Toast::success(count($data['nisn']).' siswa dijadwalkan ke '.$sesi->nama.'.');
+        }
+
+        return Redirect::back();
+    }
+
+    /**
+     * Batalkan penjadwalan siswa dari sesi.
+     */
+    public function sesiPesertaDestroy(Request $request, Ujian $ujian, SesiUjian $sesi, string $nisn): RedirectResponse
+    {
+        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+        abort_unless($sesi->ujian_id === $ujian->id, 404);
+
+        SesiUjianPeserta::where('ujian_id', $ujian->id)
+            ->where('sesi_ujian_id', $sesi->id)
+            ->where('siswa_nisn', $nisn)
+            ->delete();
+
+        Toast::success('Penjadwalan siswa dibatalkan.');
+
+        return Redirect::back();
+    }
+
+    /**
      * @return array<string, mixed>
      */
-    private function validateSesi(Request $request, Ujian $ujian): array
+    private function validateSesi(Request $request, Ujian $ujian, ?SesiUjian $kecuali = null): array
     {
         $data = $request->validate([
             'nama' => ['required', 'string', 'max:50'],
@@ -272,7 +434,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             'kapasitas' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $data['urutan'] ??= $ujian->sesis()->count() + 1;
+        $data['urutan'] ??= $ujian->sesis()->max('urutan') + 1;
 
         $mulai = Carbon::parse($data['waktu_mulai']);
         $selesai = Carbon::parse($data['waktu_selesai']);
@@ -286,6 +448,19 @@ class UjianController extends BaseAppController implements HasMiddleware
         if ($ujian->tanggal_selesai !== null && $selesai->gt($ujian->tanggal_selesai)) {
             throw ValidationException::withMessages([
                 'waktu_selesai' => 'Sesi tidak boleh berakhir setelah jadwal ujian.',
+            ]);
+        }
+
+        // Sesi ala ANBK adalah gelombang berurutan: tidak boleh tumpang tindih.
+        $tabrakan = $ujian->sesis()
+            ->when($kecuali, fn ($q) => $q->where('id', '!=', $kecuali->id))
+            ->where('waktu_mulai', '<', $selesai)
+            ->where('waktu_selesai', '>', $mulai)
+            ->first();
+
+        if ($tabrakan) {
+            throw ValidationException::withMessages([
+                'waktu_mulai' => "Waktu bertabrakan dengan \"{$tabrakan->nama}\". Sesi harus berurutan.",
             ]);
         }
 

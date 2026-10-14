@@ -404,6 +404,14 @@
                                             >
                                                 <i class="bi bi-bar-chart"></i>
                                             </a>
+                                            <a
+                                                use:inertia
+                                                href={UjianController.sesiIndex({ ujian: item.id }).url}
+                                                class="btn btn-sm btn-outline-warning"
+                                                title="Kelola sesi ujian"
+                                            >
+                                                <i class="bi bi-clock-history"></i>
+                                            </a>
                                             <Button
                                                 size="sm"
                                                 color="outline-secondary"
