@@ -71,7 +71,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             ->groupBy('ujian_id');
 
         return Inertia::render('siswa/Ujian/Index', [
-            'ujians' => $ujians->map(function (Ujian $u) use ($pengerjaans): array {
+            'ujians' => $ujians->map(function (Ujian $u) use ($pengerjaans, $nisn): array {
                 $sesi = $pengerjaans->get($u->id, collect());
                 $selesai = $sesi->whereIn('status', ['selesai', 'auto_submit', 'diskualifikasi']);
                 $berlangsung = $sesi->firstWhere('status', 'berlangsung');
