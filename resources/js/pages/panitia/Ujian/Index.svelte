@@ -35,6 +35,11 @@
                             <span><i class="bi bi-layers me-1"></i>{u.paket_soals_count} paket</span>
                             <span><i class="bi bi-clock me-1"></i>{u.sesis_count} sesi</span>
                         </div>
+                        {#if u.status === 'terbit'}
+                            <a href="/app/panitia/ujian/{u.id}/monitoring" class="btn btn-sm btn-outline-primary mb-2">
+                                <i class="bi bi-activity me-1"></i>Monitoring
+                            </a>
+                        {/if}
                         {#if !u.siap_terbit && u.status === 'draft'}
                             <div class="alert alert-warning py-2 px-3 small mb-2">
                                 <strong>Belum siap terbit:</strong>

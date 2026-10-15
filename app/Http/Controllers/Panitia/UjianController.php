@@ -95,6 +95,7 @@ class UjianController extends BaseAppController
         }
 
         $pengerjaans = $query->get()->map(fn (UjianPengerjaan $p) => [
+            'id' => $p->id,
             'nisn' => $p->siswa_nisn,
             'nama' => $p->siswa?->nama_lengkap ?? $p->siswa_nisn,
             'paket' => $p->paketSoal?->kode,

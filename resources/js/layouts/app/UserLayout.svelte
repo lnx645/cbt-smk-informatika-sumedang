@@ -58,6 +58,20 @@
             },
         ];
 
+        // CBT v2: menu Panitia Ujian.
+        if (authUser?.role === 'panitia') {
+            items.push({
+                section: 'Panitia Ujian',
+                items: [
+                    {
+                        href: '/app/panitia/ujian',
+                        label: 'Ujian Resmi',
+                        icon: 'bi-clipboard-check',
+                    },
+                ],
+            });
+        }
+
         if (authUser?.guru || authUser?.role === 'guru') {
             items.push({
                 section: 'Akademik',
