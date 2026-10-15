@@ -71,7 +71,7 @@ test('wizard mode resmi default ke uts bila kategori kecil', function (): void {
     expect(Ujian::where('judul', 'UTS Wizard')->first()->kategori)->toBe('uts');
 });
 
-test('wizard langkah token mengisi token, tata tertib, dan kkm', function (): void {
+test('wizard mode resmi: guru serahkan ke panitia setelah paket dibuat', function (): void {
     $ujian = Ujian::factory()->create([
         'guru_kelas_id' => $this->guruKelas->id,
         'guru_id' => $this->guru->id,
@@ -79,18 +79,21 @@ test('wizard langkah token mengisi token, tata tertib, dan kkm', function (): vo
         'status' => 'draft',
     ]);
 
+    // Belum ada paket -> tidak bisa diserahkan.
     $this->actingAs($this->guruUser)
-        ->post(route('app.guru.ujian.wizard.token', $ujian), [
-            'tata_tertib' => "1. Jujur.\n2. Dilarang nyontek.",
-            'kkm' => 75,
-        ])
+        ->post(route('app.guru.ujian.wizard.serahkan', $ujian))
         ->assertRedirect();
 
-    $ujian->refresh();
-    expect($ujian->token)->not->toBeNull()
-        ->and($ujian->token_released_at)->not->toBeNull()
-        ->and($ujian->tata_tertib)->toContain('Jujur')
-        ->and($ujian->kkm)->toBe(75);
+    expect($ujian->fresh()->status)->toBe('draft');
+
+    // Buat 1 paket dummy agar lolos syarat.
+    $ujian->paketSoals()->create(['kode' => 'A', 'nama' => 'Paket A']);
+
+    $this->actingAs($this->guruUser)
+        ->post(route('app.guru.ujian.wizard.serahkan', $ujian))
+        ->assertRedirect(route('app.guru.ujian.index'));
+
+    expect($ujian->fresh()->status)->toBe('diajukan');
 });
 
 test('guru lain tidak bisa akses wizard ujian orang', function (): void {

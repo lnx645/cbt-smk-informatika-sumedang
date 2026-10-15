@@ -30,6 +30,7 @@ test('admin dapat menambah akun admin baru', function (): void {
             'name' => 'Admin Baru',
             'email' => 'admin2@ifsu.test',
             'password' => 'secret123',
+            'role' => 'admin',
         ])
         ->assertRedirect(route('admin.akun-admin.index'))
         ->assertSessionHasNoErrors();
@@ -147,4 +148,24 @@ test('admin dapat menghapus akun admin lain', function (): void {
         ->assertRedirect(route('admin.akun-admin.index'));
 
     expect(User::where('role', 'admin')->count())->toBe(1);
+});
+
+test('admin dapat menambah akun panitia', function (): void {
+    $admin = User::factory()->create(['role' => 'admin']);
+
+    $this->actingAs($admin)
+        ->post(route('admin.akun-admin.store'), [
+            'name' => 'Panitia Satu',
+            'email' => 'panitia1@ifsu.test',
+            'password' => 'secret123',
+            'role' => 'panitia',
+        ])
+        ->assertRedirect(route('admin.akun-admin.index'))
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('users', [
+        'email' => 'panitia1@ifsu.test',
+        'role' => 'panitia',
+        'is_admin' => false,
+    ]);
 });
