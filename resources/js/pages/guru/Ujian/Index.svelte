@@ -289,9 +289,12 @@
         subtitle="Buat kuis dan ujian besar, kelola soal, token, dan pantau hasil."
     >
         {#snippet actions()}
-            <Button color="primary" onclick={() => (modalOpen = true)}>
-                <i class="bi bi-plus-lg me-1"></i>Buat Ujian
-            </Button>
+            <a href="/app/guru/ujian/wizard?mode=santai" class="btn btn-outline-primary">
+                <i class="bi bi-lightning-charge me-1"></i>Buat Kuis
+            </a>
+            <a href="/app/guru/ujian/wizard?mode=resmi" class="btn btn-primary">
+                <i class="bi bi-shield-check me-1"></i>Buat Ujian Resmi
+            </a>
         {/snippet}
     </PageHeader>
 

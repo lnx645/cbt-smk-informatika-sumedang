@@ -10,6 +10,7 @@ use App\Http\Controllers\Guru\SoalController as GuruSoalController;
 use App\Http\Controllers\Guru\TugasController as GuruTugasController;
 use App\Http\Controllers\Guru\UjianAkademikController as GuruUjianAkademikController;
 use App\Http\Controllers\Guru\UjianController as GuruUjianController;
+use App\Http\Controllers\Guru\UjianWizardController as GuruUjianWizardController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LinkExternalController;
 use App\Http\Controllers\MataPelajaranGuruController;
@@ -67,6 +68,15 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::post('tugas/{tugas}/kumpul', [SiswaTugasController::class, 'kumpul'])->name('siswa.tugas.kumpul');
     Route::get('tugas/{tugas}/unduh', [SiswaTugasController::class, 'unduh'])->name('siswa.tugas.unduh');
     Route::get('nilai', [SiswaPenilaianController::class, 'index'])->name('siswa.penilaian.index');
+
+    // Guru: Wizard pembuatan ujian (CBT v2)
+    Route::get('guru/ujian/wizard', [GuruUjianWizardController::class, 'create'])->name('guru.ujian.wizard.create');
+    Route::post('guru/ujian/wizard/info', [GuruUjianWizardController::class, 'storeInfo'])->name('guru.ujian.wizard.info');
+    Route::get('guru/ujian/{ujian}/wizard/langkah/{langkah}', [GuruUjianWizardController::class, 'langkah'])->name('guru.ujian.wizard.langkah');
+    Route::post('guru/ujian/{ujian}/wizard/paket', [GuruUjianWizardController::class, 'generatePaket'])->name('guru.ujian.wizard.paket');
+    Route::post('guru/ujian/{ujian}/wizard/sesi', [GuruUjianWizardController::class, 'storeSesi'])->name('guru.ujian.wizard.sesi');
+    Route::post('guru/ujian/{ujian}/wizard/token', [GuruUjianWizardController::class, 'storeToken'])->name('guru.ujian.wizard.token');
+    Route::post('guru/ujian/{ujian}/wizard/terbit', [GuruUjianWizardController::class, 'terbit'])->name('guru.ujian.wizard.terbit');
 
     // Guru: Ujian (CBT)
     Route::get('guru/ujian', [GuruUjianController::class, 'index'])->name('guru.ujian.index');
