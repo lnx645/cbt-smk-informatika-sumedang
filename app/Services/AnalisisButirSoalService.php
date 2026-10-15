@@ -46,12 +46,24 @@ class AnalisisButirSoalService
             $jawabans = $pengerjaans->flatMap->jawabans->where('soal_id', $soal->id);
             $n = $jawabans->count();
 
-            $benar = $jawabans->where('benar', true)->count();
-            $kesukaran = $n > 0 ? $benar / $n : null;
+            // Soal esai/isian tidak punya flag 'benar' — pakai rasio skor terhadap poin.
+            $isEsai = in_array($soal->tipe, ['esai', 'isian'], true);
+            $poin = (float) ($soal->poin ?: 1);
 
-            $benarAtas = $jawabans->whereIn('ujian_pengerjaan_id', $kelompokAtas)->where('benar', true)->count();
-            $benarBawah = $jawabans->whereIn('ujian_pengerjaan_id', $kelompokBawah)->where('benar', true)->count();
-            $dayaBeda = $nKelompok > 0 ? ($benarAtas - $benarBawah) / $nKelompok : null;
+            if ($isEsai) {
+                $rasioBenar = $jawabans->map(fn ($j) => min(1, max(0, (float) ($j->skor ?? 0) / $poin)));
+                $kesukaran = $n > 0 ? $rasioBenar->avg() : null;
+                $rataAtas = $jawabans->whereIn('ujian_pengerjaan_id', $kelompokAtas)->map(fn ($j) => min(1, max(0, (float) ($j->skor ?? 0) / $poin)))->avg();
+                $rataBawah = $jawabans->whereIn('ujian_pengerjaan_id', $kelompokBawah)->map(fn ($j) => min(1, max(0, (float) ($j->skor ?? 0) / $poin)))->avg();
+                $dayaBeda = ($rataAtas !== null && $rataBawah !== null) ? $rataAtas - $rataBawah : null;
+            } else {
+                $benar = $jawabans->where('benar', true)->count();
+                $kesukaran = $n > 0 ? $benar / $n : null;
+
+                $benarAtas = $jawabans->whereIn('ujian_pengerjaan_id', $kelompokAtas)->where('benar', true)->count();
+                $benarBawah = $jawabans->whereIn('ujian_pengerjaan_id', $kelompokBawah)->where('benar', true)->count();
+                $dayaBeda = $nKelompok > 0 ? ($benarAtas - $benarBawah) / $nKelompok : null;
+            }
 
             return [
                 'soal_id' => $soal->id,

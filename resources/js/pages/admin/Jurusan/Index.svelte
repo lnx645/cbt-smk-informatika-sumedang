@@ -29,7 +29,7 @@
         { key: 'name', label: 'Nama Jurusan' },
         {
             key: 'jumlah_kelas',
-            label: 'Jumlah Kelas',
+            label: 'Kelas',
             center: true,
             cell: detailGUru,
         },
@@ -57,20 +57,6 @@
     {columns}
     {fields}
     {items}
-    toolbarActions={[
-        {
-            key:"WK",
-
-            label:"Export CMD",
-        }
-    ]}
-    actions={[{
-        key:"OJ",
-        icon:"bi bi-eye",
-        onClick(item) {
-            
-        },
-    }]}
     controller={JurusanController}
     createLabel="Tambah Jurusan"
     resourceName="Jurusan"

@@ -272,7 +272,7 @@
                                     class="text-secondary small mb-0 mt-2"
                                 >
                                     Belum ada mata pelajaran yang
-                                    ditingkatkan.
+                                    ditugaskan.
                                 </p>
                             </div>
                         {/if}
