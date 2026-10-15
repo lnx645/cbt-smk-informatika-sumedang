@@ -13,6 +13,7 @@ use App\Http\Controllers\Guru\UjianController as GuruUjianController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LinkExternalController;
 use App\Http\Controllers\MataPelajaranGuruController;
+use App\Http\Controllers\Panitia\UjianController as PanitiaUjianController;
 use App\Http\Controllers\Siswa\MateriController as SiswaMateriController;
 use App\Http\Controllers\Siswa\NotifikasiController as SiswaNotifikasiController;
 use App\Http\Controllers\Siswa\PenilaianController as SiswaPenilaianController;
@@ -108,6 +109,14 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::put('guru/ujian/{ujian}/remedial/kkm', [GuruUjianAkademikController::class, 'remedialKkm'])->name('guru.ujian.remedial.kkm');
     Route::delete('guru/ujian/{ujian}/pengerjaan/{pengerjaan}/reset', [GuruUjianAkademikController::class, 'resetPengerjaan'])->name('guru.ujian.pengerjaan.reset');
     Route::post('guru/ujian/{ujian}/notifikasi-jadwal', [GuruUjianAkademikController::class, 'kirimNotifikasiJadwal'])->name('guru.ujian.notifikasi.jadwal');
+
+    // Panitia Ujian (CBT v2): kelola ujian resmi lintas kelas.
+    Route::middleware('panitia-only')->group(function (): void {
+        Route::get('panitia/ujian', [PanitiaUjianController::class, 'index'])->name('panitia.ujian.index');
+        Route::post('panitia/ujian/{ujian}/generate-paket', [PanitiaUjianController::class, 'generatePaket'])->name('panitia.ujian.generate-paket');
+        Route::get('panitia/ujian/{ujian}/monitoring', [PanitiaUjianController::class, 'monitoring'])->name('panitia.ujian.monitoring');
+        Route::delete('panitia/ujian/{ujian}/pengerjaan/{pengerjaan}/reset', [PanitiaUjianController::class, 'resetPengerjaan'])->name('panitia.ujian.pengerjaan.reset');
+    });
 
     // Guru: Bank Soal
     Route::get('guru/bank-soal', [GuruBankSoalController::class, 'index'])->name('guru.bank-soal.index');

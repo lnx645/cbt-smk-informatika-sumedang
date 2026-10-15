@@ -89,6 +89,10 @@ class User extends Authenticatable
                     return 'admin';
                 }
 
+                if (($attributes['role'] ?? null) === 'panitia') {
+                    return 'panitia';
+                }
+
                 return false;
             }
         );

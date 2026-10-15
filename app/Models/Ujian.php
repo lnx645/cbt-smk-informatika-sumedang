@@ -95,6 +95,22 @@ class Ujian extends Model
     }
 
     /**
+     * Paket soal (varian A/B/C) — CBT v2 untuk ujian resmi.
+     */
+    public function paketSoals(): HasMany
+    {
+        return $this->hasMany(PaketSoal::class)->orderBy('kode');
+    }
+
+    /**
+     * Apakah ujian ini memakai paket soal (mode resmi).
+     */
+    public function memakaiPaketSoal(): bool
+    {
+        return $this->paketSoals()->exists();
+    }
+
+    /**
      * Gelombang sesi ujian (standar nasional). Kosong = tanpa sesi.
      */
     public function sesis(): HasMany

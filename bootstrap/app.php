@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminOnlyMiddleware;
+use App\Http\Middleware\PanitiaOnlyMiddleware;
 use App\Http\Middleware\AppOnlyMiddleware;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin-only' => AdminOnlyMiddleware::class,
             'app-only' => AppOnlyMiddleware::class,
+            'panitia-only' => PanitiaOnlyMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

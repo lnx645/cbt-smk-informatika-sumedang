@@ -17,6 +17,7 @@ class Soal extends Model
 
     protected $fillable = [
         'ujian_id',
+        'paket_soal_id',
         'bank_soal_id',
         'tipe',
         'pertanyaan',
@@ -49,6 +50,11 @@ class Soal extends Model
     public function ujian(): BelongsTo
     {
         return $this->belongsTo(Ujian::class);
+    }
+
+    public function paketSoal(): BelongsTo
+    {
+        return $this->belongsTo(PaketSoal::class);
     }
 
     public function opsi(): HasMany

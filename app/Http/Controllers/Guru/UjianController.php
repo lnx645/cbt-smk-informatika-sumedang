@@ -13,6 +13,7 @@ use App\Models\SesiUjianPeserta;
 use App\Models\SiswaKelas;
 use App\Models\Ujian;
 use App\Services\NotifikasiService;
+use App\Services\KelengkapanUjianService;
 use App\Services\UjianService;
 use App\Support\Toast;
 use Illuminate\Database\Eloquent\Collection;
@@ -141,8 +142,10 @@ class UjianController extends BaseAppController implements HasMiddleware
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
 
         if ($ujian->status === 'draft') {
-            if ($ujian->soals()->count() === 0) {
-                Toast::error('Tambahkan minimal satu soal sebelum menerbitkan ujian.');
+            // CBT v2: validasi kelengkapan sesuai kategori (ketat untuk ujian resmi).
+            $masalah = app(KelengkapanUjianService::class)->cek($ujian);
+            if ($masalah !== []) {
+                Toast::error('Belum bisa diterbitkan: '.implode(' ', $masalah));
 
                 return Redirect::back();
             }

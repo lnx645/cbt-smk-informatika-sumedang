@@ -12,6 +12,7 @@ use App\Models\Soal;
 use App\Models\Ujian;
 use App\Models\UjianPengerjaan;
 use App\Services\UjianService;
+use App\Services\PaketSoalService;
 use App\Support\Toast;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -248,10 +249,17 @@ class UjianController extends BaseAppController implements HasMiddleware
                 $batas = $ujian->tanggal_selesai;
             }
 
+            // CBT v2: ujian berpake -> distribusikan paket soal (round-robin per sesi).
+            $paket = null;
+            if ($ujian->memakaiPaketSoal()) {
+                $paket = app(PaketSoalService::class)->tentukanPaketUntukSiswa($ujian, $sesiAktif?->id);
+            }
+
             return UjianPengerjaan::create([
                 'ujian_id' => $ujian->id,
                 'siswa_nisn' => $nisn,
                 'sesi_ujian_id' => $sesiAktif?->id,
+                'paket_soal_id' => $paket?->id,
                 'attempt_ke' => $terpakai + 1,
                 'is_remedial' => $isRemedial,
                 'mulai_at' => $mulai,
@@ -349,6 +357,14 @@ class UjianController extends BaseAppController implements HasMiddleware
         }
 
         $ujian->load('soals.opsi');
+
+        // CBT v2: bila pengerjaan memakai paket soal, siswa hanya melihat soal paketnya.
+        $soals = $pengerjaan->paket_soal_id !== null
+            ? $ujian->soals->where('paket_soal_id', $pengerjaan->paket_soal_id)->values()
+            : $ujian->soals;
+
+        // Buat objek tiruan agar urutkanSoal tetap bekerja dengan koleksi terfilter.
+        $ujian->setRelation('soals', $soals);
         $soals = $this->urutkanSoal($ujian, $pengerjaan);
 
         $jawabanBySoal = $pengerjaan->jawabans()->get()->keyBy('soal_id');

@@ -20,6 +20,7 @@ class UjianPengerjaan extends Model
         'ujian_id',
         'siswa_nisn',
         'sesi_ujian_id',
+        'paket_soal_id',
         'attempt_ke',
         'mulai_at',
         'batas_at',
@@ -55,6 +56,11 @@ class UjianPengerjaan extends Model
     public function sesi(): BelongsTo
     {
         return $this->belongsTo(SesiUjian::class, 'sesi_ujian_id');
+    }
+
+    public function paketSoal(): BelongsTo
+    {
+        return $this->belongsTo(PaketSoal::class);
     }
 
     public function siswa(): BelongsTo
