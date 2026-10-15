@@ -7,6 +7,8 @@ use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\SiswaKelas;
 use App\Models\TahunAjaran;
+use App\Services\SiswaImportService;
+use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,6 +16,7 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class SiswaController extends Controller
 {
@@ -176,6 +179,54 @@ class SiswaController extends Controller
             'type' => 'success',
             'message' => 'Peserta didik berhasil diperbarui.',
         ]);
+
+        return Redirect::route('admin.siswa.index');
+    }
+
+    /**
+     * Unduh template XLSX untuk import massal siswa.
+     */
+    public function template(): BinaryFileResponse
+    {
+        $path = storage_path('app/templates/template-siswa.xlsx');
+
+        if (! file_exists($path)) {
+            $this->buatTemplate($path);
+        }
+
+        return response()->download($path, 'template-siswa.xlsx');
+    }
+
+    private function buatTemplate(string $path): void
+    {
+        @mkdir(dirname($path), 0755, true);
+
+        $writer = new \OpenSpout\Writer\XLSX\Writer;
+        $writer->openToFile($path);
+        $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(SiswaImportService::HEADER));
+        $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['1234567890', 'Contoh Nama Siswa', 'L', 'Sumedang', '2010-01-01']));
+        $writer->close();
+    }
+
+    /**
+     * Impor massal siswa dari file XLSX.
+     */
+    public function impor(Request $request, SiswaImportService $service): RedirectResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx', 'max:5120'],
+        ], [], [
+            'file' => 'File Excel',
+        ]);
+
+        $path = $request->file('file')->getRealPath();
+        $hasil = $service->impor($path);
+
+        if ($hasil['gagal'] > 0) {
+            Toast::warning("Impor selesai: {$hasil['berhasil']} berhasil, {$hasil['gagal']} gagal. ".implode(' ', array_slice($hasil['errors'], 0, 3)));
+        } else {
+            Toast::success("Impor selesai: {$hasil['berhasil']} siswa berhasil ditambahkan. Password default = NISN.");
+        }
 
         return Redirect::route('admin.siswa.index');
     }

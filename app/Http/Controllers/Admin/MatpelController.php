@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Matpel;
+use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -102,12 +103,27 @@ class MatpelController extends Controller
      */
     public function destroy(Matpel $matpel): RedirectResponse
     {
+        // Cegah hapus mapel yang masih dipakai — bank soal ikut terhapus via cascade.
+        $bankSoalCount = $matpel->bankSoals()->count();
+        $guruKelasCount = $matpel->guruKelas()->count();
+
+        if ($bankSoalCount > 0 || $guruKelasCount > 0) {
+            $detail = [];
+            if ($bankSoalCount > 0) {
+                $detail[] = "{$bankSoalCount} soal di bank soal (akan ikut terhapus permanen!)";
+            }
+            if ($guruKelasCount > 0) {
+                $detail[] = "{$guruKelasCount} penugasan guru-kelas";
+            }
+
+            Toast::error('Tidak bisa hapus: mata pelajaran masih dipakai oleh '.implode(' dan ', $detail).'.');
+
+            return Redirect::route('admin.matpel.index');
+        }
+
         $matpel->delete();
 
-        Inertia::flash('toast', [
-            'type' => 'success',
-            'message' => 'Mata pelajaran berhasil dihapus.',
-        ]);
+        Toast::success('Mata pelajaran berhasil dihapus.');
 
         return Redirect::route('admin.matpel.index');
     }

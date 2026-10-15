@@ -45,16 +45,29 @@ class UjianController extends Controller
             'judul' => $u->judul,
             'kategori' => $u->kategori,
             'guru' => $u->guru?->nama_lengkap,
+            'guru_kelas_id' => $u->guru_kelas_id,
             'kelas' => $u->guruKelas?->kelas?->nama,
             'matpel' => $u->guruKelas?->matpel?->name,
             'status' => $u->status,
             'jumlah_soal' => $u->soals_count,
             'jumlah_selesai' => $u->jumlah_selesai,
             'dibuat_oleh_admin' => $u->dibuat_oleh_admin,
+            'deskripsi' => $u->deskripsi,
+            'durasi_menit' => $u->durasi_menit,
+            'maks_attempt' => $u->maks_attempt,
+            'acak_soal' => $u->acak_soal,
+            'acak_opsi' => $u->acak_opsi,
+            'tampilkan_hasil' => $u->tampilkan_hasil,
+            'wajib_fullscreen' => $u->wajib_fullscreen,
+            'maks_pelanggaran' => $u->maks_pelanggaran,
+            'nilai_maks' => $u->nilai_maks,
+            'bobot' => $u->bobot,
             'token' => $u->token,
             'token_released' => $u->token_released_at !== null,
             'token_pengelola' => $u->token_pengelola,
             'tanggal_mulai' => $u->tanggal_mulai?->translatedFormat('d M Y H:i'),
+            'tanggal_mulai_raw' => $u->tanggal_mulai?->format('Y-m-d\TH:i'),
+            'tanggal_selesai_raw' => $u->tanggal_selesai?->format('Y-m-d\TH:i'),
         ]);
 
         return Inertia::render('admin/Ujian/Index', [
@@ -94,6 +107,28 @@ class UjianController extends Controller
         $ujian->update(['penilaian_id' => $penilaian->id]);
 
         Toast::success('Ujian dibuat.');
+
+        return Redirect::back();
+    }
+
+    // ── Update ────────────────────────────────────────────────────────────
+
+    public function update(Request $request, Ujian $ujian): RedirectResponse
+    {
+        $data = $this->validateUjian($request);
+
+        $ujian->fill($data)->save();
+
+        if ($ujian->penilaian_id) {
+            $ujian->penilaian()->update([
+                'nama' => strtoupper($ujian->kategori).': '.$ujian->judul,
+                'deskripsi' => $ujian->deskripsi,
+                'nilai_maks' => $ujian->nilai_maks,
+                'bobot' => $ujian->bobot,
+            ]);
+        }
+
+        Toast::success('Ujian diperbarui.');
 
         return Redirect::back();
     }

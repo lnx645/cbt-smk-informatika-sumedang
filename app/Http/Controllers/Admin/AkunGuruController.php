@@ -75,7 +75,7 @@ class AkunGuruController extends Controller
             'email.email' => 'Format email tidak invalid.',
             'email.unique' => 'Email sudah digunakan.',
             'password.min' => 'Password minimal 8 karakter.',
-            'password.confirmed' => 'Password tidak cocopy.',
+            'password.confirmed' => 'Password tidak copy.',
         ]);
 
         $guru->user->name = $guru->nama_lengkap;

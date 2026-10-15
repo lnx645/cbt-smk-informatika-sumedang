@@ -31,7 +31,7 @@ class AkunSiswaController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak invalid.',
+            'email.email' => 'Format email tidak valid.',
             'email.unique' => 'Email sudah digunakan.',
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal 8 karakter.',
@@ -72,7 +72,7 @@ class AkunSiswaController extends Controller
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ], [
             'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak invalid.',
+            'email.email' => 'Format email tidak valid.',
             'email.unique' => 'Email sudah digunakan.',
             'password.min' => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Password tidak cocok.',
