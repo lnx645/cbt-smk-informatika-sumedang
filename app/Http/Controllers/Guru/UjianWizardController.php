@@ -189,6 +189,9 @@ class UjianWizardController extends BaseAppController
         ]);
     }
 
+    /**
+     * Serahkan ke panitia (langkah terakhir guru mode resmi).
+     * Guru selesai sampai paket soal; panitia yang atur sesi/jadwal/token & menerbitkan.
      */
     public function serahkan(Request $request, Ujian $ujian): RedirectResponse
     {
