@@ -18,6 +18,7 @@
     } = $props();
 
     let modalOpen = $state(false);
+    let jawabanBenarSalah = $state(true);
     const form = useForm({
         tipe: 'pg',
         pertanyaan: '',
@@ -34,8 +35,15 @@
     }
 
     function simpan() {
+        // Untuk benar/salah, kirim opsi Benar & Salah otomatis.
+        if (form.tipe === 'benar_salah') {
+            form.opsi = [
+                { teks: 'Benar', benar: jawabanBenarSalah === true },
+                { teks: 'Salah', benar: jawabanBenarSalah === false },
+            ];
+        }
         form.post(`/app/guru/bank-soal/kelompok/${kelompok.id}/soal`, {
-            onSuccess: () => { modalOpen = false; form.reset(); },
+            onSuccess: () => { modalOpen = false; form.reset(); jawabanBenarSalah = true; },
         });
     }
 
@@ -132,6 +140,23 @@
                     <Button size="sm" color="secondary" outline onclick={tambahOpsi}>
                         <i class="bi bi-plus me-1"></i>Tambah Opsi
                     </Button>
+                </div>
+            {/if}
+            {#if form.tipe === 'benar_salah'}
+                <div class="col-12">
+                    <label class="form-label">Jawaban yang benar</label>
+                    <div class="d-flex gap-3">
+                        <label class="d-flex align-items-center gap-2 border rounded px-3 py-2" style="cursor:pointer">
+                            <input type="radio" name="bs-{kelompok.id}" checked={jawabanBenarSalah === true}
+                                onchange={() => (jawabanBenarSalah = true)} />
+                            <span class="fw-semibold text-success">Benar</span>
+                        </label>
+                        <label class="d-flex align-items-center gap-2 border rounded px-3 py-2" style="cursor:pointer">
+                            <input type="radio" name="bs-{kelompok.id}" checked={jawabanBenarSalah === false}
+                                onchange={() => (jawabanBenarSalah = false)} />
+                            <span class="fw-semibold text-danger">Salah</span>
+                        </label>
+                    </div>
                 </div>
             {/if}
             {#if form.tipe === 'isian'}

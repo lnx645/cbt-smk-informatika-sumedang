@@ -103,7 +103,7 @@ class KelompokBankSoalController extends BaseAppController
             'kunci_isian' => ['nullable', 'string'],
         ]);
 
-        \App\Models\BankSoal::create([
+        $bank = \App\Models\BankSoal::create([
             'kelompok_bank_soal_id' => $kelompok->id,
             'matpel_id' => $kelompok->matpel_id,
             'guru_id' => $guru->id,
@@ -115,7 +115,6 @@ class KelompokBankSoalController extends BaseAppController
 
         // Simpan opsi bila ada.
         if (! empty($data['opsi'])) {
-            $bank = \App\Models\BankSoal::latest('id')->first();
             foreach ($data['opsi'] as $i => $o) {
                 $bank->opsi()->create([
                     'teks' => $o['teks'],
