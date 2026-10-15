@@ -2,7 +2,8 @@
 
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Guru\BankSoalController as GuruBankSoalController;
+use App\Http\Controllers\UjianLoginController;
+use App\Http\Controllers\UjianModeController;
 use App\Http\Controllers\Guru\KelompokBankSoalController as GuruKelompokBankSoalController;
 use App\Http\Controllers\Guru\HasilUjianController as GuruHasilUjianController;
 use App\Http\Controllers\Guru\MateriController as GuruMateriController;
@@ -16,6 +17,8 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LinkExternalController;
 use App\Http\Controllers\MataPelajaranGuruController;
 use App\Http\Controllers\Panitia\UjianController as PanitiaUjianController;
+use App\Http\Controllers\Panitia\GroupController as PanitiaGroupController;
+use App\Http\Controllers\Panitia\EventController as PanitiaEventController;
 use App\Http\Controllers\Siswa\MateriController as SiswaMateriController;
 use App\Http\Controllers\Siswa\NotifikasiController as SiswaNotifikasiController;
 use App\Http\Controllers\Siswa\PenilaianController as SiswaPenilaianController;
@@ -28,6 +31,24 @@ Route::redirect('/', 'login');
 Route::get('link/external', [LinkExternalController::class, 'link'])->name('external.link');
 // Logout harus di luar 'app-only' agar admin juga bisa logout.
 Route::middleware('auth')->post('/app/logout', [AuthenticatedSessionController::class, 'destroy'])->name('app.auth.logout');
+
+// Login ujian terpisah — tanpa dashboard, langsung ke ujian.
+// Login ujian terpisah — tanpa dashboard, langsung ke ujian.
+// Tanpa middleware guest biar nggak konflik session.
+Route::get('/ujian/login', [UjianLoginController::class, 'create'])->name('ujian.login');
+Route::post('/ujian/login', [UjianLoginController::class, 'store'])->name('ujian.login.store');
+Route::post('/ujian/logout', [UjianLoginController::class, 'destroy'])->name('ujian.logout');
+Route::get('/ujian/daftar', [UjianModeController::class, 'daftar'])->name('ujian.daftar');
+Route::middleware(\App\Http\Middleware\UjianAuthMiddleware::class)->group(function (): void {
+    Route::get('/ujian/konfirmasi/{ujian}', [\App\Http\Controllers\Siswa\UjianController::class, 'konfirmasi'])->name('ujian.konfirmasi');
+    Route::post('/ujian/mulai/{ujian}', [\App\Http\Controllers\Siswa\UjianController::class, 'mulai'])->name('ujian.mulai');
+    Route::get('/ujian/kerjakan/{ujian}', [\App\Http\Controllers\Siswa\UjianController::class, 'kerjakan'])->name('ujian.kerjakan');
+    Route::get('/ujian/waktu-server', [\App\Http\Controllers\Siswa\UjianController::class, 'waktuServer'])->name('ujian.waktu-server');
+    Route::post('/ujian/{ujian}/jawaban', [\App\Http\Controllers\Siswa\UjianController::class, 'simpanJawaban'])->name('ujian.jawaban');
+    Route::post('/ujian/{ujian}/submit', [\App\Http\Controllers\Siswa\UjianController::class, 'submit'])->name('ujian.submit');
+    Route::post('/ujian/{ujian}/lapor', [\App\Http\Controllers\Siswa\UjianController::class, 'lapor'])->name('ujian.lapor');
+    Route::get('/ujian/{ujian}/hasil', [\App\Http\Controllers\Siswa\UjianController::class, 'hasil'])->name('ujian.hasil');
+});
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('auth.login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('auth.login');
@@ -124,8 +145,35 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::middleware('panitia-only')->group(function (): void {
         Route::get('panitia/ujian/jadwal-pdf', [PanitiaUjianController::class, 'jadwalPdf'])->name('panitia.ujian.jadwal-pdf');
         Route::get('panitia/ujian', [PanitiaUjianController::class, 'index'])->name('panitia.ujian.index');
+        Route::get('panitia/ujian/buat', [PanitiaUjianController::class, 'create'])->name('panitia.ujian.create');
+        Route::post('panitia/ujian', [PanitiaUjianController::class, 'store'])->name('panitia.ujian.store');
+        Route::get('panitia/jadwal', [PanitiaUjianController::class, 'jadwal'])->name('panitia.jadwal.index');
+        Route::get('panitia/jadwal/tambah', [PanitiaUjianController::class, 'createJadwal'])->name('panitia.jadwal.create');
+        Route::post('panitia/jadwal', [PanitiaUjianController::class, 'storeJadwal'])->name('panitia.jadwal.store');
+        Route::get('panitia/group', [PanitiaGroupController::class, 'index'])->name('panitia.group.index');
+        Route::post('panitia/group', [PanitiaGroupController::class, 'store'])->name('panitia.group.store');
+        Route::put('panitia/group/{group}', [PanitiaGroupController::class, 'update'])->name('panitia.group.update');
+        Route::delete('panitia/group/{group}', [PanitiaGroupController::class, 'destroy'])->name('panitia.group.destroy');
+        Route::get('panitia/event', [PanitiaEventController::class, 'index'])->name('panitia.event.index');
+        Route::post('panitia/event', [PanitiaEventController::class, 'store'])->name('panitia.event.store');
+        Route::put('panitia/event/{event}', [PanitiaEventController::class, 'update'])->name('panitia.event.update');
+        Route::delete('panitia/event/{event}', [PanitiaEventController::class, 'destroy'])->name('panitia.event.destroy');
         Route::get('panitia/ujian/{ujian}', [PanitiaUjianController::class, 'show'])->name('panitia.ujian.show');
         Route::post('panitia/ujian/{ujian}/sesi', [PanitiaUjianController::class, 'storeSesi'])->name('panitia.ujian.sesi');
+        Route::post('panitia/ujian/{ujian}/sesi-satu', [PanitiaUjianController::class, 'storeSesiSatu'])->name('panitia.ujian.sesi-satu.store');
+        Route::put('panitia/ujian/{ujian}/sesi-satu/{sesi}', [PanitiaUjianController::class, 'updateSesiSatu'])->name('panitia.ujian.sesi-satu.update');
+        Route::delete('panitia/ujian/{ujian}/sesi-satu/{sesi}', [PanitiaUjianController::class, 'destroySesiSatu'])->name('panitia.ujian.sesi-satu.destroy');
+        Route::post('panitia/ujian/{ujian}/sesi-satu/{sesi}/peserta', [PanitiaUjianController::class, 'storeSesiPeserta'])->name('panitia.ujian.sesi-peserta.store');
+        Route::post('panitia/ujian/{ujian}/buat-token', [PanitiaUjianController::class, 'buatToken'])->name('panitia.ujian.buat-token');
+        Route::post('panitia/ujian/{ujian}/sesi/{sesi}/buat-token', [PanitiaUjianController::class, 'buatTokenSesi'])->name('panitia.ujian.sesi.buat-token');
+        Route::post('panitia/ujian/{ujian}/sesi/{sesi}/buka-token', [PanitiaUjianController::class, 'bukaTokenSesi'])->name('panitia.ujian.sesi.buka-token');
+        Route::post('panitia/ujian/{ujian}/sesi/{sesi}/tutup-token', [PanitiaUjianController::class, 'tutupTokenSesi'])->name('panitia.ujian.sesi.tutup-token');
+        Route::post('panitia/ujian/{ujian}/terbitkan-kartu', [PanitiaUjianController::class, 'terbitkanKartu'])->name('panitia.ujian.terbitkan-kartu');
+
+        // Kartu Ujian (menu khusus)
+        Route::get('panitia/kartu', [\App\Http\Controllers\Panitia\KartuController::class, 'index'])->name('panitia.kartu.index');
+        Route::post('panitia/kartu/generate', [\App\Http\Controllers\Panitia\KartuController::class, 'generate'])->name('panitia.kartu.generate');
+        Route::post('panitia/kartu/generate/{kelas}', [\App\Http\Controllers\Panitia\KartuController::class, 'generate'])->name('panitia.kartu.generate-kelas');
         Route::post('panitia/ujian/{ujian}/pengaturan', [PanitiaUjianController::class, 'storePengaturan'])->name('panitia.ujian.pengaturan');
         Route::post('panitia/ujian/{ujian}/buka-token', [PanitiaUjianController::class, 'bukaToken'])->name('panitia.ujian.buka-token');
         Route::post('panitia/ujian/{ujian}/tutup-token', [PanitiaUjianController::class, 'tutupToken'])->name('panitia.ujian.tutup-token');
@@ -133,6 +181,8 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
         Route::post('panitia/ujian/{ujian}/kembalikan', [PanitiaUjianController::class, 'kembalikan'])->name('panitia.ujian.kembalikan');
         Route::get('panitia/ujian/{ujian}/sesi/{sesi}/kartu-peserta', [PanitiaUjianController::class, 'kartuPeserta'])->name('panitia.ujian.kartu');
         Route::get('panitia/ujian/{ujian}/kartu-peserta-kelas', [PanitiaUjianController::class, 'kartuPesertaKelas'])->name('panitia.ujian.kartu-kelas');
+        Route::get('panitia/kartu-peserta-semua', [PanitiaUjianController::class, 'kartuPesertaSemua'])->name('panitia.ujian.kartu-semua');
+        Route::post('panitia/generate-password-ujian', [PanitiaUjianController::class, 'generatePasswordUjian'])->name('panitia.ujian.generate-password');
         Route::get('panitia/ujian/{ujian}/berita-acara', [PanitiaUjianController::class, 'beritaAcaraIndex'])->name('panitia.ujian.berita-acara.index');
         Route::post('panitia/ujian/{ujian}/berita-acara', [PanitiaUjianController::class, 'beritaAcaraStore'])->name('panitia.ujian.berita-acara.store');
         Route::get('panitia/ujian/{ujian}/berita-acara/{beritaAcara}/pdf', [PanitiaUjianController::class, 'beritaAcaraPdf'])->name('panitia.ujian.berita-acara.pdf');
@@ -145,20 +195,23 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::get('guru/bank-soal/kelompok', [GuruKelompokBankSoalController::class, 'index'])->name('guru.bank-soal.kelompok.index');
     Route::post('guru/bank-soal/kelompok', [GuruKelompokBankSoalController::class, 'store'])->name('guru.bank-soal.kelompok.store');
     Route::get('guru/bank-soal/kelompok/{kelompok}', [GuruKelompokBankSoalController::class, 'show'])->name('guru.bank-soal.kelompok.show');
+    Route::put('guru/bank-soal/kelompok/{kelompok}', [GuruKelompokBankSoalController::class, 'update'])->name('guru.bank-soal.kelompok.update');
     Route::post('guru/bank-soal/kelompok/{kelompok}/soal', [GuruKelompokBankSoalController::class, 'storeSoal'])->name('guru.bank-soal.kelompok.soal.store');
+    Route::get('guru/bank-soal/kelompok/{kelompok}/soal/tambah', [GuruKelompokBankSoalController::class, 'createSoal'])->name('guru.bank-soal.kelompok.soal.create');
+    Route::get('guru/bank-soal/kelompok/{kelompok}/preview', [GuruKelompokBankSoalController::class, 'preview'])->name('app.guru.bank-soal.kelompok.preview');
+    Route::get('guru/bank-soal/kelompok/{kelompok}/soal/{soal}/edit', [GuruKelompokBankSoalController::class, 'editSoal'])->name('guru.bank-soal.kelompok.soal.edit');
+    Route::put('guru/bank-soal/kelompok/{kelompok}/soal/{soal}', [GuruKelompokBankSoalController::class, 'updateSoal'])->name('guru.bank-soal.kelompok.soal.update');
+    Route::delete('guru/bank-soal/kelompok/{kelompok}/soal/{soal}', [GuruKelompokBankSoalController::class, 'destroySoal'])->name('guru.bank-soal.kelompok.soal.destroy');
     Route::delete('guru/bank-soal/kelompok/{kelompok}', [GuruKelompokBankSoalController::class, 'destroy'])->name('guru.bank-soal.kelompok.destroy');
 
-    // Guru: Bank Soal
-    Route::get('guru/bank-soal', [GuruBankSoalController::class, 'index'])->name('guru.bank-soal.index');
-    Route::post('guru/bank-soal', [GuruBankSoalController::class, 'store'])->name('guru.bank-soal.store');
-    Route::put('guru/bank-soal/{bankSoal}', [GuruBankSoalController::class, 'update'])->name('guru.bank-soal.update');
-    Route::delete('guru/bank-soal/{bankSoal}', [GuruBankSoalController::class, 'destroy'])->name('guru.bank-soal.destroy');
     Route::get('guru/ujian/{ujian}/hasil', [GuruHasilUjianController::class, 'index'])->name('guru.ujian.hasil.index');
     Route::get('guru/ujian/{ujian}/hasil/{pengerjaan}', [GuruHasilUjianController::class, 'show'])->name('guru.ujian.hasil.show');
     Route::post('guru/ujian/{ujian}/hasil/{pengerjaan}/jawaban/{jawaban}/nilai', [GuruHasilUjianController::class, 'nilaiEsai'])->name('guru.ujian.hasil.nilai');
+    Route::post('guru/ujian/{ujian}/hasil/tarik-nilai', [GuruHasilUjianController::class, 'tarikKeNilai'])->name('guru.ujian.hasil.tarik-nilai');
 
     // Siswa: Ujian (CBT)
     Route::get('ujian', [SiswaUjianController::class, 'index'])->name('siswa.ujian.index');
+    Route::get('ujian/kartu-saya', [SiswaUjianController::class, 'kartuSaya'])->name('siswa.ujian.kartu');
     Route::get('waktu-server', [SiswaUjianController::class, 'waktuServer'])->name('siswa.waktu-server');
     Route::post('ujian/{ujian}/mulai', [SiswaUjianController::class, 'mulai'])->name('siswa.ujian.mulai');
     Route::get('ujian/{ujian}/konfirmasi', [SiswaUjianController::class, 'konfirmasi'])->name('siswa.ujian.konfirmasi');

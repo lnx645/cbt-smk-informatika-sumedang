@@ -1,11 +1,12 @@
 <script lang="ts">
-    import { router, useForm } from '@inertiajs/svelte';
-    import { Badge, Button, Card, CardBody, CardHeader, Modal, ModalBody, ModalFooter, ModalHeader } from '@sveltestrap/sveltestrap';
+    import { inertia, router, useForm } from '@inertiajs/svelte';
+    import { Badge, Button, Card, CardBody, CardHeader } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
     import EmptyState from '@/components/EmptyState.svelte';
+    import RichTextEditor from '@/components/RichTextEditor.svelte';
 
     type Soal = {
-        id: number; tipe: string; pertanyaan: string; poin: number;
+        id: number; tipe: string; tipe_label?: string; pertanyaan: string;
         opsi?: { id: number; teks: string; benar: boolean }[];
     };
 
@@ -17,33 +18,12 @@
         };
     } = $props();
 
-    let modalOpen = $state(false);
-    let jawabanBenarSalah = $state(true);
-    const form = useForm({
-        tipe: 'pg',
-        pertanyaan: '',
-        poin: 10,
-        opsi: [
-            { teks: '', benar: true },
-            { teks: '', benar: false },
-        ] as { teks: string; benar: boolean }[],
-        kunci_isian: '',
-    });
+    let konfirmHapusId = $state<number | null>(null);
 
-    function tambahOpsi() {
-        form.opsi = [...form.opsi, { teks: '', benar: false }];
-    }
 
-    function simpan() {
-        // Untuk benar/salah, kirim opsi Benar & Salah otomatis.
-        if (form.tipe === 'benar_salah') {
-            form.opsi = [
-                { teks: 'Benar', benar: jawabanBenarSalah === true },
-                { teks: 'Salah', benar: jawabanBenarSalah === false },
-            ];
-        }
-        form.post(`/app/guru/bank-soal/kelompok/${kelompok.id}/soal`, {
-            onSuccess: () => { modalOpen = false; form.reset(); jawabanBenarSalah = true; },
+    function hapusSoal(id: number) {
+        router.delete(`/app/guru/bank-soal/kelompok/${kelompok.id}/soal/${id}`, {
+            onSuccess: () => (konfirmHapusId = null),
         });
     }
 
@@ -55,9 +35,12 @@
 
 <PageHeader title={kelompok.nama} subtitle="{kelompok.matpel?.name ?? ''} · {kelompok.soals.length} soal">
     {#snippet actions()}
-        <Button color="primary" onclick={() => (modalOpen = true)}>
+        <a use:inertia href="/app/guru/bank-soal/kelompok/{kelompok.id}/preview" class="btn btn-info btn-sm">
+            <i class="bi bi-eye me-1"></i>Preview
+        </a>
+        <a use:inertia href="/app/guru/bank-soal/kelompok/{kelompok.id}/soal/tambah" class="btn btn-primary btn-sm">
             <i class="bi bi-plus-lg me-1"></i>Tambah Soal
-        </Button>
+        </a>
         <Button color="danger" outline onclick={hapusBank}>
             <i class="bi bi-trash me-1"></i>
         </Button>
@@ -92,6 +75,23 @@
                                     </div>
                                 {/if}
                             </div>
+                            <div class="d-flex flex-column gap-1 ms-2">
+                                <a use:inertia href="/app/guru/bank-soal/kelompok/{kelompok.id}/soal/{s.id}/edit" class="btn btn-sm btn-outline-primary" title="Edit soal">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {#if konfirmHapusId === s.id}
+                                    <Button size="sm" color="danger" onclick={() => hapusSoal(s.id)} title="Ya, hapus">
+                                        <i class="bi bi-check-lg"></i>
+                                    </Button>
+                                    <Button size="sm" color="outline-secondary" onclick={() => (konfirmHapusId = null)} title="Batal">
+                                        <i class="bi bi-x-lg"></i>
+                                    </Button>
+                                {:else}
+                                    <Button size="sm" color="outline-danger" onclick={() => (konfirmHapusId = s.id)} title="Hapus soal">
+                                        <i class="bi bi-trash"></i>
+                                    </Button>
+                                {/if}
+                            </div>
                         </div>
                     </CardBody>
                 </Card>
@@ -100,75 +100,3 @@
     </div>
 {/if}
 
-<Modal isOpen={modalOpen} toggle={() => (modalOpen = !modalOpen)} size="lg">
-    <ModalHeader toggle={() => (modalOpen = false)}>Tambah Soal ke "{kelompok.nama}"</ModalHeader>
-    <ModalBody>
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label" for="ts-tipe">Tipe Soal</label>
-                <select id="ts-tipe" class="form-select" bind:value={form.tipe}>
-                    <option value="pg">Pilihan Ganda</option>
-                    <option value="multi">Pilihan Ganda Kompleks</option>
-                    <option value="benar_salah">Benar / Salah</option>
-                    <option value="isian">Isian</option>
-                    <option value="esai">Esai</option>
-                </select>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label" for="ts-poin">Poin</label>
-                <input id="ts-poin" type="number" class="form-control" bind:value={form.poin} min="1" />
-            </div>
-            <div class="col-12">
-                <label class="form-label" for="ts-tanya">Pertanyaan</label>
-                <textarea id="ts-tanya" class="form-control" rows="3" bind:value={form.pertanyaan}></textarea>
-            </div>
-            {#if form.tipe === 'pg' || form.tipe === 'multi'}
-                <div class="col-12">
-                    <label class="form-label">Opsi Jawaban (centang yang benar)</label>
-                    {#each form.opsi as o, i}
-                        <div class="input-group mb-2">
-                            <div class="input-group-text">
-                                <input type={form.tipe === 'pg' ? 'radio' : 'checkbox'} checked={o.benar}
-                                    onchange={() => {
-                                        if (form.tipe === 'pg') form.opsi = form.opsi.map((x, j) => ({ ...x, benar: j === i }));
-                                        else o.benar = !o.benar;
-                                    }} />
-                            </div>
-                            <input class="form-control" bind:value={o.teks} placeholder="Opsi {String.fromCharCode(65 + i)}" />
-                        </div>
-                    {/each}
-                    <Button size="sm" color="secondary" outline onclick={tambahOpsi}>
-                        <i class="bi bi-plus me-1"></i>Tambah Opsi
-                    </Button>
-                </div>
-            {/if}
-            {#if form.tipe === 'benar_salah'}
-                <div class="col-12">
-                    <label class="form-label">Jawaban yang benar</label>
-                    <div class="d-flex gap-3">
-                        <label class="d-flex align-items-center gap-2 border rounded px-3 py-2" style="cursor:pointer">
-                            <input type="radio" name="bs-{kelompok.id}" checked={jawabanBenarSalah === true}
-                                onchange={() => (jawabanBenarSalah = true)} />
-                            <span class="fw-semibold text-success">Benar</span>
-                        </label>
-                        <label class="d-flex align-items-center gap-2 border rounded px-3 py-2" style="cursor:pointer">
-                            <input type="radio" name="bs-{kelompok.id}" checked={jawabanBenarSalah === false}
-                                onchange={() => (jawabanBenarSalah = false)} />
-                            <span class="fw-semibold text-danger">Salah</span>
-                        </label>
-                    </div>
-                </div>
-            {/if}
-            {#if form.tipe === 'isian'}
-                <div class="col-12">
-                    <label class="form-label" for="ts-kunci">Kunci Jawaban</label>
-                    <input id="ts-kunci" class="form-control" bind:value={form.kunci_isian} />
-                </div>
-            {/if}
-        </div>
-    </ModalBody>
-    <ModalFooter>
-        <Button color="secondary" onclick={() => (modalOpen = false)}>Batal</Button>
-        <Button color="primary" onclick={simpan} disabled={form.processing || !form.pertanyaan}>Simpan</Button>
-    </ModalFooter>
-</Modal>
