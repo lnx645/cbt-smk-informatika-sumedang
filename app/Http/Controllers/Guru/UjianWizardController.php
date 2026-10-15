@@ -89,7 +89,7 @@ class UjianWizardController extends BaseAppController
             'guru_id' => $guruId,
             'kategori' => $data['kategori'],
             'judul' => $data['judul'],
-            'deskripsi' => $data['deskripsi'],
+            'deskripsi' => $data['deskripsi'] ?? null,
             'durasi_menit' => $data['durasi_menit'],
             'status' => 'draft',
         ]));
