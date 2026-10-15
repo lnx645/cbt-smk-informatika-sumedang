@@ -225,4 +225,68 @@ class UjianController extends BaseAppController
             'Ujian dikembalikan ke guru untuk direvisi.'.($data['catatan'] ? ' Catatan: '.$data['catatan'] : '')
         );
     }
+
+    /**
+     * Cetak kartu peserta per sesi (PDF).
+     */
+    public function kartuPeserta(Request $request, Ujian $ujian, \App\Models\SesiUjian $sesi): \Illuminate\Http\Response
+    {
+        abort_unless($sesi->ujian_id === $ujian->id, 404);
+
+        $sesi->load(['ruang']);
+
+        $pesertas = $this->pesertaSesi($ujian, $sesi);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.kartu-peserta', [
+            'ujian' => $ujian,
+            'sesi' => $sesi,
+            'pesertas' => $pesertas,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream("kartu-peserta-{$sesi->nama}.pdf");
+    }
+
+    /**
+     * Cetak kartu peserta per kelas (PDF) — semua sesi digabung.
+     */
+    public function kartuPesertaKelas(Request $request, Ujian $ujian): \Illuminate\Http\Response
+    {
+        $ujian->load(['sesis.ruang', 'guruKelas.kelas']);
+
+        $kelasId = $ujian->guruKelas?->kelas_id;
+        $pesertas = \App\Models\Siswa::query()->orderBy('nama_lengkap')
+            ->whereIn('nisn', \App\Models\SiswaKelas::where('kelas_id', $kelasId)
+                ->where('active', true)->pluck('siswa_nisn'))
+            ->get();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.kartu-peserta-kelas', [
+            'ujian' => $ujian,
+            'pesertas' => $pesertas,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream("kartu-peserta-{$ujian->judul}.pdf");
+    }
+
+    /**
+     * Daftar siswa peserta sesi.
+     */
+    private function pesertaSesi(Ujian $ujian, \App\Models\SesiUjian $sesi): \Illuminate\Support\Collection
+    {
+        $kelasId = $ujian->guruKelas?->kelas_id;
+
+        $query = \App\Models\Siswa::query()->orderBy('nama_lengkap');
+
+        if ($ujian->sesiTerjadwal()) {
+            $nisns = $sesi->pesertas()->pluck('siswa_nisn');
+            $query->whereIn('nisn', $nisns);
+        } elseif ($kelasId !== null) {
+            $nisns = \App\Models\SiswaKelas::where('kelas_id', $kelasId)
+                ->where('active', true)->pluck('siswa_nisn');
+            $query->whereIn('nisn', $nisns);
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        return $query->get();
+    }
 }

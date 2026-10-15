@@ -65,6 +65,9 @@
         <Badge color={ujian.status === 'terbit' ? 'success' : ujian.status === 'diajukan' ? 'warning' : 'secondary'}>
             {ujian.status.toUpperCase()}
         </Badge>
+        <a href="/app/panitia/ujian/{ujian.id}/kartu-peserta-kelas" target="_blank" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-printer me-1"></i>Cetak Kartu (Per Kelas)
+        </a>
     {/snippet}
 </PageHeader>
 
@@ -97,7 +100,12 @@
                         <tr>
                             <td>{s.nama}</td>
                             <td class="small">{s.waktu_mulai?.replace('T', ' ')} – {s.waktu_selesai?.replace('T', ' ')}</td>
-                            <td>{s.ruang ?? '–'}</td>
+                            <td>
+                                {s.ruang ?? '–'}
+                                <a href="/app/panitia/ujian/{ujian.id}/sesi/{s.id}/kartu-peserta" target="_blank" class="btn btn-sm btn-outline-secondary ms-2">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                            </td>
                         </tr>
                     {/each}
                 </tbody>
