@@ -511,6 +511,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             'kelas' => $u->guruKelas?->kelas?->nama,
             'matpel' => $u->guruKelas?->matpel?->name,
             'status' => $u->status,
+            'catatan_panitia' => $u->catatan_panitia,
             'durasi_menit' => $u->durasi_menit,
             'tanggal_mulai' => $u->tanggal_mulai?->translatedFormat('d M Y H:i'),
             'tanggal_selesai' => $u->tanggal_selesai?->translatedFormat('d M Y H:i'),

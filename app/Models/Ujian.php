@@ -43,6 +43,7 @@ class Ujian extends Model
         'kkm',
         'bobot',
         'status',
+        'catatan_panitia',
     ];
 
     protected $casts = [

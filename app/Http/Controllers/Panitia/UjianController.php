@@ -47,6 +47,25 @@ class UjianController extends BaseAppController
     }
 
     /**
+     * Cetak jadwal ujian keseluruhan (PDF timetable).
+     */
+    public function jadwalPdf(Request $request): \Illuminate\Http\Response
+    {
+        $ujians = Ujian::whereIn('kategori', Ujian::KATEGORI_BESAR)
+            ->with(['guruKelas.kelas', 'guruKelas.matpel', 'sesis.ruang'])
+            ->whereIn('status', ['terbit', 'diajukan'])
+            ->orderBy('id')
+            ->get();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.jadwal-ujian', [
+            'ujians' => $ujians,
+            'tanggal_cetak' => now()->translatedFormat('d F Y'),
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->stream('jadwal-ujian.pdf');
+    }
+
+    /**
      * Monitoring real-time: status pengerjaan per sesi.
      */
     public function monitoring(Request $request, Ujian $ujian): Response
@@ -122,6 +141,7 @@ class UjianController extends BaseAppController
                 'status' => $ujian->status,
                 'durasi_menit' => $ujian->durasi_menit,
                 'token' => $ujian->token,
+                'token_dibuka' => $ujian->token_released_at !== null,
                 'tata_tertib' => $ujian->tata_tertib,
                 'kkm' => $ujian->kkm,
                 'kelas' => $ujian->guruKelas?->kelas?->nama,
@@ -177,6 +197,7 @@ class UjianController extends BaseAppController
 
     /**
      * Panitia simpan token, tata tertib, KKM.
+     * Token dibuat tapi BELUM dibuka — panitia buka manual saat ujian mau mulai.
      */
     public function storePengaturan(Request $request, Ujian $ujian): RedirectResponse
     {
@@ -187,12 +208,35 @@ class UjianController extends BaseAppController
 
         $ujian->update([
             'token' => $ujian->token ?? app(\App\Services\UjianService::class)->generateToken(),
-            'token_released_at' => now(),
             'tata_tertib' => $data['tata_tertib'],
             'kkm' => $data['kkm'],
         ]);
 
-        return redirect()->back()->with('success', 'Token, tata tertib & KKM tersimpan.');
+        return redirect()->back()->with('success', 'Token, tata tertib & KKM tersimpan. Token belum dibuka — buka saat ujian mau dimulai.');
+    }
+
+    /**
+     * Panitia buka token (siswa bisa lihat & pakai).
+     */
+    public function bukaToken(Request $request, Ujian $ujian): RedirectResponse
+    {
+        if (! $ujian->token) {
+            $ujian->update(['token' => app(\App\Services\UjianService::class)->generateToken()]);
+        }
+
+        $ujian->update(['token_released_at' => now()]);
+
+        return redirect()->back()->with('success', 'Token dibuka. Siswa sekarang bisa melihat token.');
+    }
+
+    /**
+     * Panitia tutup token (siswa tidak bisa mulai ujian baru).
+     */
+    public function tutupToken(Request $request, Ujian $ujian): RedirectResponse
+    {
+        $ujian->update(['token_released_at' => null]);
+
+        return redirect()->back()->with('success', 'Token ditutup. Siswa tidak bisa memulai ujian baru.');
     }
 
     /**
@@ -218,11 +262,14 @@ class UjianController extends BaseAppController
     {
         $data = $request->validate(['catatan' => ['nullable', 'string', 'max:500']]);
 
-        $ujian->update(['status' => 'draft']);
+        $ujian->update([
+            'status' => 'draft',
+            'catatan_panitia' => $data['catatan'] ?? null,
+        ]);
 
         return redirect()->route('app.panitia.ujian.index')->with(
             'success',
-            'Ujian dikembalikan ke guru untuk direvisi.'.($data['catatan'] ? ' Catatan: '.$data['catatan'] : '')
+            'Ujian dikembalikan ke guru untuk direvisi.'
         );
     }
 
@@ -265,6 +312,89 @@ class UjianController extends BaseAppController
         ])->setPaper('a4', 'portrait');
 
         return $pdf->stream("kartu-peserta-{$ujian->judul}.pdf");
+    }
+
+    /**
+     * Daftar berita acara ujian.
+     */
+    public function beritaAcaraIndex(Request $request, Ujian $ujian): \Inertia\Response
+    {
+        $beritaAcaras = $ujian->beritaAcaras()->with('sesi')->orderByDesc('tanggal')->get();
+
+        return \Inertia\Inertia::render('panitia/Ujian/BeritaAcara', [
+            'ujian' => ['id' => $ujian->id, 'judul' => $ujian->judul],
+            'sesis' => $ujian->sesis()->orderBy('urutan')->get(['id', 'nama']),
+            'beritaAcaras' => $beritaAcaras->map(fn (\App\Models\BeritaAcaraUjian $b): array => [
+                'id' => $b->id,
+                'sesi_nama' => $b->sesi?->nama ?? 'Tanpa sesi',
+                'tanggal' => $b->tanggal->translatedFormat('d M Y'),
+                'jumlah_peserta' => $b->jumlah_peserta,
+                'jumlah_hadir' => $b->jumlah_hadir,
+                'jumlah_tidak_hadir' => $b->jumlah_tidak_hadir,
+                'jumlah_pelanggaran' => $b->jumlah_pelanggaran,
+            ]),
+        ]);
+    }
+
+    /**
+     * Simpan berita acara.
+     */
+    public function beritaAcaraStore(Request $request, Ujian $ujian): RedirectResponse
+    {
+        $data = $request->validate([
+            'sesi_ujian_id' => ['nullable', 'integer', 'exists:sesi_ujians,id'],
+            'tanggal' => ['required', 'date'],
+            'nomor_surat' => ['nullable', 'string', 'max:100'],
+            'catatan' => ['nullable', 'string', 'max:2000'],
+            'nama_pengawas' => ['nullable', 'string', 'max:100'],
+            'nama_kepala_sekolah' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        if ($data['sesi_ujian_id'] ?? null) {
+            abort_unless(\App\Models\SesiUjian::where('id', $data['sesi_ujian_id'])->where('ujian_id', $ujian->id)->exists(), 404);
+        }
+
+        \App\Models\BeritaAcaraUjian::updateOrCreate(
+            ['ujian_id' => $ujian->id, 'sesi_ujian_id' => $data['sesi_ujian_id'] ?? null],
+            $data
+        );
+
+        return redirect()->back()->with('success', 'Berita acara disimpan.');
+    }
+
+    /**
+     * Cetak berita acara (PDF).
+     */
+    public function beritaAcaraPdf(Request $request, Ujian $ujian, \App\Models\BeritaAcaraUjian $beritaAcara): \Illuminate\Http\Response
+    {
+        abort_unless($beritaAcara->ujian_id === $ujian->id, 404);
+        $beritaAcara->load(['sesi.ruang']);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.berita-acara', [
+            'ujian' => $ujian,
+            'beritaAcara' => $beritaAcara,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream('berita-acara.pdf');
+    }
+
+    /**
+     * Cetak daftar hadir per sesi (PDF).
+     */
+    public function daftarHadir(Request $request, Ujian $ujian, \App\Models\SesiUjian $sesi): \Illuminate\Http\Response
+    {
+        abort_unless($sesi->ujian_id === $ujian->id, 404);
+        $sesi->load(['ruang']);
+
+        $pesertas = $this->pesertaSesi($ujian, $sesi);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.daftar-hadir', [
+            'ujian' => $ujian,
+            'sesi' => $sesi,
+            'pesertas' => $pesertas,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream("daftar-hadir-{$sesi->nama}.pdf");
     }
 
     /**
