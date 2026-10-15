@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { router, useForm } from '@inertiajs/svelte';
+    import { inertia, router, useForm } from '@inertiajs/svelte';
     import { Badge, Button, Card, CardBody, CardHeader, Input, Table } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
 
@@ -84,7 +84,7 @@
                 Bisa ketik manual, import Excel, atau ambil dari bank soal.
             </p>
             <div class="d-flex gap-2 flex-wrap">
-                <a href="/app/guru/ujian/{ujian.id}/soal" class="btn btn-outline-primary">
+                <a use:inertia href="/app/guru/ujian/{ujian.id}/soal" class="btn btn-outline-primary">
                     <i class="bi bi-list-check me-1"></i>Kelola Soal
                 </a>
                 <Button color="primary" onclick={() => router.visit(`/app/guru/ujian/${ujian.id}/wizard/langkah/3?mode=santai`)}>
@@ -124,7 +124,7 @@
                     {/if}
                     {#if kelompokBanks.length === 0}
                         <div class="form-text">
-                            Belum ada bank soal. <a href="/app/guru/bank-soal/kelompok">Buat bank soal dulu</a>.
+                            Belum ada bank soal. <a use:inertia href="/app/guru/bank-soal/kelompok">Buat bank soal dulu</a>.
                         </div>
                     {/if}
                 </div>

@@ -289,10 +289,10 @@
         subtitle="Buat kuis dan ujian besar, kelola soal, token, dan pantau hasil."
     >
         {#snippet actions()}
-            <a href="/app/guru/ujian/wizard?mode=santai" class="btn btn-outline-primary">
+            <a use:inertia href="/app/guru/ujian/wizard?mode=santai" class="btn btn-outline-primary">
                 <i class="bi bi-lightning-charge me-1"></i>Buat Kuis
             </a>
-            <a href="/app/guru/ujian/wizard?mode=resmi" class="btn btn-primary">
+            <a use:inertia href="/app/guru/ujian/wizard?mode=resmi" class="btn btn-primary">
                 <i class="bi bi-shield-check me-1"></i>Buat Ujian Resmi
             </a>
         {/snippet}

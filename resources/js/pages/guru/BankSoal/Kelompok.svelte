@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { useForm } from '@inertiajs/svelte';
+    import { inertia, useForm } from '@inertiajs/svelte';
     import { Button, Card, CardBody, Modal, ModalBody, ModalFooter, ModalHeader } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
     import EmptyState from '@/components/EmptyState.svelte';
@@ -38,7 +38,7 @@
     <div class="row g-2 g-md-3">
         {#each kelompoks.data as k}
             <div class="col-12 col-md-6 col-lg-4">
-                <a href="/app/guru/bank-soal/kelompok/{k.id}" class="text-decoration-none">
+                <a use:inertia href="/app/guru/bank-soal/kelompok/{k.id}" class="text-decoration-none">
                     <Card class="h-100">
                         <CardBody>
                             <div class="d-flex justify-content-between align-items-start mb-2">

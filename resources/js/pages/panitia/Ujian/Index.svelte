@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { inertia } from '@inertiajs/svelte';
     import { Badge, Button, Card, CardBody, CardHeader } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
     import EmptyState from '@/components/EmptyState.svelte';
@@ -36,7 +37,7 @@
                             <span><i class="bi bi-clock me-1"></i>{u.sesis_count} sesi</span>
                         </div>
                         {#if u.status === 'terbit'}
-                            <a href="/app/panitia/ujian/{u.id}/monitoring" class="btn btn-sm btn-outline-primary mb-2">
+                            <a use:inertia href="/app/panitia/ujian/{u.id}/monitoring" class="btn btn-sm btn-outline-primary mb-2">
                                 <i class="bi bi-activity me-1"></i>Monitoring
                             </a>
                         {/if}
