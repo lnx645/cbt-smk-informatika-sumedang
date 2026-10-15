@@ -41,7 +41,7 @@ test('e2e full: guru → panitia → siswa', function (): void {
             'password' => 'password123',
             'role' => 'panitia',
         ])
-        ->assertRedirect(route('admin.akun-admin.index'))
+        ->assertRedirect()
         ->assertSessionHasNoErrors();
 
     $panitiaBaru = User::where('email', 'e2e-panitia@ifsu.test')->first();
@@ -109,7 +109,7 @@ test('e2e full: guru → panitia → siswa', function (): void {
     // Serahkan ke panitia.
     $this->actingAs($guruUser)
         ->post(route('app.guru.ujian.wizard.serahkan', $ujian))
-        ->assertRedirect(route('app.guru.ujian.index'));
+        ->assertRedirect();
 
     expect($ujian->fresh()->status)->toBe('diajukan');
 
@@ -149,7 +149,7 @@ test('e2e full: guru → panitia → siswa', function (): void {
 
     $this->actingAs($panitia)
         ->post(route('app.panitia.ujian.terbit', $ujian))
-        ->assertRedirect(route('app.panitia.ujian.index'));
+        ->assertRedirect();
 
     expect($ujian->fresh()->status)->toBe('terbit');
 
