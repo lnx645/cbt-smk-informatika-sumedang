@@ -30,6 +30,9 @@
     </div>
 
     <h1>BERITA ACARA PELAKSANAAN UJIAN</h1>
+    @if ($beritaAcara->nomor_surat)
+        <p class="nomor"><strong>Nomor: {{ $beritaAcara->nomor_surat }}</strong></p>
+    @endif
     <p class="nomor">Pada hari ini {{ $beritaAcara->tanggal->translatedFormat('l, d F Y') }} telah dilaksanakan ujian sebagai berikut:</p>
 
     <table class="info">

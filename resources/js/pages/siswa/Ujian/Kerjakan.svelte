@@ -2,6 +2,7 @@
     import 'katex/dist/katex.min.css';
     import { onMount, onDestroy } from 'svelte';
     import { router } from '@inertiajs/svelte';
+    import { toast } from 'svelte-sonner';
     import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
     import { confirm } from '@/lib/confirm.svelte';
     import {
@@ -125,7 +126,14 @@
                 jawaban_teks: jawabanTeks[soal.id] ?? '',
                 ragu: raguMap[soal.id] ?? false,
             },
-            { preserveState: true, preserveScroll: true, replace: true },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onError: () => {
+                    toast.error('Gagal menyimpan jawaban. Periksa koneksi internetmu, lalu coba lagi.');
+                },
+            },
         );
     }
 
@@ -188,9 +196,18 @@
                     jawaban_teks: jawabanTeks[soalAktif.id] ?? '',
                     ragu: raguMap[soalAktif.id] ?? false,
                 }),
-            }).finally(() => {
-                router.post(UjianController.submit({ ujian: ujian.id }).url);
-            });
+            })
+                .then((res) => {
+                    if (!res.ok) {
+                        toast.warning('Jawaban terakhir mungkin belum tersimpan (koneksi bermasalah). Tetap kumpulkan? Jawaban sebelumnya sudah aman.');
+                    }
+                })
+                .catch(() => {
+                    toast.warning('Koneksi bermasalah saat menyimpan jawaban terakhir. Jawaban sebelumnya sudah aman di server.');
+                })
+                .finally(() => {
+                    router.post(UjianController.submit({ ujian: ujian.id }).url);
+                });
         } else {
             router.post(UjianController.submit({ ujian: ujian.id }).url);
         }

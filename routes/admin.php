@@ -107,6 +107,8 @@ Route::controller(GuruKelasController::class)->group(function (): void {
 // Siswa, Akun & Penempatan Kelas
 // -------------------------------------------------------------------
 Route::resource('siswa', SiswaController::class)->except(['create', 'edit', 'show']);
+Route::get('siswa/template', [SiswaController::class, 'template'])->name('siswa.template');
+Route::post('siswa/impor', [SiswaController::class, 'impor'])->name('siswa.impor');
 
 Route::controller(AkunSiswaController::class)->group(function (): void {
     Route::get('siswa/{siswa}/akun', 'show')->name('siswa.akun');
@@ -180,6 +182,7 @@ Route::controller(RuangController::class)->group(function (): void {
 Route::controller(UjianController::class)->group(function (): void {
     Route::get('ujian', 'index')->name('ujian.index');
     Route::post('ujian', 'store')->name('ujian.store');
+    Route::put('ujian/{ujian}', 'update')->name('ujian.update');
     Route::post('ujian/{ujian}/terbit', 'terbit')->name('ujian.terbit');
     Route::delete('ujian/{ujian}', 'destroy')->name('ujian.destroy');
     Route::post('ujian/{ujian}/pengelola-token', 'setPengelolaToken')->name('ujian.pengelola-token');

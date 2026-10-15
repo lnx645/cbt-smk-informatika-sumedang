@@ -81,7 +81,7 @@
 
                 <div class="login-box">
                     <div class="row"><span class="k">Username</span><span class="v">{{ $siswa->nisn }}</span></div>
-                    <div class="row"><span class="k">Password</span><span class="v">sesuai kartu login</span></div>
+                    <div class="row"><span class="k">Password</span><span class="v">dibagikan wali kelas</span></div>
                 </div>
 
                 @if ($ujian->token)
