@@ -370,6 +370,12 @@
                                         <div class="text-muted small">
                                             {item.durasi_menit} menit · bobot {item.bobot}
                                         </div>
+                                        {#if item.catatan_panitia}
+                                            <div class="alert alert-warning py-1 px-2 mt-1 mb-0 small">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                                <strong>Catatan Panitia:</strong> {item.catatan_panitia}
+                                            </div>
+                                        {/if}
                                     </td>
                                     <td>
                                         <Badge color={KATEGORI_INFO[item.kategori]?.color ?? 'secondary'} pill>

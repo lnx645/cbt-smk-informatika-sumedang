@@ -14,7 +14,13 @@
     let { ujians }: { ujians: { data: Ujian[] } } = $props();
 </script>
 
-<PageHeader title="Panitia Ujian" subtitle="Kelola ujian resmi (UTS / UAS / USBK) lintas kelas" />
+<PageHeader title="Panitia Ujian" subtitle="Kelola ujian resmi (UTS / UAS / USBK) lintas kelas">
+    {#snippet actions()}
+        <a href="/app/panitia/ujian/jadwal-pdf" target="_blank" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-printer me-1"></i>Cetak Jadwal
+        </a>
+    {/snippet}
+</PageHeader>
 
 {#if ujians.data.length === 0}
     <EmptyState message="Belum ada ujian resmi" hint="Ujian resmi dibuat oleh guru/panitia dengan kategori UTS, UAS, atau USBK." />

@@ -44,6 +44,8 @@
     }
 
     const aturForm = useForm({ tata_tertib: ujian.tata_tertib ?? '', kkm: ujian.kkm ?? 75 });
+    const bukaTokenForm = useForm({});
+    const tutupTokenForm = useForm({});
     function simpanPengaturan() {
         aturForm.post(`/app/panitia/ujian/${ujian.id}/pengaturan`);
     }
@@ -66,7 +68,10 @@
             {ujian.status.toUpperCase()}
         </Badge>
         <a href="/app/panitia/ujian/{ujian.id}/kartu-peserta-kelas" target="_blank" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-printer me-1"></i>Cetak Kartu (Per Kelas)
+            <i class="bi bi-printer me-1"></i>Kartu (Kelas)
+        </a>
+        <a href="/app/panitia/ujian/{ujian.id}/berita-acara" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-file-text me-1"></i>Berita Acara
         </a>
     {/snippet}
 </PageHeader>
@@ -102,8 +107,11 @@
                             <td class="small">{s.waktu_mulai?.replace('T', ' ')} – {s.waktu_selesai?.replace('T', ' ')}</td>
                             <td>
                                 {s.ruang ?? '–'}
-                                <a href="/app/panitia/ujian/{ujian.id}/sesi/{s.id}/kartu-peserta" target="_blank" class="btn btn-sm btn-outline-secondary ms-2">
+                                <a href="/app/panitia/ujian/{ujian.id}/sesi/{s.id}/kartu-peserta" target="_blank" class="btn btn-sm btn-outline-secondary ms-1" title="Kartu peserta sesi ini">
                                     <i class="bi bi-printer"></i>
+                                </a>
+                                <a href="/app/panitia/ujian/{ujian.id}/sesi/{s.id}/daftar-hadir" target="_blank" class="btn btn-sm btn-outline-secondary ms-1" title="Daftar hadir sesi ini">
+                                    <i class="bi bi-list-check"></i>
                                 </a>
                             </td>
                         </tr>
@@ -165,7 +173,23 @@
     <CardHeader>Token, Tata Tertib & KKM</CardHeader>
     <CardBody>
         {#if ujian.token}
-            <div class="alert alert-info">Token aktif: <strong class="fs-5">{ujian.token}</strong></div>
+            <div class="alert {ujian.token_dibuka ? 'alert-success' : 'alert-secondary'} d-flex align-items-center justify-content-between">
+                <div>
+                    Token: <strong class="fs-5">{ujian.token}</strong>
+                    <span class="badge {ujian.token_dibuka ? 'text-bg-success' : 'text-bg-secondary'} ms-2">
+                        {ujian.token_dibuka ? 'DIBUKA' : 'DITUTUP'}
+                    </span>
+                </div>
+                {#if ujian.token_dibuka}
+                    <button class="btn btn-sm btn-outline-danger" onclick={() => tutupTokenForm.post(`/app/panitia/ujian/${ujian.id}/tutup-token`)}>
+                        Tutup Token
+                    </button>
+                {:else}
+                    <button class="btn btn-sm btn-success" onclick={() => bukaTokenForm.post(`/app/panitia/ujian/${ujian.id}/buka-token`)}>
+                        <i class="bi bi-unlock me-1"></i>Buka Token
+                    </button>
+                {/if}
+            </div>
         {/if}
         <div class="mb-3">
             <label class="form-label" for="p-tertib">Tata Tertib <span class="text-danger">*</span></label>
