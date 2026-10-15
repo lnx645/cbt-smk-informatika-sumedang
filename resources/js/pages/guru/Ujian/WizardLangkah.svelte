@@ -27,9 +27,7 @@
         'santai-2': 'Tambah Soal',
         'santai-3': 'Review & Terbitkan',
         'resmi-2': 'Paket Soal (Varian A/B/C)',
-        'resmi-3': 'Sesi & Ruang',
-        'resmi-4': 'Token & Tata Tertib',
-        'resmi-5': 'Review & Terbitkan',
+        'resmi-3': 'Review & Serahkan ke Panitia',
     };
 
     // Form paket (langkah 2 resmi) — pilih bank soal bernama.
@@ -39,46 +37,13 @@
         paketForm.post(`/app/guru/ujian/${ujian.id}/wizard/paket`);
     }
 
-    // Form sesi (langkah 3 resmi) — prefill dari sesi yang sudah ada agar bisa diedit.
-    type SesiForm = { nama: string; waktu_mulai: string; waktu_selesai: string; ruang_ujian_id: number | null; kapasitas: number | null };
-    const sesiAwal: SesiForm[] = (ujian.sesis ?? []).map((s) => ({
-        nama: s.nama,
-        waktu_mulai: (s.waktu_mulai ?? '').slice(0, 16),
-        waktu_selesai: (s.waktu_selesai ?? '').slice(0, 16),
-        ruang_ujian_id: s.ruang_ujian_id ?? null,
-        kapasitas: s.kapasitas ?? null,
-    }));
-    const sesiForm = useForm({
-        sesis: sesiAwal.length > 0 ? sesiAwal : [{ nama: 'Sesi 1', waktu_mulai: '', waktu_selesai: '', ruang_ujian_id: null, kapasitas: null } as SesiForm],
-    });
-    let editSesi = $state(sesiAwal.length === 0);
-
-    function tambahSesi() {
-        sesiForm.sesis = [...sesiForm.sesis, { nama: `Sesi ${sesiForm.sesis.length + 1}`, waktu_mulai: '', waktu_selesai: '', ruang_ujian_id: null, kapasitas: null }];
-    }
-    function hapusSesi(i: number) {
-        sesiForm.sesis = sesiForm.sesis.filter((_, j) => j !== i);
-    }
-    function simpanSesi() {
-        sesiForm.post(`/app/guru/ujian/${ujian.id}/wizard/sesi`);
-    }
-
-    // Navigasi antar langkah.
-    function keLangkah(n: number) {
-        router.visit(`/app/guru/ujian/${ujian.id}/wizard/langkah/${n}`);
-    }
-
-    // Form token (langkah 4 resmi)
-    const tokenForm = useForm({
-        tata_tertib: ujian.tata_tertib ?? '',
-        kkm: ujian.kkm ?? 75,
-    });
-    function simpanToken() {
-        tokenForm.post(`/app/guru/ujian/${ujian.id}/wizard/token`);
-    }
-
     function terbit() {
         router.post(`/app/guru/ujian/${ujian.id}/wizard/terbit`);
+    }
+
+    function serahkan() {
+        if (!confirm('Serahkan ujian ini ke panitia? Panitia akan mengatur jadwal, sesi, dan token.')) return;
+        router.post(`/app/guru/ujian/${ujian.id}/wizard/serahkan`);
     }
 
     function kembali() {
@@ -184,112 +149,9 @@
     </Card>
 {/if}
 
-{#if mode === 'resmi' && langkah === 3}
+{#if (mode === 'santai' && langkah === 3) || (mode === 'resmi' && langkah === 3)}
     <Card>
-        <CardHeader>Sesi Ujian & Ruang</CardHeader>
-        <CardBody>
-            {#if (ujian.sesis?.length ?? 0) > 0 && !editSesi}
-                <Table size="sm" striped>
-                    <thead><tr><th>Sesi</th><th>Waktu</th><th>Ruang</th></tr></thead>
-                    <tbody>
-                        {#each ujian.sesis! as s}
-                            <tr>
-                                <td>{s.nama}</td>
-                                <td class="small">{s.waktu_mulai?.slice(0, 16).replace('T', ' ')} – {s.waktu_selesai?.slice(0, 16).replace('T', ' ')}</td>
-                                <td>{s.ruang?.nama ?? '–'}</td>
-                            </tr>
-                        {/each}
-                    </tbody>
-                </Table>
-                <div class="d-flex gap-2">
-                    <Button color="secondary" outline onclick={() => (editSesi = true)}>
-                        <i class="bi bi-pencil me-1"></i>Ubah Sesi
-                    </Button>
-                    <Button color="primary" onclick={() => keLangkah(4)}>
-                        Lanjut <i class="bi bi-arrow-right ms-1"></i>
-                    </Button>
-                </div>
-            {:else}
-                {#if sesiForm.errors.sesis}<div class="text-danger small mb-2">{sesiForm.errors.sesis}</div>{/if}
-                {#each sesiForm.sesis as s, i}
-                    <div class="border rounded p-3 mb-2">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <strong class="small">Sesi {i + 1}</strong>
-                            {#if sesiForm.sesis.length > 1}
-                                <Button size="sm" color="danger" outline onclick={() => hapusSesi(i)}>
-                                    <i class="bi bi-trash"></i>
-                                </Button>
-                            {/if}
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-md-3">
-                                <label class="form-label">Nama sesi</label>
-                                <input class="form-control" bind:value={s.nama} />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Mulai</label>
-                                <input type="datetime-local" class="form-control" bind:value={s.waktu_mulai} />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Selesai</label>
-                                <input type="datetime-local" class="form-control" bind:value={s.waktu_selesai} />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Ruang</label>
-                                <select class="form-select" bind:value={s.ruang_ujian_id}>
-                                    <option value={null}>— Pilih —</option>
-                                    {#each ruangs as r}<option value={r.id}>{r.nama}</option>{/each}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                {/each}
-                <div class="d-flex gap-2 flex-wrap">
-                    <Button color="secondary" outline onclick={() => keLangkah(2)}>
-                        <i class="bi bi-arrow-left me-1"></i>Kembali
-                    </Button>
-                    <Button color="secondary" outline onclick={tambahSesi}>
-                        <i class="bi bi-plus me-1"></i>Tambah Sesi
-                    </Button>
-                    <Button color="primary" onclick={simpanSesi} disabled={sesiForm.processing}>Simpan & Lanjut</Button>
-                </div>
-            {/if}
-        </CardBody>
-    </Card>
-{/if}
-
-{#if mode === 'resmi' && langkah === 4}
-    <Card>
-        <CardHeader>Token & Tata Tertib</CardHeader>
-        <CardBody>
-            {#if ujian.token}
-                <div class="alert alert-info">
-                    Token aktif: <strong class="fs-5">{ujian.token}</strong>
-                </div>
-            {/if}
-            <div class="mb-3">
-                <label class="form-label" for="tk-tertib">Tata Tertib <span class="text-danger">*</span></label>
-                <textarea id="tk-tertib" class="form-control" rows="5" bind:value={tokenForm.tata_tertib}
-                    placeholder={"1. Dilarang membuka tab/aplikasi lain.\n2. Dilarang bekerja sama.\n3. ..."}></textarea>
-                {#if tokenForm.errors.tata_tertib}<div class="text-danger small">{tokenForm.errors.tata_tertib}</div>{/if}
-            </div>
-            <div class="mb-3">
-                <label class="form-label" for="tk-kkm">KKM <span class="text-danger">*</span></label>
-                <input id="tk-kkm" type="number" class="form-control" style="max-width:120px" bind:value={tokenForm.kkm} min="0" max="100" />
-            </div>
-            <div class="d-flex gap-2">
-                <Button color="secondary" outline onclick={() => keLangkah(3)}>
-                    <i class="bi bi-arrow-left me-1"></i>Kembali
-                </Button>
-                <Button color="primary" onclick={simpanToken} disabled={tokenForm.processing}>Simpan & Lanjut</Button>
-            </div>
-        </CardBody>
-    </Card>
-{/if}
-
-{#if (mode === 'santai' && langkah === 3) || (mode === 'resmi' && langkah === 5)}
-    <Card>
-        <CardHeader>Review & Terbitkan</CardHeader>
+        <CardHeader>{mode === 'resmi' ? 'Review & Serahkan ke Panitia' : 'Review & Terbitkan'}</CardHeader>
         <CardBody>
             <dl class="row small">
                 <dt class="col-4">Judul</dt><dd class="col-8">{ujian.judul}</dd>
@@ -297,35 +159,51 @@
                 <dt class="col-4">Durasi</dt><dd class="col-8">{ujian.durasi_menit} menit</dd>
                 {#if mode === 'resmi'}
                     <dt class="col-4">Paket soal</dt><dd class="col-8">{ujian.paket_soals?.length ?? 0} paket</dd>
-                    <dt class="col-4">Sesi</dt><dd class="col-8">{ujian.sesis?.length ?? 0} sesi</dd>
-                    <dt class="col-4">Token</dt><dd class="col-8">{ujian.token ?? '–'}</dd>
                 {:else}
                     <dt class="col-4">Soal</dt><dd class="col-8">{ujian.soals?.length ?? 0} soal</dd>
                 {/if}
             </dl>
 
-            {#if kelengkapan.length > 0}
-                <div class="alert alert-warning">
-                    <strong>Belum bisa diterbitkan:</strong>
-                    <ul class="mb-0 ps-3">
-                        {#each kelengkapan as k}<li>{k}</li>{/each}
-                    </ul>
+            {#if mode === 'resmi'}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Setelah diserahkan, <strong>panitia</strong> yang akan mengatur jadwal, sesi, ruang, token, dan menerbitkan ujian.
+                </div>
+                {#if (ujian.paket_soals?.length ?? 0) === 0}
+                    <div class="alert alert-warning">Buat paket soal dulu (langkah 2) sebelum diserahkan.</div>
+                {/if}
+                <div class="d-flex gap-2 flex-wrap">
+                    <Button color="secondary" outline onclick={() => keLangkah(2)}>
+                        <i class="bi bi-arrow-left me-1"></i>Kembali
+                    </Button>
+                    <Button color="primary" onclick={serahkan} disabled={(ujian.paket_soals?.length ?? 0) === 0}>
+                        <i class="bi bi-send me-1"></i>Serahkan ke Panitia
+                    </Button>
                 </div>
             {:else}
-                <div class="alert alert-success">
-                    <i class="bi bi-check-circle me-1"></i>Semua lengkap. Siap diterbitkan!
+                {#if kelengkapan.length > 0}
+                    <div class="alert alert-warning">
+                        <strong>Belum bisa diterbitkan:</strong>
+                        <ul class="mb-0 ps-3">
+                            {#each kelengkapan as k}<li>{k}</li>{/each}
+                        </ul>
+                    </div>
+                {:else}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle me-1"></i>Semua lengkap. Siap diterbitkan!
+                    </div>
+                {/if}
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <Button color="secondary" outline onclick={() => keLangkah(2)}>
+                        <i class="bi bi-arrow-left me-1"></i>Kembali
+                    </Button>
+                    <Button color="secondary" outline onclick={kembali}>Simpan Draft</Button>
+                    <Button color="success" onclick={terbit} disabled={kelengkapan.length > 0}>
+                        <i class="bi bi-send me-1"></i>Terbitkan Ujian
+                    </Button>
                 </div>
             {/if}
-
-            <div class="d-flex gap-2 flex-wrap">
-                <Button color="secondary" outline onclick={() => keLangkah(mode === 'resmi' ? 4 : 2)}>
-                    <i class="bi bi-arrow-left me-1"></i>Kembali
-                </Button>
-                <Button color="secondary" outline onclick={kembali}>Simpan Draft</Button>
-                <Button color="success" onclick={terbit} disabled={kelengkapan.length > 0}>
-                    <i class="bi bi-send me-1"></i>Terbitkan Ujian
-                </Button>
-            </div>
         </CardBody>
     </Card>
 {/if}

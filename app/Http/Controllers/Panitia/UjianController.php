@@ -136,4 +136,124 @@ class UjianController extends BaseAppController
 
         return redirect()->back()->with('success', 'Pengerjaan siswa direset. Siswa bisa mulai ulang.');
     }
+
+    /**
+     * Detail pengaturan panitia: sesi, ruang, jadwal, token, tata tertib, KKM.
+     * Alur sekolah beneran: guru serahkan soal → panitia atur & terbitkan.
+     */
+    public function show(Request $request, Ujian $ujian): Response
+    {
+        $ujian->load(['paketSoals.soals', 'sesis.ruang', 'guruKelas.kelas', 'guruKelas.matpel', 'guru']);
+
+        return Inertia::render('panitia/Ujian/Show', [
+            'ujian' => [
+                'id' => $ujian->id,
+                'judul' => $ujian->judul,
+                'kategori' => $ujian->kategori,
+                'status' => $ujian->status,
+                'durasi_menit' => $ujian->durasi_menit,
+                'token' => $ujian->token,
+                'tata_tertib' => $ujian->tata_tertib,
+                'kkm' => $ujian->kkm,
+                'kelas' => $ujian->guruKelas?->kelas?->nama,
+                'matpel' => $ujian->guruKelas?->matpel?->name,
+                'guru' => $ujian->guru?->nama_lengkap,
+                'paket_soals' => $ujian->paketSoals->map(fn ($p) => [
+                    'id' => $p->id, 'kode' => $p->kode, 'nama' => $p->nama,
+                    'jumlah_soal' => $p->soals->count(),
+                ]),
+                'sesis' => $ujian->sesis->map(fn ($s) => [
+                    'id' => $s->id, 'nama' => $s->nama,
+                    'waktu_mulai' => $s->waktu_mulai?->format('Y-m-d\TH:i'),
+                    'waktu_selesai' => $s->waktu_selesai?->format('Y-m-d\TH:i'),
+                    'ruang_ujian_id' => $s->ruang_ujian_id,
+                    'ruang' => $s->ruang?->nama,
+                    'kapasitas' => $s->kapasitas,
+                ]),
+            ],
+            'ruangs' => \App\Models\RuangUjian::orderBy('nama')->get(['id', 'nama', 'kapasitas']),
+            'kelengkapan' => $this->kelengkapanService->cek($ujian),
+        ]);
+    }
+
+    /**
+     * Panitia simpan sesi & ruang (mengganti semua).
+     */
+    public function storeSesi(Request $request, Ujian $ujian): RedirectResponse
+    {
+        $data = $request->validate([
+            'sesis' => ['required', 'array', 'min:1'],
+            'sesis.*.nama' => ['required', 'string', 'max:100'],
+            'sesis.*.waktu_mulai' => ['required', 'date'],
+            'sesis.*.waktu_selesai' => ['required', 'date', 'after:sesis.*.waktu_mulai'],
+            'sesis.*.ruang_ujian_id' => ['nullable', 'integer', 'exists:ruang_ujians,id'],
+            'sesis.*.kapasitas' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $ujian->sesis()->delete();
+
+        foreach (array_values($data['sesis']) as $i => $s) {
+            $ujian->sesis()->create([
+                'nama' => $s['nama'],
+                'urutan' => $i + 1,
+                'waktu_mulai' => $s['waktu_mulai'],
+                'waktu_selesai' => $s['waktu_selesai'],
+                'ruang_ujian_id' => $s['ruang_ujian_id'] ?? null,
+                'kapasitas' => $s['kapasitas'] ?? null,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Jadwal sesi tersimpan.');
+    }
+
+    /**
+     * Panitia simpan token, tata tertib, KKM.
+     */
+    public function storePengaturan(Request $request, Ujian $ujian): RedirectResponse
+    {
+        $data = $request->validate([
+            'tata_tertib' => ['required', 'string', 'min:10'],
+            'kkm' => ['required', 'integer', 'min:0', 'max:100'],
+        ]);
+
+        $ujian->update([
+            'token' => $ujian->token ?? app(\App\Services\UjianService::class)->generateToken(),
+            'token_released_at' => now(),
+            'tata_tertib' => $data['tata_tertib'],
+            'kkm' => $data['kkm'],
+        ]);
+
+        return redirect()->back()->with('success', 'Token, tata tertib & KKM tersimpan.');
+    }
+
+    /**
+     * Panitia terbitkan ujian resmi.
+     */
+    public function terbit(Request $request, Ujian $ujian): RedirectResponse
+    {
+        $masalah = $this->kelengkapanService->cek($ujian);
+        if ($masalah !== []) {
+            return redirect()->back()->withErrors(['kelengkapan' => 'Belum bisa diterbitkan: '.implode(' ', $masalah)]);
+        }
+
+        $ujian->update(['status' => 'terbit']);
+        app(\App\Services\NotifikasiService::class)->jadwalUjian($ujian->fresh());
+
+        return redirect()->route('app.panitia.ujian.index')->with('success', 'Ujian diterbitkan!');
+    }
+
+    /**
+     * Panitia kembalikan ke guru (revisi).
+     */
+    public function kembalikan(Request $request, Ujian $ujian): RedirectResponse
+    {
+        $data = $request->validate(['catatan' => ['nullable', 'string', 'max:500']]);
+
+        $ujian->update(['status' => 'draft']);
+
+        return redirect()->route('app.panitia.ujian.index')->with(
+            'success',
+            'Ujian dikembalikan ke guru untuk direvisi.'.($data['catatan'] ? ' Catatan: '.$data['catatan'] : '')
+        );
+    }
 }

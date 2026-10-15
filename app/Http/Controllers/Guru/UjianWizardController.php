@@ -108,6 +108,10 @@ class UjianWizardController extends BaseAppController
 
     /**
      * Tampilkan langkah wizard. Mode diturunkan dari kategori ujian (anti-tamper via URL).
+     *
+     * CBT v2 (sekolah beneran):
+     * - Guru mode resmi: 3 langkah (info → paket → serahkan ke panitia).
+     * - Panitia yang atur sesi/ruang/jadwal/token lalu menerbitkan.
      */
     public function langkah(Request $request, Ujian $ujian, int $langkah): Response|RedirectResponse
     {
@@ -115,7 +119,8 @@ class UjianWizardController extends BaseAppController
 
         // Mode resmi = kategori besar (uts/uas/usbk). Jangan percaya query param.
         $mode = $ujian->kategoriBesar() ? 'resmi' : 'santai';
-        $maksLangkah = $mode === 'resmi' ? 5 : 3;
+        // Guru resmi: 3 langkah (info, paket, serahkan). Santai: 3 langkah (info, soal, terbit).
+        $maksLangkah = 3;
 
         if ($langkah < 2 || $langkah > $maksLangkah) {
             return Redirect::route('app.guru.ujian.index');
@@ -253,7 +258,33 @@ class UjianWizardController extends BaseAppController
     }
 
     /**
-     * Terbitkan dari wizard (langkah terakhir).
+     * Serahkan ke panitia (langkah terakhir guru mode resmi).
+     * Guru selesai sampai paket soal; panitia yang atur sesi/jadwal/token & menerbitkan.
+     */
+    public function serahkan(Request $request, Ujian $ujian): RedirectResponse
+    {
+        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+
+        if (! $ujian->kategoriBesar()) {
+            Toast::error('Hanya ujian resmi yang diserahkan ke panitia.');
+
+            return Redirect::back();
+        }
+
+        if (! $ujian->memakaiPaketSoal()) {
+            Toast::error('Buat paket soal dulu sebelum diserahkan ke panitia.');
+
+            return Redirect::back();
+        }
+
+        $ujian->update(['status' => 'diajukan']);
+        Toast::success('Ujian diserahkan ke panitia. Panitia akan mengatur jadwal, sesi, dan token.');
+
+        return Redirect::route('app.guru.ujian.index');
+    }
+
+    /**
+     * Terbitkan dari wizard (mode santai saja; resmi diterbitkan panitia).
      */
     public function terbit(Request $request, Ujian $ujian): RedirectResponse
     {

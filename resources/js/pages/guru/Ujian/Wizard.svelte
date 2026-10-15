@@ -29,11 +29,11 @@
     }
 </script>
 
-<PageHeader title="Buat Ujian Baru" subtitle="Langkah 1 dari {mode === 'santai' ? 3 : 5} — Informasi dasar" />
+<PageHeader title="Buat Ujian Baru" subtitle="Langkah 1 dari 3 — Informasi dasar" />
 
 <!-- Progress -->
 <div class="d-flex gap-2 mb-3">
-    {#each Array(mode === 'santai' ? 3 : 5) as _, i}
+    {#each Array(3) as _, i}
         <div class="flex-fill rounded" style="height:6px;background:{i === 0 ? 'var(--bs-primary)' : 'var(--bs-secondary-bg)'}"></div>
     {/each}
 </div>
@@ -61,7 +61,7 @@
                 >
                     <i class="bi bi-shield-check fs-4 d-block mb-1"></i>
                     <strong>Resmi</strong>
-                    <div class="small">UTS / UAS / USBK<br/>5 langkah terpandu</div>
+                    <div class="small">UTS / UAS / USBK<br/>3 langkah, serahkan ke panitia</div>
                 </button>
             </div>
         </div>

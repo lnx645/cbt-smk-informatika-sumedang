@@ -36,19 +36,24 @@
                             <span><i class="bi bi-layers me-1"></i>{u.paket_soals_count} paket</span>
                             <span><i class="bi bi-clock me-1"></i>{u.sesis_count} sesi</span>
                         </div>
-                        {#if u.status === 'terbit'}
-                            <a use:inertia href="/app/panitia/ujian/{u.id}/monitoring" class="btn btn-sm btn-outline-primary mb-2">
-                                <i class="bi bi-activity me-1"></i>Monitoring
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a use:inertia href="/app/panitia/ujian/{u.id}" class="btn btn-sm btn-primary mb-2">
+                                <i class="bi bi-gear me-1"></i>Atur Jadwal
                             </a>
-                        {/if}
-                        {#if !u.siap_terbit && u.status === 'draft'}
+                            {#if u.status === 'terbit'}
+                                <a use:inertia href="/app/panitia/ujian/{u.id}/monitoring" class="btn btn-sm btn-outline-primary mb-2">
+                                    <i class="bi bi-activity me-1"></i>Monitoring
+                                </a>
+                            {/if}
+                        </div>
+                        {#if !u.siap_terbit && (u.status === 'draft' || u.status === 'diajukan')}
                             <div class="alert alert-warning py-2 px-3 small mb-2">
                                 <strong>Belum siap terbit:</strong>
                                 <ul class="mb-0 ps-3">
                                     {#each u.kelengkapan as k}<li>{k}</li>{/each}
                                 </ul>
                             </div>
-                        {:else if u.siap_terbit && u.status === 'draft'}
+                        {:else if u.siap_terbit && u.status !== 'terbit'}
                             <div class="alert alert-success py-2 px-3 small mb-2">
                                 <i class="bi bi-check-circle me-1"></i>Siap diterbitkan.
                             </div>

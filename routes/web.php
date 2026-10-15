@@ -75,8 +75,7 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::post('guru/ujian/wizard/info', [GuruUjianWizardController::class, 'storeInfo'])->name('guru.ujian.wizard.info');
     Route::get('guru/ujian/{ujian}/wizard/langkah/{langkah}', [GuruUjianWizardController::class, 'langkah'])->name('guru.ujian.wizard.langkah');
     Route::post('guru/ujian/{ujian}/wizard/paket', [GuruUjianWizardController::class, 'generatePaket'])->name('guru.ujian.wizard.paket');
-    Route::post('guru/ujian/{ujian}/wizard/sesi', [GuruUjianWizardController::class, 'storeSesi'])->name('guru.ujian.wizard.sesi');
-    Route::post('guru/ujian/{ujian}/wizard/token', [GuruUjianWizardController::class, 'storeToken'])->name('guru.ujian.wizard.token');
+    Route::post('guru/ujian/{ujian}/wizard/serahkan', [GuruUjianWizardController::class, 'serahkan'])->name('guru.ujian.wizard.serahkan');
     Route::post('guru/ujian/{ujian}/wizard/terbit', [GuruUjianWizardController::class, 'terbit'])->name('guru.ujian.wizard.terbit');
 
     // Guru: Ujian (CBT)
@@ -124,6 +123,11 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     // Panitia Ujian (CBT v2): kelola ujian resmi lintas kelas.
     Route::middleware('panitia-only')->group(function (): void {
         Route::get('panitia/ujian', [PanitiaUjianController::class, 'index'])->name('panitia.ujian.index');
+        Route::get('panitia/ujian/{ujian}', [PanitiaUjianController::class, 'show'])->name('panitia.ujian.show');
+        Route::post('panitia/ujian/{ujian}/sesi', [PanitiaUjianController::class, 'storeSesi'])->name('panitia.ujian.sesi');
+        Route::post('panitia/ujian/{ujian}/pengaturan', [PanitiaUjianController::class, 'storePengaturan'])->name('panitia.ujian.pengaturan');
+        Route::post('panitia/ujian/{ujian}/terbit', [PanitiaUjianController::class, 'terbit'])->name('panitia.ujian.terbit');
+        Route::post('panitia/ujian/{ujian}/kembalikan', [PanitiaUjianController::class, 'kembalikan'])->name('panitia.ujian.kembalikan');
         Route::post('panitia/ujian/{ujian}/generate-paket', [PanitiaUjianController::class, 'generatePaket'])->name('panitia.ujian.generate-paket');
         Route::get('panitia/ujian/{ujian}/monitoring', [PanitiaUjianController::class, 'monitoring'])->name('panitia.ujian.monitoring');
         Route::delete('panitia/ujian/{ujian}/pengerjaan/{pengerjaan}/reset', [PanitiaUjianController::class, 'resetPengerjaan'])->name('panitia.ujian.pengerjaan.reset');
