@@ -6,7 +6,6 @@ use App\Http\Controllers\BaseAppController;
 use App\Models\Ujian;
 use App\Models\UjianPengerjaan;
 use App\Services\KelengkapanUjianService;
-use App\Services\PaketSoalService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -21,7 +20,6 @@ use Inertia\Response;
 class UjianController extends BaseAppController
 {
     public function __construct(
-        private readonly PaketSoalService $paketSoalService,
         private readonly KelengkapanUjianService $kelengkapanService,
     ) {}
 
@@ -48,33 +46,6 @@ class UjianController extends BaseAppController
         ]);
     }
 
-    /**
-     * Generate paket soal otomatis (1 klik).
-     */
-    public function generatePaket(Request $request, Ujian $ujian): RedirectResponse
-    {
-        $data = $request->validate([
-            'jumlah_paket' => ['required', 'integer', 'min:2', 'max:10'],
-            'soal_per_paket' => ['required', 'integer', 'min:1', 'max:100'],
-            'bank_soal_ids' => ['required', 'array', 'min:1'],
-            'bank_soal_ids.*' => ['integer'],
-        ]);
-
-        try {
-            $pakets = $this->paketSoalService->generateOtomatis(
-                $ujian,
-                $data['jumlah_paket'],
-                $data['soal_per_paket'],
-                $data['bank_soal_ids'],
-            );
-        } catch (\InvalidArgumentException $e) {
-            return redirect()->back()->withErrors(['bank_soal_ids' => $e->getMessage()]);
-        }
-
-        return redirect()->back()->with(
-            'success',
-            count($pakets).' paket soal berhasil dibuat ('.collect($pakets)->pluck('kode')->join(', ').').'
-        );
     }
 
     /**

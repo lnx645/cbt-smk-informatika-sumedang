@@ -4,15 +4,13 @@
     import PageHeader from '@/components/PageHeader.svelte';
 
     type Paket = { id: number; kode: string; nama: string; soals?: { id: number }[] };
-    type Sesi = { id: number; nama: string; waktu_mulai?: string; waktu_selesai?: string; ruang_ujian_id?: number | null; kapasitas?: number | null; ruang?: { nama: string } | null };
 
     let {
-        ujian, mode, langkah, maksLangkah, kelengkapan, kelompokBanks = [], ruangs = [],
+        ujian, mode, langkah, maksLangkah, kelengkapan, kelompokBanks = [],
     }: {
         ujian: {
             id: number; judul: string; kategori: string; durasi_menit: number;
-            token?: string; tata_tertib?: string; kkm?: number;
-            paket_soals?: Paket[]; sesis?: Sesi[];
+            paket_soals?: Paket[];
             soals?: { id: number }[];
         };
         mode: 'santai' | 'resmi';
@@ -20,7 +18,6 @@
         maksLangkah: number;
         kelengkapan: string[];
         kelompokBanks?: { id: number; nama: string; soals_count: number }[];
-        ruangs?: { id: number; nama: string; kapasitas?: number }[];
     } = $props();
 
     const judulLangkah: Record<string, string> = {

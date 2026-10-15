@@ -128,7 +128,6 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
         Route::post('panitia/ujian/{ujian}/pengaturan', [PanitiaUjianController::class, 'storePengaturan'])->name('panitia.ujian.pengaturan');
         Route::post('panitia/ujian/{ujian}/terbit', [PanitiaUjianController::class, 'terbit'])->name('panitia.ujian.terbit');
         Route::post('panitia/ujian/{ujian}/kembalikan', [PanitiaUjianController::class, 'kembalikan'])->name('panitia.ujian.kembalikan');
-        Route::post('panitia/ujian/{ujian}/generate-paket', [PanitiaUjianController::class, 'generatePaket'])->name('panitia.ujian.generate-paket');
         Route::get('panitia/ujian/{ujian}/monitoring', [PanitiaUjianController::class, 'monitoring'])->name('panitia.ujian.monitoring');
         Route::delete('panitia/ujian/{ujian}/pengerjaan/{pengerjaan}/reset', [PanitiaUjianController::class, 'resetPengerjaan'])->name('panitia.ujian.pengerjaan.reset');
     });

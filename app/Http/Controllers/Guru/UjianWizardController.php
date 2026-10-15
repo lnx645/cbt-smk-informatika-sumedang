@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\BaseAppController;
 use App\Models\GuruKelas;
-use App\Models\RuangUjian;
 use App\Models\Ujian;
 use App\Services\KelengkapanUjianService;
 use App\Services\PaketSoalService;
@@ -152,10 +151,6 @@ class UjianWizardController extends BaseAppController
                 ]);
         }
 
-        if ($mode === 'resmi' && $langkah === 3) {
-            $props['ruangs'] = RuangUjian::orderBy('nama')->get(['id', 'nama', 'kapasitas']);
-        }
-
         return Inertia::render('guru/Ujian/WizardLangkah', $props);
     }
 
@@ -194,72 +189,6 @@ class UjianWizardController extends BaseAppController
         ]);
     }
 
-    /**
-     * Simpan sesi (langkah 3 mode resmi). Mengganti semua sesi lama agar idempoten.
-     */
-    public function storeSesi(Request $request, Ujian $ujian): RedirectResponse
-    {
-        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
-
-        $data = $request->validate([
-            'sesis' => ['required', 'array', 'min:1'],
-            'sesis.*.nama' => ['required', 'string', 'max:100'],
-            'sesis.*.waktu_mulai' => ['required', 'date'],
-            'sesis.*.waktu_selesai' => ['required', 'date', 'after:sesis.*.waktu_mulai'],
-            'sesis.*.ruang_ujian_id' => ['nullable', 'integer', 'exists:ruang_ujians,id'],
-            'sesis.*.kapasitas' => ['nullable', 'integer', 'min:1'],
-        ]);
-
-        // Hapus sesi lama dulu agar simpan ulang tidak duplikat.
-        $ujian->sesis()->delete();
-
-        foreach (array_values($data['sesis']) as $i => $s) {
-            $ujian->sesis()->create([
-                'nama' => $s['nama'],
-                'urutan' => $i + 1,
-                'waktu_mulai' => $s['waktu_mulai'],
-                'waktu_selesai' => $s['waktu_selesai'],
-                'ruang_ujian_id' => $s['ruang_ujian_id'] ?? null,
-                'kapasitas' => $s['kapasitas'] ?? null,
-            ]);
-        }
-
-        Toast::success('Sesi tersimpan.');
-
-        return Redirect::route('app.guru.ujian.wizard.langkah', [
-            'ujian' => $ujian->id, 'langkah' => 4, 'mode' => 'resmi',
-        ]);
-    }
-
-    /**
-     * Simpan token & tata tertib (langkah 4 mode resmi).
-     */
-    public function storeToken(Request $request, Ujian $ujian): RedirectResponse
-    {
-        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
-
-        $data = $request->validate([
-            'tata_tertib' => ['required', 'string', 'min:10'],
-            'kkm' => ['required', 'integer', 'min:0', 'max:100'],
-        ]);
-
-        $ujian->update([
-            'token' => $ujian->token ?? $this->ujianService->generateToken(),
-            'token_released_at' => now(),
-            'tata_tertib' => $data['tata_tertib'],
-            'kkm' => $data['kkm'],
-        ]);
-
-        Toast::success('Token & tata tertib tersimpan.');
-
-        return Redirect::route('app.guru.ujian.wizard.langkah', [
-            'ujian' => $ujian->id, 'langkah' => 5, 'mode' => 'resmi',
-        ]);
-    }
-
-    /**
-     * Serahkan ke panitia (langkah terakhir guru mode resmi).
-     * Guru selesai sampai paket soal; panitia yang atur sesi/jadwal/token & menerbitkan.
      */
     public function serahkan(Request $request, Ujian $ujian): RedirectResponse
     {
