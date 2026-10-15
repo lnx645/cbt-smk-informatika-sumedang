@@ -69,7 +69,7 @@ class User extends Authenticatable
     protected function gateAccess(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, $attributes) => (($this->siswa !== null) || ($this->guru !== null)) || ($this->role === 'admin')
+            get: fn ($value, $attributes) => (($this->siswa !== null) || ($this->guru !== null)) || in_array($this->role, ['admin', 'panitia'], true)
         );
     }
 
