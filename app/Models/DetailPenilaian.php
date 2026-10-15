@@ -9,7 +9,7 @@ class DetailPenilaian extends Model
 {
     use HasFactory;
 
-    protected $table = 'detail_penilaian';
+    protected $table = 'cbt_detail_penilaian';
 
     protected $casts = [
         'nilai' => 'float',

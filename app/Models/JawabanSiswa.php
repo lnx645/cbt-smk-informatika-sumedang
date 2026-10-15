@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Table('jawaban_siswas')]
+#[Table('cbt_jawaban_siswas')]
 class JawabanSiswa extends Model
 {
+    protected $table = 'cbt_jawaban_siswas';
     /** @use HasFactory<JawabanSiswaFactory> */
     use HasFactory;
 

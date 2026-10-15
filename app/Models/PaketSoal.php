@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class PaketSoal extends Model
 {
+    protected $table = 'cbt_paket_soals';
     protected $fillable = ['ujian_id', 'kode', 'nama'];
 
     public function ujian(): BelongsTo

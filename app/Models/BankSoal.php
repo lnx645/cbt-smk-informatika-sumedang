@@ -10,9 +10,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Table('bank_soals')]
+#[Table('cbt_bank_soals')]
 class BankSoal extends Model
 {
+    protected $table = 'cbt_bank_soals';
     /** @use HasFactory<BankSoalFactory> */
     use HasFactory;
 
@@ -26,6 +27,7 @@ class BankSoal extends Model
         'topik',
         'kesulitan',
         'kunci_isian',
+        'detail',
         'isian_case_sensitive',
         'kode_kd',
         'indikator',
@@ -34,6 +36,7 @@ class BankSoal extends Model
     ];
 
     protected $casts = [
+        'detail' => 'array',
         'poin' => 'integer',
         'kunci_isian' => 'array',
         'isian_case_sensitive' => 'boolean',
@@ -76,4 +79,11 @@ class BankSoal extends Model
     {
         return $query->whereIn('matpel_id', $matpelIds);
     }
+
+    public function getTipeLabelAttribute(): string
+    {
+        return \App\Models\KelompokBankSoal::TIPE_SOAL[$this->tipe] ?? $this->tipe;
+    }
+
+    protected $appends = ['tipe_label'];
 }
