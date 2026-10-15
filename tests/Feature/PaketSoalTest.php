@@ -70,6 +70,7 @@ test('distribusi round-robin memberi paket berbeda ke siswa berurutan', function
     $this->ujian->pengerjaans()->create([
         'siswa_nisn' => '1234567890', 'paket_soal_id' => $p1->id,
         'attempt_ke' => 1, 'status' => 'berlangsung',
+        'mulai_at' => now(), 'batas_at' => now()->addHour(),
     ]);
 
     $p2 = $service->tentukanPaketUntukSiswa($this->ujian, null);
@@ -92,6 +93,7 @@ test('distribusi kembali ke paket A setelah satu putaran', function (): void {
         $this->ujian->pengerjaans()->create([
             'siswa_nisn' => $nisn, 'paket_soal_id' => $p->id,
             'attempt_ke' => 1, 'status' => 'berlangsung',
+            'mulai_at' => now(), 'batas_at' => now()->addHour(),
         ]);
     }
 

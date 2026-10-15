@@ -21,7 +21,7 @@ class KelengkapanUjianService
         $masalah = [];
 
         // Mode santai: cukup ada soal.
-        if (! $ujian->isKategoriBesar()) {
+        if (! $ujian->kategoriBesar()) {
             $jumlahSoal = $ujian->memakaiPaketSoal()
                 ? $ujian->paketSoals()->withCount('soals')->get()->sum('soals_count')
                 : $ujian->soals()->whereNull('paket_soal_id')->count();
