@@ -132,9 +132,16 @@ class UjianWizardController extends BaseAppController
 
         // Data tambahan per langkah.
         if ($mode === 'resmi' && $langkah === 2) {
-            $props['bankSoalCount'] = \App\Models\BankSoal::where(
-                'matpel_id', $ujian->guruKelas?->matpel_id
-            )->count();
+            $matpelId = $ujian->guruKelas?->matpel_id;
+            $props['bankSoals'] = \App\Models\BankSoal::where('matpel_id', $matpelId)
+                ->orderBy('id')
+                ->get(['id', 'tipe', 'pertanyaan'])
+                ->map(fn ($b) => [
+                    'id' => $b->id,
+                    'tipe' => $b->tipe,
+                    'ringkasan' => mb_substr(strip_tags($b->pertanyaan), 0, 80),
+                ]);
+            $props['bankSoalCount'] = $props['bankSoals']->count();
         }
 
         if ($mode === 'resmi' && $langkah === 3) {

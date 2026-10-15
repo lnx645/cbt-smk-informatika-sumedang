@@ -48,6 +48,15 @@
             label: 'Password',
             placeholder: 'Minimal 8 karakter (kosongkan saat edit jika tidak diganti)',
         },
+        {
+            name: 'role',
+            label: 'Peran',
+            type: 'select',
+            options: [
+                { value: 'admin', label: 'Administrator' },
+                { value: 'panitia', label: 'Panitia Ujian' },
+            ],
+        },
     ];
 
     let items = $derived(akunAdmin?.data ?? []);
@@ -61,12 +70,16 @@
 {/snippet}
 
 {#snippet peranCell(item)}
-    <Badge color="danger" pill>Administrator</Badge>
+    {#if item.role === 'panitia'}
+        <Badge color="warning" pill>Panitia Ujian</Badge>
+    {:else}
+        <Badge color="danger" pill>Administrator</Badge>
+    {/if}
 {/snippet}
 
 <CrudManager
-    title="Manajemen Akun Admin"
-    subtitle="Kelola akun administrator aplikasi."
+    title="Manajemen Akun Admin & Panitia"
+    subtitle="Kelola akun administrator dan panitia ujian."
     {columns}
     {fields}
     {items}

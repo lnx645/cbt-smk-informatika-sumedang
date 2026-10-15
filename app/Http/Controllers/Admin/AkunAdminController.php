@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -20,7 +21,8 @@ class AkunAdminController extends Controller
     {
         $search = $request->query('search');
 
-        $query = User::where('role', 'admin');
+        // CBT v2: kelola akun admin & panitia ujian.
+        $query = User::whereIn('role', ['admin', 'panitia']);
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -34,6 +36,7 @@ class AkunAdminController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'role' => $user->role,
                 'is_admin' => $user->is_admin,
                 'created_at' => $user->created_at?->translatedFormat('d M Y'),
             ]);
@@ -55,6 +58,7 @@ class AkunAdminController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
+            'role' => ['required', 'in:admin,panitia'],
         ], [
             'name.required' => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -68,14 +72,12 @@ class AkunAdminController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role' => 'admin',
-            'is_admin' => true,
+            'role' => $data['role'],
+            'is_admin' => $data['role'] === 'admin',
         ]);
 
-        Inertia::flash('toast', [
-            'type' => 'success',
-            'message' => 'Akun admin berhasil ditambahkan.',
-        ]);
+        $label = $data['role'] === 'panitia' ? 'panitia ujian' : 'admin';
+        Toast::success("Akun {$label} berhasil ditambahkan.");
 
         return Redirect::route('admin.akun-admin.index');
     }
