@@ -389,11 +389,11 @@
                                         </div>
                                         {#if item.status !== 'terbit'}
                                             <div class="mt-1 d-flex gap-1 small">
-                                                <span class="badge {item.jumlah_soal > 0 ? 'text-bg-success' : 'text-bg-secondary'}" title="Langkah 2: Isi soal">
-                                                    <i class="bi bi-check-circle me-1"></i>Soal
+                                                <span class="badge {item.jumlah_soal > 0 ? 'text-bg-success' : 'text-bg-warning'}" title="Langkah 2: Isi soal">
+                                                    <i class="bi {item.jumlah_soal > 0 ? 'bi-check-circle' : 'bi-circle'} me-1"></i>Soal
                                                 </span>
-                                                <span class="badge {item.jumlah_sesi > 0 ? 'text-bg-success' : 'text-bg-secondary'}" title="Langkah 3: Atur sesi">
-                                                    <i class="bi bi-check-circle me-1"></i>Sesi
+                                                <span class="badge {item.jumlah_sesi > 0 ? 'text-bg-success' : 'text-bg-warning'}" title="Langkah 3: Atur sesi">
+                                                    <i class="bi {item.jumlah_sesi > 0 ? 'bi-check-circle' : 'bi-circle'} me-1"></i>Sesi
                                                 </span>
                                             </div>
                                         {/if}
@@ -462,7 +462,7 @@
                                             >
                                                 <i class="bi bi-bar-chart me-1"></i>Hasil
                                             </a>
-                                            <Dropdown size="sm">
+                                            <Dropdown size="sm" container="body">
                                                 <DropdownToggle color="outline-secondary" caret>
                                                     <i class="bi bi-three-dots"></i>
                                                 </DropdownToggle>
