@@ -5,6 +5,7 @@ use App\Models\Guru;
 use App\Models\GuruKelas;
 use App\Models\Kelas;
 use App\Models\Matpel;
+use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\Ujian;
 use App\Models\User;
@@ -34,6 +35,11 @@ beforeEach(function (): void {
     $this->bankSoals = BankSoal::factory()->count(12)->create([
         'matpel_id' => $this->matpel->id,
     ]);
+
+    // Siswa untuk test distribusi paket.
+    foreach (['1234567890', '1111111111', '2222222222'] as $nisn) {
+        Siswa::factory()->create(['nisn' => $nisn]);
+    }
 });
 
 test('generate otomatis membagi soal ke N paket secara merata', function (): void {
