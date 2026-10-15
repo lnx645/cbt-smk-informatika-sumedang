@@ -51,9 +51,10 @@
     }
 
     function terbit() {
-        if (!confirm('Terbitkan ujian ini? Siswa akan bisa melihat jadwalnya.')) return;
         router.post(`/app/panitia/ujian/${ujian.id}/terbit`);
     }
+
+    let konfirmTerbit = $state(false);
 
     let catatan = $state('');
     function kembalikan() {
@@ -218,10 +219,18 @@
                 <i class="bi bi-check-circle me-1"></i>Semua lengkap. Siap diterbitkan!
             </div>
         {/if}
-        <div class="d-flex gap-2 flex-wrap">
-            <Button color="success" onclick={terbit} disabled={kelengkapan.length > 0 || ujian.status === 'terbit'}>
-                <i class="bi bi-send me-1"></i>Terbitkan Ujian
-            </Button>
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            {#if !konfirmTerbit}
+                <Button color="success" onclick={() => (konfirmTerbit = true)} disabled={kelengkapan.length > 0 || ujian.status === 'terbit'}>
+                    <i class="bi bi-send me-1"></i>Terbitkan Ujian
+                </Button>
+            {:else}
+                <span class="small text-muted">Yakin terbitkan? Siswa akan bisa melihat jadwalnya.</span>
+                <Button color="success" onclick={terbit}>
+                    <i class="bi bi-check-lg me-1"></i>Ya, Terbitkan
+                </Button>
+                <Button color="secondary" outline onclick={() => (konfirmTerbit = false)}>Batal</Button>
+            {/if}
             {#if ujian.status === 'diajukan'}
                 <input class="form-control" style="max-width:300px" bind:value={catatan} placeholder="Catatan revisi (opsional)" />
                 <Button color="warning" outline onclick={kembalikan}>

@@ -39,9 +39,10 @@
     }
 
     function serahkan() {
-        if (!confirm('Serahkan ujian ini ke panitia? Panitia akan mengatur jadwal, sesi, dan token.')) return;
         router.post(`/app/guru/ujian/${ujian.id}/wizard/serahkan`);
     }
+
+    let konfirmSerahkan = $state(false);
 
     function kembali() {
         router.visit('/app/guru/ujian');
@@ -118,7 +119,7 @@
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label class="form-label" for="pk-jumlah">Jumlah paket</label>
-                    <input id="pk-jumlah" type="number" class="form-control" bind:value={paketForm.jumlah_paket} min="2" max="10" />
+                    <input id="pk-jumlah" type="number" class="form-control" bind:value={paketForm.jumlah_paket} min="1" max="10" />
                 </div>
                 <div class="col-md-6">
                     <label class="form-label" for="pk-soal">Soal per paket</label>
@@ -173,9 +174,17 @@
                     <Button color="secondary" outline onclick={() => keLangkah(2)}>
                         <i class="bi bi-arrow-left me-1"></i>Kembali
                     </Button>
-                    <Button color="primary" onclick={serahkan} disabled={(ujian.paket_soals?.length ?? 0) === 0}>
-                        <i class="bi bi-send me-1"></i>Serahkan ke Panitia
-                    </Button>
+                    {#if !konfirmSerahkan}
+                        <Button color="primary" onclick={() => (konfirmSerahkan = true)} disabled={(ujian.paket_soals?.length ?? 0) === 0}>
+                            <i class="bi bi-send me-1"></i>Serahkan ke Panitia
+                        </Button>
+                    {:else}
+                        <span class="align-self-center small text-muted">Yakin serahkan ke panitia?</span>
+                        <Button color="primary" onclick={serahkan}>
+                            <i class="bi bi-check-lg me-1"></i>Ya, Serahkan
+                        </Button>
+                        <Button color="secondary" outline onclick={() => (konfirmSerahkan = false)}>Batal</Button>
+                    {/if}
                 </div>
             {:else}
                 {#if kelengkapan.length > 0}

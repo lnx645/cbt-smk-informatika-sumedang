@@ -162,7 +162,7 @@ class UjianWizardController extends BaseAppController
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
 
         $data = $request->validate([
-            'jumlah_paket' => ['required', 'integer', 'min:2', 'max:10'],
+            'jumlah_paket' => ['required', 'integer', 'min:1', 'max:10'],
             'soal_per_paket' => ['required', 'integer', 'min:1', 'max:100'],
             'kelompok_bank_soal_id' => ['required', 'integer', 'exists:kelompok_bank_soals,id'],
         ]);
