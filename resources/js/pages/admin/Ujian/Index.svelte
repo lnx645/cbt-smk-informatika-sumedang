@@ -25,16 +25,29 @@
         judul: string;
         kategori: KategoriUjian;
         guru: string | null;
+        guru_kelas_id: number;
         kelas: string | null;
         matpel: string | null;
         status: 'draft' | 'terbit';
         jumlah_soal: number;
         jumlah_selesai: number;
         dibuat_oleh_admin: boolean;
+        deskripsi: string | null;
+        durasi_menit: number;
+        maks_attempt: number;
+        acak_soal: boolean;
+        acak_opsi: boolean;
+        tampilkan_hasil: boolean;
+        wajib_fullscreen: boolean;
+        maks_pelanggaran: number;
+        nilai_maks: number;
+        bobot: number;
         token: string | null;
         token_released: boolean;
         token_pengelola: 'guru' | 'admin';
         tanggal_mulai: string | null;
+        tanggal_mulai_raw: string | null;
+        tanggal_selesai_raw: string | null;
     };
     type FilterParams = { kategori: KategoriUjian | null; q: string };
 
@@ -93,6 +106,7 @@
 
     // ── Modal & collapse state ──────────────────────────────────────────────
     let modalOpen = $state(false);
+    let editingId = $state<number | null>(null);
     let openTokenId = $state<number | null>(null);
 
     // ── Helpers ────────────────────────────────────────────────────────────
@@ -144,6 +158,28 @@
 
     function openModal() {
         resetForm();
+        editingId = null;
+        modalOpen = true;
+    }
+
+    function openEdit(item: UjianItem) {
+        resetForm();
+        editingId = item.id;
+        form.guru_kelas_id = item.guru_kelas_id;
+        form.kategori = item.kategori;
+        form.judul = item.judul;
+        form.deskripsi = item.deskripsi ?? '';
+        form.tanggal_mulai = item.tanggal_mulai_raw ?? '';
+        form.tanggal_selesai = item.tanggal_selesai_raw ?? '';
+        form.durasi_menit = item.durasi_menit;
+        form.maks_attempt = item.maks_attempt;
+        form.acak_soal = item.acak_soal;
+        form.acak_opsi = item.acak_opsi;
+        form.tampilkan_hasil = item.tampilkan_hasil;
+        form.wajib_fullscreen = item.wajib_fullscreen;
+        form.maks_pelanggaran = item.maks_pelanggaran;
+        form.nilai_maks = item.nilai_maks;
+        form.bobot = item.bobot;
         modalOpen = true;
     }
 
@@ -157,13 +193,23 @@
     }
 
     function submit() {
-        form.post(UjianController.store().url, {
-            preserveScroll: true,
-            onSuccess: () => {
-                modalOpen = false;
-                resetForm();
-            },
-        });
+        if (editingId) {
+            form.put(UjianController.update({ ujian: editingId }).url, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    modalOpen = false;
+                    resetForm();
+                },
+            });
+        } else {
+            form.post(UjianController.store().url, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    modalOpen = false;
+                    resetForm();
+                },
+            });
+        }
     }
 
     // ── Row actions ─────────────────────────────────────────────────────────
@@ -374,6 +420,9 @@
                                 {/if}
                             </div>
                             <div class="d-inline-flex gap-1 flex-shrink-0">
+                                <Button size="sm" color="outline-secondary" onclick={() => openEdit(item)} title="Edit ujian">
+                                    <i class="bi bi-pencil"></i>
+                                </Button>
                                 <a use:inertia href={UjianController.soal({ ujian: item.id }).url} class="btn btn-sm btn-outline-primary" title="Lihat soal">
                                     <i class="bi bi-list-check"></i>
                                 </a>
@@ -424,6 +473,9 @@
                                 </div>
                             </div>
                             <div class="d-inline-flex gap-1 flex-shrink-0">
+                                <Button size="sm" color="outline-secondary" onclick={() => openEdit(item)} title="Edit ujian">
+                                    <i class="bi bi-pencil"></i>
+                                </Button>
                                 <a use:inertia href={UjianController.soal({ ujian: item.id }).url} class="btn btn-sm btn-outline-primary" title="Lihat soal">
                                     <i class="bi bi-list-check"></i>
                                 </a>
@@ -448,7 +500,7 @@
     </Card>
     <Modal isOpen={modalOpen} toggle={() => (modalOpen = !modalOpen)} size="lg">
         <ModalHeader toggle={() => (modalOpen = false)}>
-            <i class="bi bi-journal-plus me-2"></i>Buat Ujian
+            <i class="bi bi-journal-plus me-2"></i>{editingId ? 'Edit Ujian' : 'Buat Ujian'}
         </ModalHeader>
         <ModalBody>
             <div class="row g-3">
@@ -488,6 +540,13 @@
                     <label class="form-label" for="a-judul">Judul Ujian</label>
                     <input id="a-judul" class="form-control" placeholder="cth: UH 1 Matematika Kelas X" bind:value={form.judul} />
                     {#if form.errors.judul}<div class="text-danger small">{form.errors.judul}</div>{/if}
+                </div>
+
+                <!-- Deskripsi -->
+                <div class="col-12">
+                    <label class="form-label" for="a-deskripsi">Deskripsi</label>
+                    <textarea id="a-deskripsi" class="form-control" rows="2" placeholder="Deskripsi singkat ujian (opsional)" bind:value={form.deskripsi}></textarea>
+                    {#if form.errors.deskripsi}<div class="text-danger small">{form.errors.deskripsi}</div>{/if}
                 </div>
 
                 <!-- Baris 3: Jadwal (kondisi UT S/ UAS / USBK) -->

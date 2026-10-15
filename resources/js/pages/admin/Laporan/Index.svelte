@@ -113,7 +113,7 @@
                 </div>
                 <div class="text-muted small">
                     <i class="bi bi-info-circle me-1"></i>
-                    Filter TA diterapkan pada laporan trasanksi. Data master (Jurusan, Matpel, dll) selalu keseluruhan.
+                    Filter TA diterapkan pada laporan transaksi. Data master (Jurusan, Matpel, dll) selalu keseluruhan.
                 </div>
             </div>
         </CardBody>

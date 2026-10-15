@@ -31,7 +31,7 @@
             options: [
                 {
                     value: 'L',
-                    label: 'Laki Laki',
+                    label: 'Laki-laki',
                 },
                 {
                     value: 'P',

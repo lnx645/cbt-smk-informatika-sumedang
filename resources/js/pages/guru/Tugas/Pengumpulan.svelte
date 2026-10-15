@@ -1,5 +1,6 @@
 <script lang="ts">
     import { inertia, router } from '@inertiajs/svelte';
+    import { toast } from 'svelte-sonner';
     import { Badge, Card, CardBody } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
     import { PENGGUMPULAN_INFO } from '@/lib/tugas';
@@ -50,7 +51,12 @@
 
     function simpanNilai(siswa: SiswaPengumpulan) {
         const nilai = nilaiDraft[siswa.nisn] ?? '';
-        if (nilai === '' || Number(nilai) < 0 || Number(nilai) > tugas.poin) {
+        if (nilai === '') {
+            toast.error('Isi dulu nilainya sebelum menyimpan.');
+            return;
+        }
+        if (Number(nilai) < 0 || Number(nilai) > tugas.poin) {
+            toast.error(`Nilai harus antara 0 sampai ${tugas.poin}.`);
             return;
         }
         menyimpan[siswa.nisn] = true;

@@ -7,8 +7,24 @@
     import AkunSiswaController from '@/actions/App/Http/Controllers/Admin/AkunSiswaController';
     import SiswaKelasController from '@/actions/App/Http/Controllers/Admin/SiswaKelasController';
     import { Badge } from '@sveltestrap/sveltestrap';
-    import { router } from '@inertiajs/svelte';
+    import { router, useForm } from '@inertiajs/svelte';
+    import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Input, Label } from '@sveltestrap/sveltestrap';
     import Avatar from '@/components/Avatar.svelte';
+
+    let imporOpen = $state(false);
+    const imporForm = useForm({ file: null as File | null });
+
+    function kirimImpor(e: SubmitEvent) {
+        e.preventDefault();
+        if (!imporForm.file) return;
+        imporForm.post(SiswaController.impor().url, {
+            forceFormData: true,
+            onSuccess: () => {
+                imporOpen = false;
+                imporForm.reset();
+            },
+        });
+    }
 
     type SiswaItem = Record<string, unknown> & { id: string };
 
@@ -169,6 +185,20 @@
     controller={SiswaController}
     resourceName="Peserta Didik"
     createLabel="Tambah Peserta Didik"
+    toolbarActions={[
+        {
+            key: 'impor',
+            label: 'Impor Excel',
+            icon: 'bi bi-file-earmark-excel',
+            onClick: () => (imporOpen = true),
+        },
+        {
+            key: 'template',
+            label: 'Template',
+            icon: 'bi bi-download',
+            onClick: () => window.open(SiswaController.template().url, '_blank'),
+        },
+    ]}
     searchable
     searchPlaceholder="Cari nama, NISN, atau NIS…"
     pagination={siswa}
@@ -271,3 +301,25 @@
         },
     ]}
 />
+
+<Modal isOpen={imporOpen} toggle={() => (imporOpen = false)}>
+    <ModalHeader toggle={() => (imporOpen = false)}>Impor Peserta Didik</ModalHeader>
+    <form onsubmit={kirimImpor}>
+        <ModalBody>
+            <p class="text-muted small">
+                Unggah file Excel (.xlsx) dengan kolom: <code>nisn, nama_lengkap, jenis_kelamin, tempat_lahir, tanggal_lahir</code>.
+                Password akun otomatis = NISN.
+            </p>
+            <div class="mb-3">
+                <Label>File Excel</Label>
+                <Input type="file" accept=".xlsx" onchange={(e) => (imporForm.file = e.currentTarget.files?.[0] ?? null)} />
+            </div>
+        </ModalBody>
+        <ModalFooter>
+            <Button color="secondary" type="button" onclick={() => (imporOpen = false)}>Batal</Button>
+            <Button color="primary" type="submit" disabled={!imporForm.file || imporForm.processing}>
+                {imporForm.processing ? 'Mengimpor...' : 'Impor'}
+            </Button>
+        </ModalFooter>
+    </form>
+</Modal>
