@@ -22,7 +22,8 @@ class AkunAdminController extends Controller
         $search = $request->query('search');
 
         // CBT v2: kelola akun admin & panitia ujian.
-        $query = User::whereIn('role', ['admin', 'panitia']);
+        // Eager load guru/siswa karena accessor `role` membacanya (lazy load dimatikan).
+        $query = User::with(['guru:id', 'siswa:id'])->whereIn('role', ['admin', 'panitia']);
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
