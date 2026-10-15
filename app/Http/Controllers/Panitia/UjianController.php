@@ -188,12 +188,15 @@ class UjianController extends BaseAppController
                 continue;
             }
 
+            $mulai = \Carbon\Carbon::parse($s['waktu_mulai']);
+            $selesai = \Carbon\Carbon::parse($s['waktu_selesai']);
+
             // Bentrok dengan sesi ujian lain di database.
             $bentrok = \App\Models\SesiUjian::query()
                 ->where('ruang_ujian_id', $s['ruang_ujian_id'])
                 ->where('ujian_id', '!=', $ujian->id)
-                ->where('waktu_mulai', '<', $s['waktu_selesai'])
-                ->where('waktu_selesai', '>', $s['waktu_mulai'])
+                ->where('waktu_mulai', '<', $selesai)
+                ->where('waktu_selesai', '>', $mulai)
                 ->with('ujian')
                 ->first();
 
@@ -212,10 +215,12 @@ class UjianController extends BaseAppController
                 if ($lain === $s || empty($lain['ruang_ujian_id'])) {
                     continue;
                 }
+                $lainMulai = \Carbon\Carbon::parse($lain['waktu_mulai']);
+                $lainSelesai = \Carbon\Carbon::parse($lain['waktu_selesai']);
                 if (
                     $lain['ruang_ujian_id'] == $s['ruang_ujian_id']
-                    && $lain['waktu_mulai'] < $s['waktu_selesai']
-                    && $lain['waktu_selesai'] > $s['waktu_mulai']
+                    && $lainMulai < $selesai
+                    && $lainSelesai > $mulai
                 ) {
                     $ruang = \App\Models\RuangUjian::find($s['ruang_ujian_id'])?->nama ?? 'ruang';
 
