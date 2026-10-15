@@ -1,8 +1,12 @@
 <?php
 
+use App\Models\Guru;
 use App\Models\GuruKelas;
+use App\Models\Kelas;
 use App\Models\KelompokBankSoal;
+use App\Models\Matpel;
 use App\Models\RuangUjian;
+use App\Models\TahunAjaran;
 use App\Models\Ujian;
 use App\Models\User;
 
@@ -13,10 +17,19 @@ use App\Models\User;
 test('e2e full: guru → panitia → siswa', function (): void {
     // --- Setup ---
     $admin = User::factory()->create(['role' => 'admin', 'is_admin' => true]);
-    $guruUser = User::where('email', 'guru.001@smkifsu.sch.id')->first()
-        ?? User::factory()->create();
-    $guru = $guruUser->guru;
-    $guruKelas = GuruKelas::where('guru_id', $guru->id)->where('aktif', true)->first();
+
+    $tahunAjaran = TahunAjaran::factory()->create(['active' => true]);
+    $matpel = Matpel::factory()->create(['name' => 'Matematika E2E']);
+    $kelas = Kelas::factory()->create(['nama' => 'X-E2E-1']);
+    $guru = Guru::factory()->create();
+    $guruUser = User::factory()->create(['guru_id' => $guru->id]);
+    $guruKelas = GuruKelas::factory()->create([
+        'guru_id' => $guru->id,
+        'kelas_id' => $kelas->id,
+        'matpel_id' => $matpel->id,
+        'tahun_ajaran_id' => $tahunAjaran->id,
+        'aktif' => true,
+    ]);
 
     $panitia = User::factory()->create(['role' => 'panitia']);
 
