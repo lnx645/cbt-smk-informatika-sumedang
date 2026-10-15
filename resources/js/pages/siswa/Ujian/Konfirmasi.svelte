@@ -20,6 +20,7 @@
             butuh_token: boolean;
             wajib_fullscreen: boolean;
             maks_pelanggaran: number;
+            ada_menunggu_koreksi: boolean;
         };
     } = $props();
 
@@ -67,6 +68,14 @@
 
             {#if ujian.deskripsi}
                 <p class="text-muted">{ujian.deskripsi}</p>
+            {/if}
+
+            {#if ujian.ada_menunggu_koreksi}
+                <Alert color="warning">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    <strong>Nilai pengerjaan sebelumnya belum keluar</strong> (menunggu koreksi guru).
+                    Kalau kamu mulai sekarang, kesempatanmu akan berkurang. Pertimbangkan menunggu nilai keluar dulu.
+                </Alert>
             {/if}
 
             <div class="row g-2 mb-3">

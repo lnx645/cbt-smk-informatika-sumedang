@@ -91,6 +91,7 @@ class UjianController extends BaseAppController implements HasMiddleware
                     'attempt_terpakai' => $selesai->count(),
                     'maks_attempt' => $u->maks_attempt,
                     'sisa_attempt' => max(0, $u->maks_attempt - $selesai->count()),
+                    'ada_menunggu_koreksi' => $selesai->contains(fn ($p) => $p->nilai_total === null),
                     'berhak_remedial' => $selesai->count() >= $u->maks_attempt && $u->butuhRemedial($nisn),
                     'sedang_dikerjakan' => $berlangsung !== null,
                     'tampilkan_hasil' => $u->tampilkan_hasil,
@@ -139,6 +140,12 @@ class UjianController extends BaseAppController implements HasMiddleware
 
         $ujian->loadCount('soals');
 
+        $adaMenungguKoreksi = UjianPengerjaan::where('ujian_id', $ujian->id)
+            ->where('siswa_nisn', $nisn)
+            ->whereIn('status', ['selesai', 'auto_submit'])
+            ->whereNull('nilai_total')
+            ->exists();
+
         return Inertia::render('siswa/Ujian/Konfirmasi', [
             'ujian' => [
                 'id' => $ujian->id,
@@ -154,6 +161,7 @@ class UjianController extends BaseAppController implements HasMiddleware
                 'butuh_token' => $ujian->token !== null,
                 'wajib_fullscreen' => $ujian->wajib_fullscreen,
                 'maks_pelanggaran' => $ujian->maks_pelanggaran,
+                'ada_menunggu_koreksi' => $adaMenungguKoreksi,
             ],
         ]);
     }

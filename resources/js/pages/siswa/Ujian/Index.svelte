@@ -19,6 +19,7 @@
         attempt_terpakai: number;
         maks_attempt: number;
         sisa_attempt: number;
+        ada_menunggu_koreksi: boolean;
         berhak_remedial: boolean;
         sedang_dikerjakan: boolean;
         tampilkan_hasil: boolean;
@@ -89,7 +90,9 @@
                                 <span><i class="bi bi-clock me-1"></i>{item.durasi_menit} menit</span>
                                 <span><i class="bi bi-patch-question me-1"></i>{item.jumlah_soal} soal</span>
                                 {#if item.sisa_attempt > 0 && item.attempt_terpakai > 0}
-                                    <span class="text-warning"><i class="bi bi-arrow-repeat me-1"></i>Sisa {item.sisa_attempt}x</span>
+                                    <span class="text-warning" title="Sisa kesempatan reguler (bukan remedial)">
+                                        <i class="bi bi-arrow-repeat me-1"></i>Kesempatan {item.attempt_terpakai + 1}/{item.maks_attempt}
+                                    </span>
                                 {/if}
                             </div>
                             <div class="small text-muted mt-2 mb-3">
