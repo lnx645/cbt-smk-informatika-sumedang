@@ -423,6 +423,8 @@
                                     <td>
                                         {#if item.status === 'terbit'}
                                             <Badge color="success" pill>Terbit</Badge>
+                                        {:else if item.status === 'diajukan'}
+                                            <Badge color="info" pill>Diajukan</Badge>
                                         {:else}
                                             <Badge color="warning" pill>Draft</Badge>
                                         {/if}
