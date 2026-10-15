@@ -227,8 +227,8 @@
     brandTitle="Pembelajaran"
     brandSubtitle="Modul Pembelajaran"
     {brandIconNode}
-    title={authUser?.guru || authUser?.role === 'guru' ? 'GURU' : 'SISWA'}
-    description={authUser?.guru || authUser?.role === 'guru' ? 'Manajemen Guru' : 'Portal Siswa'}
+    title={authUser?.role === 'panitia' ? 'PANITIA' : authUser?.guru || authUser?.role === 'guru' ? 'GURU' : authUser?.role === 'admin' ? 'ADMIN' : 'SISWA'}
+    description={authUser?.role === 'panitia' ? 'Panitia Ujian' : authUser?.guru || authUser?.role === 'guru' ? 'Manajemen Guru' : authUser?.role === 'admin' ? 'Administrator' : 'Portal Siswa'}
     {navItems}
     {user}
     {bottomNavItems}
