@@ -11,9 +11,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
-#[Table('ujians')]
+#[Table('cbt_ujians')]
 class Ujian extends Model
 {
+    protected $table = 'cbt_ujians';
     /** @use HasFactory<UjianFactory> */
     use HasFactory;
 
@@ -43,6 +44,7 @@ class Ujian extends Model
         'kkm',
         'bobot',
         'status',
+        'kartu_diterbitkan',
         'catatan_panitia',
     ];
 

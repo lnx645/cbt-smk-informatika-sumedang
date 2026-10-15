@@ -4,12 +4,10 @@ namespace App\Models;
 
 use Database\Factories\SiswaKelasFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Table('siswa_kelas')]
 #[Fillable(['siswa_nisn', 'kelas_id', 'tahun_ajaran_id', 'active', 'pertama_masuk'])]
 class SiswaKelas extends Model
 {

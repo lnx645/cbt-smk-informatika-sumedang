@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Table('ruang_ujians')]
+#[Table('cbt_ruang_ujians')]
 class RuangUjian extends Model
 {
+    protected $table = 'cbt_ruang_ujians';
     /** @use HasFactory<RuangUjianFactory> */
     use HasFactory;
 

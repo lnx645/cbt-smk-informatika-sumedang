@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Database\Factories\TugasFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -34,7 +33,6 @@ use Illuminate\Support\Carbon;
  * @property-read Penilaian|null $penilaian
  * @property-read Collection<int, TugasPengumpulan> $pengumpulans
  */
-#[Table('tugases')]
 #[Fillable(['guru_id', 'guru_kelas_id', 'judul', 'deskripsi', 'tanggal_terbit', 'deadline', 'jenis_pengumpulan', 'file_path', 'file_name', 'file_size', 'mime_type', 'poin', 'penilaian_id'])]
 class Tugas extends Model
 {

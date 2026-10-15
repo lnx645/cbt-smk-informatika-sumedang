@@ -10,9 +10,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
-#[Table('ujian_pengerjaans')]
+#[Table('cbt_ujian_pengerjaans')]
 class UjianPengerjaan extends Model
 {
+    protected $table = 'cbt_ujian_pengerjaans';
     /** @use HasFactory<UjianPengerjaanFactory> */
     use HasFactory;
 

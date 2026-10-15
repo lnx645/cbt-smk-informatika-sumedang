@@ -9,9 +9,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Table('soals')]
+#[Table('cbt_soals')]
 class Soal extends Model
 {
+    protected $table = 'cbt_soals';
     /** @use HasFactory<SoalFactory> */
     use HasFactory;
 

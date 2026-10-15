@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SesiUjianPeserta extends Model
 {
+    protected $table = 'cbt_sesi_ujian_pesertas';
     /** @use HasFactory<SesiUjianPesertaFactory> */
     use HasFactory;
 

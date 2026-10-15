@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Database\Factories\TahunAjaranFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
@@ -21,8 +21,8 @@ use Illuminate\Support\Facades\Cache;
  * @property Carbon|null $updated_at
  * @property-read Collection<int, GuruKelas> $guruKelas
  */
-#[Table('tahun_ajaran')]
 #[Fillable(['name', 'active'])]
+#[Table('tahun_ajaran')]
 class TahunAjaran extends Model
 {
     /** @use HasFactory<TahunAjaranFactory> */

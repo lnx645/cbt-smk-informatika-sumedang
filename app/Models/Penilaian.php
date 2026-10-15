@@ -9,7 +9,7 @@ class Penilaian extends Model
 {
     use HasFactory;
 
-    protected $table = 'penilaian';
+    protected $table = 'cbt_penilaian';
 
     protected $casts = [
         'nilai_maks' => 'float',
@@ -25,6 +25,9 @@ class Penilaian extends Model
         'bobot',
         'aktif',
         'sumber',
+        'tahun_ajaran_id',
+        'semester',
+        'ujian_id',
     ];
 
     /**
@@ -33,6 +36,29 @@ class Penilaian extends Model
     public function kelas()
     {
         return $this->belongsToMany(Kelas::class, 'penilaian_kelas');
+    }
+
+    /**
+     * Ujian CBT sumber penilaian ini (jika dari CBT).
+     */
+    public function ujian()
+    {
+        return $this->belongsTo(Ujian::class);
+    }
+
+    /**
+     * GuruKelas via ujian (untuk standar akademik).
+     */
+    public function guruKelas()
+    {
+        return $this->hasOneThrough(
+            GuruKelas::class,
+            Ujian::class,
+            'id', // Foreign key di ujian
+            'id', // Foreign key di guru_kelas
+            'ujian_id', // Local key di penilaian
+            'guru_kelas_id' // Local key di ujian
+        );
     }
 
     /**
