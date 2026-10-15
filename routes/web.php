@@ -122,14 +122,21 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
 
     // Panitia Ujian (CBT v2): kelola ujian resmi lintas kelas.
     Route::middleware('panitia-only')->group(function (): void {
+        Route::get('panitia/ujian/jadwal-pdf', [PanitiaUjianController::class, 'jadwalPdf'])->name('panitia.ujian.jadwal-pdf');
         Route::get('panitia/ujian', [PanitiaUjianController::class, 'index'])->name('panitia.ujian.index');
         Route::get('panitia/ujian/{ujian}', [PanitiaUjianController::class, 'show'])->name('panitia.ujian.show');
         Route::post('panitia/ujian/{ujian}/sesi', [PanitiaUjianController::class, 'storeSesi'])->name('panitia.ujian.sesi');
         Route::post('panitia/ujian/{ujian}/pengaturan', [PanitiaUjianController::class, 'storePengaturan'])->name('panitia.ujian.pengaturan');
+        Route::post('panitia/ujian/{ujian}/buka-token', [PanitiaUjianController::class, 'bukaToken'])->name('panitia.ujian.buka-token');
+        Route::post('panitia/ujian/{ujian}/tutup-token', [PanitiaUjianController::class, 'tutupToken'])->name('panitia.ujian.tutup-token');
         Route::post('panitia/ujian/{ujian}/terbit', [PanitiaUjianController::class, 'terbit'])->name('panitia.ujian.terbit');
         Route::post('panitia/ujian/{ujian}/kembalikan', [PanitiaUjianController::class, 'kembalikan'])->name('panitia.ujian.kembalikan');
         Route::get('panitia/ujian/{ujian}/sesi/{sesi}/kartu-peserta', [PanitiaUjianController::class, 'kartuPeserta'])->name('panitia.ujian.kartu');
         Route::get('panitia/ujian/{ujian}/kartu-peserta-kelas', [PanitiaUjianController::class, 'kartuPesertaKelas'])->name('panitia.ujian.kartu-kelas');
+        Route::get('panitia/ujian/{ujian}/berita-acara', [PanitiaUjianController::class, 'beritaAcaraIndex'])->name('panitia.ujian.berita-acara.index');
+        Route::post('panitia/ujian/{ujian}/berita-acara', [PanitiaUjianController::class, 'beritaAcaraStore'])->name('panitia.ujian.berita-acara.store');
+        Route::get('panitia/ujian/{ujian}/berita-acara/{beritaAcara}/pdf', [PanitiaUjianController::class, 'beritaAcaraPdf'])->name('panitia.ujian.berita-acara.pdf');
+        Route::get('panitia/ujian/{ujian}/sesi/{sesi}/daftar-hadir', [PanitiaUjianController::class, 'daftarHadir'])->name('panitia.ujian.hadir');
         Route::get('panitia/ujian/{ujian}/monitoring', [PanitiaUjianController::class, 'monitoring'])->name('panitia.ujian.monitoring');
         Route::delete('panitia/ujian/{ujian}/pengerjaan/{pengerjaan}/reset', [PanitiaUjianController::class, 'resetPengerjaan'])->name('panitia.ujian.pengerjaan.reset');
     });

@@ -145,8 +145,30 @@ test('e2e full: guru → panitia → siswa', function (): void {
 
     $ujian->refresh();
     expect($ujian->token)->not->toBeNull()
+        ->and($ujian->token_released_at)->toBeNull() // token belum dibuka otomatis
         ->and($ujian->tata_tertib)->toContain('Jujur')
         ->and($ujian->kkm)->toBe(75);
+
+    // Panitia buka token manual.
+    $this->actingAs($panitia)
+        ->post(route('app.panitia.ujian.buka-token', $ujian))
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect($ujian->fresh()->token_released_at)->not->toBeNull();
+
+    // Panitia tutup token lagi.
+    $this->actingAs($panitia)
+        ->post(route('app.panitia.ujian.tutup-token', $ujian))
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect($ujian->fresh()->token_released_at)->toBeNull();
+
+    // Buka lagi sebelum terbit.
+    $this->actingAs($panitia)
+        ->post(route('app.panitia.ujian.buka-token', $ujian))
+        ->assertRedirect();
 
     $this->actingAs($panitia)
         ->post(route('app.panitia.ujian.terbit', $ujian))
