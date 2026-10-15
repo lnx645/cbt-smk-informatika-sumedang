@@ -18,6 +18,7 @@ class BeritaAcaraUjian extends Model
         'ujian_id',
         'sesi_ujian_id',
         'tanggal',
+        'nomor_surat',
         'jumlah_peserta',
         'jumlah_hadir',
         'jumlah_tidak_hadir',

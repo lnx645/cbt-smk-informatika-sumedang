@@ -90,6 +90,8 @@ class UjianController extends BaseAppController implements HasMiddleware
                     'butuh_token' => $u->token !== null,
                     'attempt_terpakai' => $selesai->count(),
                     'maks_attempt' => $u->maks_attempt,
+                    'sisa_attempt' => max(0, $u->maks_attempt - $selesai->count()),
+                    'berhak_remedial' => $selesai->count() >= $u->maks_attempt && $u->butuhRemedial($nisn),
                     'sedang_dikerjakan' => $berlangsung !== null,
                     'tampilkan_hasil' => $u->tampilkan_hasil,
                     'nilai_total' => $u->tampilkan_hasil ? $selesai->max('nilai_total') : null,

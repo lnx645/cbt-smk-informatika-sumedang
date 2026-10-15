@@ -484,6 +484,7 @@ class UjianController extends BaseAppController implements HasMiddleware
         $ujians = Ujian::query()
             ->with(['guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name'])
             ->withCount('soals')
+            ->withCount('sesis')
             ->withCount(['pengerjaans as jumlah_selesai' => fn ($q) => $q->whereIn('status', ['selesai', 'auto_submit'])])
             ->where('guru_id', $guru->id)
             ->whereHas('guruKelas', fn ($q) => $q->where('tahun_ajaran_id', $this->tahunAjaran?->id))
@@ -505,6 +506,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             'tanggal_mulai' => $u->tanggal_mulai?->translatedFormat('d M Y H:i'),
             'tanggal_selesai' => $u->tanggal_selesai?->translatedFormat('d M Y H:i'),
             'jumlah_soal' => $u->soals_count,
+            'jumlah_sesi' => $u->sesis_count,
             'jumlah_selesai' => $u->jumlah_selesai,
             'token' => $u->token,
             'token_released' => $u->token_released_at !== null,

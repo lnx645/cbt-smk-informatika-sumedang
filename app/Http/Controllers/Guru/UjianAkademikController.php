@@ -145,6 +145,7 @@ class UjianAkademikController extends BaseAppController implements HasMiddleware
         $data = $request->validate([
             'sesi_ujian_id' => ['nullable', 'integer', 'exists:sesi_ujians,id'],
             'tanggal' => ['required', 'date'],
+            'nomor_surat' => ['nullable', 'string', 'max:100'],
             'catatan' => ['nullable', 'string', 'max:2000'],
             'nama_pengawas' => ['nullable', 'string', 'max:100'],
             'nama_kepala_sekolah' => ['nullable', 'string', 'max:100'],
