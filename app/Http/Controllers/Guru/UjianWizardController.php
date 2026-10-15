@@ -107,13 +107,14 @@ class UjianWizardController extends BaseAppController
     }
 
     /**
-     * Tampilkan langkah wizard.
+     * Tampilkan langkah wizard. Mode diturunkan dari kategori ujian (anti-tamper via URL).
      */
     public function langkah(Request $request, Ujian $ujian, int $langkah): Response|RedirectResponse
     {
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
 
-        $mode = $request->query('mode', 'santai');
+        // Mode resmi = kategori besar (uts/uas/usbk). Jangan percaya query param.
+        $mode = $ujian->kategoriBesar() ? 'resmi' : 'santai';
         $maksLangkah = $mode === 'resmi' ? 5 : 3;
 
         if ($langkah < 2 || $langkah > $maksLangkah) {
@@ -189,7 +190,7 @@ class UjianWizardController extends BaseAppController
     }
 
     /**
-     * Simpan sesi (langkah 3 mode resmi).
+     * Simpan sesi (langkah 3 mode resmi). Mengganti semua sesi lama agar idempoten.
      */
     public function storeSesi(Request $request, Ujian $ujian): RedirectResponse
     {
@@ -200,16 +201,20 @@ class UjianWizardController extends BaseAppController
             'sesis.*.nama' => ['required', 'string', 'max:100'],
             'sesis.*.waktu_mulai' => ['required', 'date'],
             'sesis.*.waktu_selesai' => ['required', 'date', 'after:sesis.*.waktu_mulai'],
-            'sesis.*.ruang_id' => ['nullable', 'integer', 'exists:ruang_ujians,id'],
+            'sesis.*.ruang_ujian_id' => ['nullable', 'integer', 'exists:ruang_ujians,id'],
             'sesis.*.kapasitas' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        foreach ($data['sesis'] as $s) {
+        // Hapus sesi lama dulu agar simpan ulang tidak duplikat.
+        $ujian->sesis()->delete();
+
+        foreach (array_values($data['sesis']) as $i => $s) {
             $ujian->sesis()->create([
                 'nama' => $s['nama'],
+                'urutan' => $i + 1,
                 'waktu_mulai' => $s['waktu_mulai'],
                 'waktu_selesai' => $s['waktu_selesai'],
-                'ruang_id' => $s['ruang_id'] ?? null,
+                'ruang_ujian_id' => $s['ruang_ujian_id'] ?? null,
                 'kapasitas' => $s['kapasitas'] ?? null,
             ]);
         }

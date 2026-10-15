@@ -46,7 +46,7 @@ class KelengkapanUjianService
         if (! $ujian->memakaiSesi()) {
             $masalah[] = 'Atur sesi ujian (gelombang) beserta waktunya.';
         } else {
-            $tanpaRuang = $ujian->sesis()->whereNull('ruang_id')->count();
+            $tanpaRuang = $ujian->sesis()->whereNull('ruang_ujian_id')->count();
             if ($tanpaRuang > 0) {
                 $masalah[] = "{$tanpaRuang} sesi belum ditentukan ruangnya.";
             }

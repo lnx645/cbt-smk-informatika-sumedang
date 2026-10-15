@@ -1,10 +1,10 @@
 <script lang="ts">
     import { inertia, router, useForm } from '@inertiajs/svelte';
-    import { Badge, Button, Card, CardBody, CardHeader, Input, Table } from '@sveltestrap/sveltestrap';
+    import { Badge, Button, Card, CardBody, CardHeader, Table } from '@sveltestrap/sveltestrap';
     import PageHeader from '@/components/PageHeader.svelte';
 
     type Paket = { id: number; kode: string; nama: string; soals?: { id: number }[] };
-    type Sesi = { id: number; nama: string; ruang?: { nama: string } | null };
+    type Sesi = { id: number; nama: string; waktu_mulai?: string; waktu_selesai?: string; ruang_ujian_id?: number | null; kapasitas?: number | null; ruang?: { nama: string } | null };
 
     let {
         ujian, mode, langkah, maksLangkah, kelengkapan, kelompokBanks = [], ruangs = [],
@@ -39,13 +39,33 @@
         paketForm.post(`/app/guru/ujian/${ujian.id}/wizard/paket`);
     }
 
-    // Form sesi (langkah 3 resmi)
-    let sesiList = $state([{ nama: 'Sesi 1', waktu_mulai: '', waktu_selesai: '', ruang_id: null as number | null, kapasitas: null as number | null }]);
+    // Form sesi (langkah 3 resmi) — prefill dari sesi yang sudah ada agar bisa diedit.
+    type SesiForm = { nama: string; waktu_mulai: string; waktu_selesai: string; ruang_ujian_id: number | null; kapasitas: number | null };
+    const sesiAwal: SesiForm[] = (ujian.sesis ?? []).map((s) => ({
+        nama: s.nama,
+        waktu_mulai: (s.waktu_mulai ?? '').slice(0, 16),
+        waktu_selesai: (s.waktu_selesai ?? '').slice(0, 16),
+        ruang_ujian_id: s.ruang_ujian_id ?? null,
+        kapasitas: s.kapasitas ?? null,
+    }));
+    const sesiForm = useForm({
+        sesis: sesiAwal.length > 0 ? sesiAwal : [{ nama: 'Sesi 1', waktu_mulai: '', waktu_selesai: '', ruang_ujian_id: null, kapasitas: null } as SesiForm],
+    });
+    let editSesi = $state(sesiAwal.length === 0);
+
     function tambahSesi() {
-        sesiList = [...sesiList, { nama: `Sesi ${sesiList.length + 1}`, waktu_mulai: '', waktu_selesai: '', ruang_id: null, kapasitas: null }];
+        sesiForm.sesis = [...sesiForm.sesis, { nama: `Sesi ${sesiForm.sesis.length + 1}`, waktu_mulai: '', waktu_selesai: '', ruang_ujian_id: null, kapasitas: null }];
+    }
+    function hapusSesi(i: number) {
+        sesiForm.sesis = sesiForm.sesis.filter((_, j) => j !== i);
     }
     function simpanSesi() {
-        router.post(`/app/guru/ujian/${ujian.id}/wizard/sesi`, { sesis: sesiList });
+        sesiForm.post(`/app/guru/ujian/${ujian.id}/wizard/sesi`);
+    }
+
+    // Navigasi antar langkah.
+    function keLangkah(n: number) {
+        router.visit(`/app/guru/ujian/${ujian.id}/wizard/langkah/${n}`);
     }
 
     // Form token (langkah 4 resmi)
@@ -87,10 +107,14 @@
                 <a use:inertia href="/app/guru/ujian/{ujian.id}/soal" class="btn btn-outline-primary">
                     <i class="bi bi-list-check me-1"></i>Kelola Soal
                 </a>
-                <Button color="primary" onclick={() => router.visit(`/app/guru/ujian/${ujian.id}/wizard/langkah/3?mode=santai`)}>
+                <Button color="primary" onclick={() => keLangkah(3)}>
                     Lanjut <i class="bi bi-arrow-right ms-1"></i>
                 </Button>
             </div>
+            <p class="small text-muted mt-3 mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                Setelah menambah soal, kembali ke halaman ini lalu klik "Lanjut".
+            </p>
         </CardBody>
     </Card>
 {/if}
@@ -107,45 +131,51 @@
                         <Badge color="info" class="me-1">Paket {p.kode} ({p.soals?.length ?? 0} soal)</Badge>
                     {/each}
                 </div>
-            {:else}
-                <p class="text-muted small">
-                    Pilih bank soal yang mau dipakai. Sistem akan membagi soalnya secara acak ke tiap paket.
-                </p>
-                <div class="mb-3">
-                    <label class="form-label" for="pk-bank">Bank Soal <span class="text-danger">*</span></label>
-                    <select id="pk-bank" class="form-select" bind:value={paketForm.kelompok_bank_soal_id}>
-                        <option value={null}>— Pilih bank soal —</option>
-                        {#each kelompokBanks as kb}
-                            <option value={kb.id}>{kb.nama} ({kb.soals_count} soal)</option>
-                        {/each}
-                    </select>
-                    {#if paketForm.errors.kelompok_bank_soal_id}
-                        <div class="text-danger small">{paketForm.errors.kelompok_bank_soal_id}</div>
-                    {/if}
-                    {#if kelompokBanks.length === 0}
-                        <div class="form-text">
-                            Belum ada bank soal. <a use:inertia href="/app/guru/bank-soal/kelompok">Buat bank soal dulu</a>.
-                        </div>
-                    {/if}
-                </div>
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label" for="pk-jumlah">Jumlah paket</label>
-                        <input id="pk-jumlah" type="number" class="form-control" bind:value={paketForm.jumlah_paket} min="2" max="10" />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="pk-soal">Soal per paket</label>
-                        <input id="pk-soal" type="number" class="form-control" bind:value={paketForm.soal_per_paket} min="1" max="100" />
-                    </div>
-                </div>
             {/if}
-            <div class="d-flex gap-2 mt-3">
+            <p class="text-muted small">
+                Pilih bank soal yang mau dipakai. Sistem akan membagi soalnya secara acak ke tiap paket.
+                {#if (ujian.paket_soals?.length ?? 0) > 0}Generate ulang akan menghapus paket lama.{/if}
+            </p>
+            <div class="mb-3">
+                <label class="form-label" for="pk-bank">Bank Soal <span class="text-danger">*</span></label>
+                <select id="pk-bank" class="form-select" bind:value={paketForm.kelompok_bank_soal_id}>
+                    <option value={null}>— Pilih bank soal —</option>
+                    {#each kelompokBanks as kb}
+                        <option value={kb.id}>{kb.nama} ({kb.soals_count} soal)</option>
+                    {/each}
+                </select>
+                {#if paketForm.errors.kelompok_bank_soal_id}
+                    <div class="text-danger small">{paketForm.errors.kelompok_bank_soal_id}</div>
+                {/if}
+                {#if kelompokBanks.length === 0}
+                    <div class="form-text">
+                        Belum ada bank soal. <a use:inertia href="/app/guru/bank-soal/kelompok">Buat bank soal dulu</a>.
+                    </div>
+                {/if}
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="pk-jumlah">Jumlah paket</label>
+                    <input id="pk-jumlah" type="number" class="form-control" bind:value={paketForm.jumlah_paket} min="2" max="10" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="pk-soal">Soal per paket</label>
+                    <input id="pk-soal" type="number" class="form-control" bind:value={paketForm.soal_per_paket} min="1" max="100" />
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-3 flex-wrap">
                 {#if (ujian.paket_soals?.length ?? 0) === 0}
-                    <Button color="primary" onclick={generatePaket} disabled={paketForm.processing}>
+                    <Button color="primary" onclick={generatePaket} disabled={paketForm.processing || !paketForm.kelompok_bank_soal_id}>
                         <i class="bi bi-magic me-1"></i>Generate {paketForm.jumlah_paket} Paket
                     </Button>
                 {:else}
-                    <Button color="primary" onclick={() => router.visit(`/app/guru/ujian/${ujian.id}/wizard/langkah/3?mode=resmi`)}>
+                    <Button color="secondary" outline onclick={() => keLangkah(3)}>
+                        <i class="bi bi-arrow-left me-1"></i>Kembali
+                    </Button>
+                    <Button color="warning" outline onclick={generatePaket} disabled={paketForm.processing || !paketForm.kelompok_bank_soal_id}>
+                        <i class="bi bi-arrow-repeat me-1"></i>Generate Ulang
+                    </Button>
+                    <Button color="primary" onclick={() => keLangkah(3)}>
                         Lanjut <i class="bi bi-arrow-right ms-1"></i>
                     </Button>
                 {/if}
@@ -158,21 +188,39 @@
     <Card>
         <CardHeader>Sesi Ujian & Ruang</CardHeader>
         <CardBody>
-            {#if (ujian.sesis?.length ?? 0) > 0}
+            {#if (ujian.sesis?.length ?? 0) > 0 && !editSesi}
                 <Table size="sm" striped>
-                    <thead><tr><th>Sesi</th><th>Ruang</th></tr></thead>
+                    <thead><tr><th>Sesi</th><th>Waktu</th><th>Ruang</th></tr></thead>
                     <tbody>
                         {#each ujian.sesis! as s}
-                            <tr><td>{s.nama}</td><td>{s.ruang?.nama ?? '–'}</td></tr>
+                            <tr>
+                                <td>{s.nama}</td>
+                                <td class="small">{s.waktu_mulai?.slice(0, 16).replace('T', ' ')} – {s.waktu_selesai?.slice(0, 16).replace('T', ' ')}</td>
+                                <td>{s.ruang?.nama ?? '–'}</td>
+                            </tr>
                         {/each}
                     </tbody>
                 </Table>
-                <Button color="primary" onclick={() => router.visit(`/app/guru/ujian/${ujian.id}/wizard/langkah/4?mode=resmi`)}>
-                    Lanjut <i class="bi bi-arrow-right ms-1"></i>
-                </Button>
+                <div class="d-flex gap-2">
+                    <Button color="secondary" outline onclick={() => (editSesi = true)}>
+                        <i class="bi bi-pencil me-1"></i>Ubah Sesi
+                    </Button>
+                    <Button color="primary" onclick={() => keLangkah(4)}>
+                        Lanjut <i class="bi bi-arrow-right ms-1"></i>
+                    </Button>
+                </div>
             {:else}
-                {#each sesiList as s, i}
+                {#if sesiForm.errors.sesis}<div class="text-danger small mb-2">{sesiForm.errors.sesis}</div>{/if}
+                {#each sesiForm.sesis as s, i}
                     <div class="border rounded p-3 mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong class="small">Sesi {i + 1}</strong>
+                            {#if sesiForm.sesis.length > 1}
+                                <Button size="sm" color="danger" outline onclick={() => hapusSesi(i)}>
+                                    <i class="bi bi-trash"></i>
+                                </Button>
+                            {/if}
+                        </div>
                         <div class="row g-2">
                             <div class="col-md-3">
                                 <label class="form-label">Nama sesi</label>
@@ -188,7 +236,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Ruang</label>
-                                <select class="form-select" bind:value={s.ruang_id}>
+                                <select class="form-select" bind:value={s.ruang_ujian_id}>
                                     <option value={null}>— Pilih —</option>
                                     {#each ruangs as r}<option value={r.id}>{r.nama}</option>{/each}
                                 </select>
@@ -196,11 +244,14 @@
                         </div>
                     </div>
                 {/each}
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 flex-wrap">
+                    <Button color="secondary" outline onclick={() => keLangkah(2)}>
+                        <i class="bi bi-arrow-left me-1"></i>Kembali
+                    </Button>
                     <Button color="secondary" outline onclick={tambahSesi}>
                         <i class="bi bi-plus me-1"></i>Tambah Sesi
                     </Button>
-                    <Button color="primary" onclick={simpanSesi}>Simpan & Lanjut</Button>
+                    <Button color="primary" onclick={simpanSesi} disabled={sesiForm.processing}>Simpan & Lanjut</Button>
                 </div>
             {/if}
         </CardBody>
@@ -226,7 +277,12 @@
                 <label class="form-label" for="tk-kkm">KKM <span class="text-danger">*</span></label>
                 <input id="tk-kkm" type="number" class="form-control" style="max-width:120px" bind:value={tokenForm.kkm} min="0" max="100" />
             </div>
-            <Button color="primary" onclick={simpanToken} disabled={tokenForm.processing}>Simpan & Lanjut</Button>
+            <div class="d-flex gap-2">
+                <Button color="secondary" outline onclick={() => keLangkah(3)}>
+                    <i class="bi bi-arrow-left me-1"></i>Kembali
+                </Button>
+                <Button color="primary" onclick={simpanToken} disabled={tokenForm.processing}>Simpan & Lanjut</Button>
+            </div>
         </CardBody>
     </Card>
 {/if}
@@ -261,7 +317,10 @@
                 </div>
             {/if}
 
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
+                <Button color="secondary" outline onclick={() => keLangkah(mode === 'resmi' ? 4 : 2)}>
+                    <i class="bi bi-arrow-left me-1"></i>Kembali
+                </Button>
                 <Button color="secondary" outline onclick={kembali}>Simpan Draft</Button>
                 <Button color="success" onclick={terbit} disabled={kelengkapan.length > 0}>
                     <i class="bi bi-send me-1"></i>Terbitkan Ujian

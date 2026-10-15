@@ -304,10 +304,15 @@
 </script>
 
 <div class="container-fluid px-0">
-    <div class="mb-3">
+    <div class="mb-3 d-flex gap-2">
         <a use:inertia href={UjianController.index().url} class="text-decoration-none small">
             <i class="bi bi-arrow-left me-1"></i>Daftar Ujian
         </a>
+        {#if ujian.status === 'draft'}
+            <a use:inertia href="/app/guru/ujian/{ujian.id}/wizard/langkah/3" class="text-decoration-none small fw-semibold">
+                <i class="bi bi-arrow-right-circle me-1"></i>Lanjut ke Wizard (Langkah 3)
+            </a>
+        {/if}
     </div>
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
