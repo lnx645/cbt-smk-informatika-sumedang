@@ -26,6 +26,7 @@ beforeEach(function (): void {
     ]);
     $this->panitia = User::factory()->create(['role' => 'panitia']);
     $this->ujian = Ujian::factory()->create([
+        'guru_id' => $this->guruUser->guru->id,
         'guru_kelas_id' => $this->guruKelas->id,
         'kategori' => 'uts',
         'status' => 'diajukan',
