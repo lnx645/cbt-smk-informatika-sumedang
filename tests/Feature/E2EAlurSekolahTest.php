@@ -151,7 +151,10 @@ test('e2e full: guru → panitia → siswa', function (): void {
         ->post(route('app.panitia.ujian.terbit', $ujian))
         ->assertRedirect();
 
-    expect($ujian->fresh()->status)->toBe('terbit');
+    $fresh = $ujian->fresh();
+    $masalah = app(\App\Services\KelengkapanUjianService::class)->cek($fresh);
+    expect($masalah)->toBe([], 'Kelengkapan gagal: '.implode(', ', $masalah));
+    expect($fresh->status)->toBe('terbit');
 
     // --- 5. Verifikasi kelengkapan ---
     $masalah = app(\App\Services\KelengkapanUjianService::class)->cek($ujian->fresh());
