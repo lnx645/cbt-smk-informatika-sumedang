@@ -33,6 +33,9 @@ test('e2e full: guru → panitia → siswa', function (): void {
 
     $panitia = User::factory()->create(['role' => 'panitia']);
 
+    // Buat ruang ujian untuk sesi.
+    $ruang = RuangUjian::factory()->create(['nama' => 'Ruang E2E 1']);
+
     // --- 1. Admin buat akun panitia ---
     $this->actingAs($admin)
         ->post(route('admin.akun-admin.store'), [
@@ -114,8 +117,6 @@ test('e2e full: guru → panitia → siswa', function (): void {
     expect($ujian->fresh()->status)->toBe('diajukan');
 
     // --- 4. Panitia atur jadwal & terbitkan ---
-    $ruang = RuangUjian::first();
-
     $this->actingAs($panitia)
         ->get(route('app.panitia.ujian.show', $ujian))
         ->assertOk();
@@ -127,7 +128,7 @@ test('e2e full: guru → panitia → siswa', function (): void {
                     'nama' => 'Sesi 1',
                     'waktu_mulai' => now()->addDay()->format('Y-m-d\TH:i'),
                     'waktu_selesai' => now()->addDay()->addHours(2)->format('Y-m-d\TH:i'),
-                    'ruang_ujian_id' => $ruang?->id,
+                    'ruang_ujian_id' => $ruang->id,
                 ],
             ],
         ])
