@@ -78,7 +78,7 @@
                                             </Badge>
                                         {/if}
                                     </div>
-                                    <h2 class="h6 fw-semibold mb-0 mt-1 text-truncate">{item.judul}</h2>
+                                    <h2 class="h6 fw-semibold mb-0 mt-1 ujian-judul">{item.judul}</h2>
                                 </div>
                             </div>
                             <div class="text-muted small mb-2">
@@ -278,5 +278,14 @@
         .ujian-hero__title {
             font-size: 1.25rem;
         }
+    }
+
+    .ujian-judul {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
 </style>
