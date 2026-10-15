@@ -418,7 +418,7 @@
                         {/if}
 
                         {#if soalAktif.tipe === 'pg' || soalAktif.tipe === 'benar_salah'}
-                            {#each soalAktif.opsi as opsi (opsi.id)}
+                            {#each soalAktif.opsi as opsi, oi (opsi.id)}
                                 <label class="opsi d-flex align-items-center gap-2 border rounded-1 p-2 mb-2">
                                     <input
                                         type="radio"
@@ -426,17 +426,19 @@
                                         checked={jawabanOpsi[soalAktif.id]?.includes(opsi.id)}
                                         onchange={() => pilihTunggal(soalAktif, opsi.id)}
                                     />
+                                    <span class="fw-bold text-primary">{String.fromCharCode(65 + oi)}.</span>
                                     <span>{opsi.teks}</span>
                                 </label>
                             {/each}
                         {:else if soalAktif.tipe === 'multi'}
-                            {#each soalAktif.opsi as opsi (opsi.id)}
+                            {#each soalAktif.opsi as opsi, oi (opsi.id)}
                                 <label class="opsi d-flex align-items-center gap-2 border rounded-1 p-2 mb-2">
                                     <input
                                         type="checkbox"
                                         checked={jawabanOpsi[soalAktif.id]?.includes(opsi.id)}
                                         onchange={() => toggleMulti(soalAktif, opsi.id)}
                                     />
+                                    <span class="fw-bold text-primary">{String.fromCharCode(65 + oi)}.</span>
                                     <span>{opsi.teks}</span>
                                 </label>
                             {/each}
