@@ -17,6 +17,7 @@ class BankSoal extends Model
     use HasFactory;
 
     protected $fillable = [
+        'kelompok_bank_soal_id',
         'matpel_id',
         'guru_id',
         'tipe',
@@ -51,6 +52,11 @@ class BankSoal extends Model
     public function guru(): BelongsTo
     {
         return $this->belongsTo(Guru::class);
+    }
+
+    public function kelompok(): BelongsTo
+    {
+        return $this->belongsTo(KelompokBankSoal::class, 'kelompok_bank_soal_id');
     }
 
     public function opsi(): HasMany

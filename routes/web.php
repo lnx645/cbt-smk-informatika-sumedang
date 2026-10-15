@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Guru\BankSoalController as GuruBankSoalController;
+use App\Http\Controllers\Guru\KelompokBankSoalController as GuruKelompokBankSoalController;
 use App\Http\Controllers\Guru\HasilUjianController as GuruHasilUjianController;
 use App\Http\Controllers\Guru\MateriController as GuruMateriController;
 use App\Http\Controllers\Guru\PenilaianController as GuruPenilaianController;
@@ -127,6 +128,13 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
         Route::get('panitia/ujian/{ujian}/monitoring', [PanitiaUjianController::class, 'monitoring'])->name('panitia.ujian.monitoring');
         Route::delete('panitia/ujian/{ujian}/pengerjaan/{pengerjaan}/reset', [PanitiaUjianController::class, 'resetPengerjaan'])->name('panitia.ujian.pengerjaan.reset');
     });
+
+    // Guru: Kelompok Bank Soal (CBT v2) — wadah bernama berisi soal.
+    Route::get('guru/bank-soal/kelompok', [GuruKelompokBankSoalController::class, 'index'])->name('guru.bank-soal.kelompok.index');
+    Route::post('guru/bank-soal/kelompok', [GuruKelompokBankSoalController::class, 'store'])->name('guru.bank-soal.kelompok.store');
+    Route::get('guru/bank-soal/kelompok/{kelompok}', [GuruKelompokBankSoalController::class, 'show'])->name('guru.bank-soal.kelompok.show');
+    Route::post('guru/bank-soal/kelompok/{kelompok}/soal', [GuruKelompokBankSoalController::class, 'storeSoal'])->name('guru.bank-soal.kelompok.soal.store');
+    Route::delete('guru/bank-soal/kelompok/{kelompok}', [GuruKelompokBankSoalController::class, 'destroy'])->name('guru.bank-soal.kelompok.destroy');
 
     // Guru: Bank Soal
     Route::get('guru/bank-soal', [GuruBankSoalController::class, 'index'])->name('guru.bank-soal.index');

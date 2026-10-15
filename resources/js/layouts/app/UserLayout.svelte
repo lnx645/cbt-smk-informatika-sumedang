@@ -99,7 +99,7 @@
                     },
 
                     {
-                        href: GuruBankSoalController.index().url,
+                        href: '/app/guru/bank-soal/kelompok',
                         label: 'Bank Soal',
                         icon: 'bi-collection',
                     },

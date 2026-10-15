@@ -7,7 +7,7 @@
     type Sesi = { id: number; nama: string; ruang?: { nama: string } | null };
 
     let {
-        ujian, mode, langkah, maksLangkah, kelengkapan, bankSoalCount = 0, bankSoals = [], ruangs = [],
+        ujian, mode, langkah, maksLangkah, kelengkapan, kelompokBanks = [], ruangs = [],
     }: {
         ujian: {
             id: number; judul: string; kategori: string; durasi_menit: number;
@@ -19,8 +19,7 @@
         langkah: number;
         maksLangkah: number;
         kelengkapan: string[];
-        bankSoalCount?: number;
-        bankSoals?: { id: number; tipe: string; ringkasan: string }[];
+        kelompokBanks?: { id: number; nama: string; soals_count: number }[];
         ruangs?: { id: number; nama: string; kapasitas?: number }[];
     } = $props();
 
@@ -33,18 +32,10 @@
         'resmi-5': 'Review & Terbitkan',
     };
 
-    // Form paket (langkah 2 resmi) — checklist bank soal, semua terpilih by default.
-    const paketForm = useForm({ jumlah_paket: 3, soal_per_paket: 10, bank_soal_ids: [] as number[] });
-    let bankTerpilih = $state<Set<number>>(new Set(bankSoals.map((b) => b.id)));
-
-    function toggleBank(id: number) {
-        if (bankTerpilih.has(id)) bankTerpilih.delete(id);
-        else bankTerpilih.add(id);
-        bankTerpilih = new Set(bankTerpilih);
-    }
+    // Form paket (langkah 2 resmi) — pilih bank soal bernama.
+    const paketForm = useForm({ jumlah_paket: 3, soal_per_paket: 10, kelompok_bank_soal_id: null as number | null });
 
     function generatePaket() {
-        paketForm.bank_soal_ids = [...bankTerpilih];
         paketForm.post(`/app/guru/ujian/${ujian.id}/wizard/paket`);
     }
 
@@ -118,9 +109,25 @@
                 </div>
             {:else}
                 <p class="text-muted small">
-                    Pilih soal dari bank yang mau dipakai ({bankTerpilih.size} dari {bankSoalCount} terpilih).
-                    Sistem akan membaginya secara acak ke tiap paket.
+                    Pilih bank soal yang mau dipakai. Sistem akan membagi soalnya secara acak ke tiap paket.
                 </p>
+                <div class="mb-3">
+                    <label class="form-label" for="pk-bank">Bank Soal <span class="text-danger">*</span></label>
+                    <select id="pk-bank" class="form-select" bind:value={paketForm.kelompok_bank_soal_id}>
+                        <option value={null}>— Pilih bank soal —</option>
+                        {#each kelompokBanks as kb}
+                            <option value={kb.id}>{kb.nama} ({kb.soals_count} soal)</option>
+                        {/each}
+                    </select>
+                    {#if paketForm.errors.kelompok_bank_soal_id}
+                        <div class="text-danger small">{paketForm.errors.kelompok_bank_soal_id}</div>
+                    {/if}
+                    {#if kelompokBanks.length === 0}
+                        <div class="form-text">
+                            Belum ada bank soal. <a href="/app/guru/bank-soal/kelompok">Buat bank soal dulu</a>.
+                        </div>
+                    {/if}
+                </div>
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="form-label" for="pk-jumlah">Jumlah paket</label>
@@ -130,21 +137,6 @@
                         <label class="form-label" for="pk-soal">Soal per paket</label>
                         <input id="pk-soal" type="number" class="form-control" bind:value={paketForm.soal_per_paket} min="1" max="100" />
                     </div>
-                </div>
-                {#if paketForm.errors.bank_soal_ids}<div class="text-danger small mb-2">{paketForm.errors.bank_soal_ids}</div>{/if}
-                <div class="border rounded p-2 mb-3" style="max-height:240px;overflow-y:auto">
-                    {#each bankSoals as b}
-                        <label class="d-flex gap-2 align-items-start py-1 border-bottom small" style="cursor:pointer">
-                            <input type="checkbox" class="form-check-input mt-1" checked={bankTerpilih.has(b.id)} onchange={() => toggleBank(b.id)} />
-                            <span>
-                                <span class="badge bg-secondary me-1">{b.tipe}</span>
-                                {b.ringkasan}...
-                            </span>
-                        </label>
-                    {/each}
-                    {#if bankSoals.length === 0}
-                        <p class="text-muted small mb-0">Bank soal mapel ini masih kosong. Tambahkan dulu di menu Bank Soal.</p>
-                    {/if}
                 </div>
             {/if}
             <div class="d-flex gap-2 mt-3">

@@ -133,15 +133,17 @@ class UjianWizardController extends BaseAppController
         // Data tambahan per langkah.
         if ($mode === 'resmi' && $langkah === 2) {
             $matpelId = $ujian->guruKelas?->matpel_id;
-            $props['bankSoals'] = \App\Models\BankSoal::where('matpel_id', $matpelId)
-                ->orderBy('id')
-                ->get(['id', 'tipe', 'pertanyaan'])
-                ->map(fn ($b) => [
-                    'id' => $b->id,
-                    'tipe' => $b->tipe,
-                    'ringkasan' => mb_substr(strip_tags($b->pertanyaan), 0, 80),
+            $guruId = $request->user()->guru?->id;
+            $props['kelompokBanks'] = \App\Models\KelompokBankSoal::withCount('soals')
+                ->where('matpel_id', $matpelId)
+                ->where('guru_id', $guruId)
+                ->orderBy('nama')
+                ->get(['id', 'nama'])
+                ->map(fn ($k) => [
+                    'id' => $k->id,
+                    'nama' => $k->nama,
+                    'soals_count' => $k->soals_count,
                 ]);
-            $props['bankSoalCount'] = $props['bankSoals']->count();
         }
 
         if ($mode === 'resmi' && $langkah === 3) {
@@ -152,7 +154,7 @@ class UjianWizardController extends BaseAppController
     }
 
     /**
-     * Generate paket soal (langkah 2 mode resmi).
+     * Generate paket soal dari bank terpilih (langkah 2 mode resmi).
      */
     public function generatePaket(Request $request, Ujian $ujian): RedirectResponse
     {
@@ -161,13 +163,17 @@ class UjianWizardController extends BaseAppController
         $data = $request->validate([
             'jumlah_paket' => ['required', 'integer', 'min:2', 'max:10'],
             'soal_per_paket' => ['required', 'integer', 'min:1', 'max:100'],
-            'bank_soal_ids' => ['required', 'array', 'min:1'],
-            'bank_soal_ids.*' => ['integer'],
+            'kelompok_bank_soal_id' => ['required', 'integer', 'exists:kelompok_bank_soals,id'],
         ]);
+
+        $kelompok = \App\Models\KelompokBankSoal::findOrFail($data['kelompok_bank_soal_id']);
+        abort_unless($kelompok->guru_id === $request->user()->guru?->id, 404);
+
+        $bankSoalIds = $kelompok->soals()->pluck('id')->all();
 
         try {
             $pakets = $this->paketSoalService->generateOtomatis(
-                $ujian, $data['jumlah_paket'], $data['soal_per_paket'], $data['bank_soal_ids']
+                $ujian, $data['jumlah_paket'], $data['soal_per_paket'], $bankSoalIds
             );
         } catch (\InvalidArgumentException $e) {
             Toast::error($e->getMessage());
@@ -175,7 +181,7 @@ class UjianWizardController extends BaseAppController
             return Redirect::back();
         }
 
-        Toast::success(count($pakets).' paket soal berhasil dibuat.');
+        Toast::success(count($pakets).' paket soal berhasil dibuat dari "'.$kelompok->nama.'".');
 
         return Redirect::route('app.guru.ujian.wizard.langkah', [
             'ujian' => $ujian->id, 'langkah' => 3, 'mode' => 'resmi',
