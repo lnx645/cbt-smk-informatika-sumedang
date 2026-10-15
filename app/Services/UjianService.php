@@ -238,7 +238,7 @@ class UjianService
                 'maks_pelanggaran' => 5,
                 'bobot' => 2,
             ],
-            default => [ // kuis
+            default => [ // kuis & uh
                 'maks_attempt' => 1,
                 'acak_soal' => false,
                 'acak_opsi' => false,

@@ -372,8 +372,8 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <Badge color={KATEGORI_INFO[item.kategori].color} pill>
-                                            {KATEGORI_INFO[item.kategori].label}
+                                        <Badge color={KATEGORI_INFO[item.kategori]?.color ?? 'secondary'} pill>
+                                            {KATEGORI_INFO[item.kategori]?.label ?? item.kategori}
                                         </Badge>
                                     </td>
                                     <td class="text-nowrap small">

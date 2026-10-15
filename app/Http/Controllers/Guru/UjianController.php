@@ -587,7 +587,7 @@ class UjianController extends BaseAppController implements HasMiddleware
                     ->where('aktif', true)
                     ->where('tahun_ajaran_id', $this->tahunAjaran?->id),
             ],
-            'kategori' => ['required', Rule::in(['kuis', 'uts', 'uas', 'usbk'])],
+            'kategori' => ['required', Rule::in(['kuis', 'uh', 'uts', 'uas', 'usbk'])],
             'judul' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string', 'max:10000'],
             'tata_tertib' => ['nullable', 'string', 'max:10000'],

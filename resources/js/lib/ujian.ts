@@ -1,4 +1,4 @@
-export type KategoriUjian = 'kuis' | 'uts' | 'uas' | 'usbk';
+export type KategoriUjian = 'kuis' | 'uh' | 'uts' | 'uas' | 'usbk';
 export type TipeSoal = 'pg' | 'multi' | 'benar_salah' | 'isian' | 'esai';
 export type Kesulitan = 'mudah' | 'sedang' | 'sulit';
 
@@ -13,6 +13,7 @@ export const KATEGORI_INFO: Record<
     { label: string; color: string }
 > = {
     kuis: { label: 'Kuis', color: 'info' },
+    uh: { label: 'Ulangan Harian', color: 'secondary' },
     uts: { label: 'UTS', color: 'primary' },
     uas: { label: 'UAS', color: 'warning' },
     usbk: { label: 'USBK', color: 'danger' },
@@ -34,6 +35,13 @@ export const DEFAULT_KATEGORI: Record<
         wajib_fullscreen: false,
         maks_pelanggaran: 0,
         bobot: 1,
+    },
+    uh: {
+        acak_soal: false,
+        acak_opsi: false,
+        wajib_fullscreen: false,
+        maks_pelanggaran: 0,
+        bobot: 2,
     },
     uts: {
         acak_soal: true,
