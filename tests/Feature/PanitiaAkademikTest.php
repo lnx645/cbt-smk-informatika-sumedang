@@ -91,3 +91,46 @@ test('catatan panitia tersimpan dan terlihat guru', function (): void {
             ->where('ujians.data.0.catatan_panitia', 'Soal nomor 5 ambigu, perbaiki.')
         );
 });
+
+test('panitia tidak bisa simpan sesi ruang bentrok', function (): void {
+    $ruang = RuangUjian::factory()->create(['nama' => 'Ruang Bentrok']);
+
+    // Sesi ujian lain pakai ruang yang sama di waktu tumpang tindih.
+    $ujianLain = Ujian::factory()->create(['kategori' => 'uas', 'status' => 'terbit']);
+    SesiUjian::factory()->create([
+        'ujian_id' => $ujianLain->id,
+        'nama' => 'Sesi Pagi',
+        'ruang_ujian_id' => $ruang->id,
+        'waktu_mulai' => now()->addDay()->setTime(8, 0),
+        'waktu_selesai' => now()->addDay()->setTime(10, 0),
+    ]);
+
+    $this->actingAs($this->panitia)
+        ->post(route('app.panitia.ujian.sesi', $this->ujian), [
+            'sesis' => [[
+                'nama' => 'Sesi 1',
+                'waktu_mulai' => now()->addDay()->setTime(9, 0)->format('Y-m-d\TH:i'),
+                'waktu_selesai' => now()->addDay()->setTime(11, 0)->format('Y-m-d\TH:i'),
+                'ruang_ujian_id' => $ruang->id,
+            ]],
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    expect($this->ujian->sesis()->count())->toBe(0);
+
+    // Waktu tidak tumpang tindih: boleh.
+    $this->actingAs($this->panitia)
+        ->post(route('app.panitia.ujian.sesi', $this->ujian), [
+            'sesis' => [[
+                'nama' => 'Sesi 1',
+                'waktu_mulai' => now()->addDay()->setTime(10, 30)->format('Y-m-d\TH:i'),
+                'waktu_selesai' => now()->addDay()->setTime(12, 30)->format('Y-m-d\TH:i'),
+                'ruang_ujian_id' => $ruang->id,
+            ]],
+        ])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect($this->ujian->sesis()->count())->toBe(1);
+});

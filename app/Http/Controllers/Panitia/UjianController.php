@@ -179,9 +179,57 @@ class UjianController extends BaseAppController
             'sesis.*.kapasitas' => ['nullable', 'integer', 'min:1'],
         ]);
 
+        $sesis = array_values($data['sesis']);
+
+        // Cegah bentrok: ruang yang sama tidak boleh dipakai sesi lain
+        // (ujian lain maupun sesi lain dalam form ini) yang waktunya tumpang tindih.
+        foreach ($sesis as $s) {
+            if (empty($s['ruang_ujian_id'])) {
+                continue;
+            }
+
+            // Bentrok dengan sesi ujian lain di database.
+            $bentrok = \App\Models\SesiUjian::query()
+                ->where('ruang_ujian_id', $s['ruang_ujian_id'])
+                ->where('ujian_id', '!=', $ujian->id)
+                ->where('waktu_mulai', '<', $s['waktu_selesai'])
+                ->where('waktu_selesai', '>', $s['waktu_mulai'])
+                ->with('ujian')
+                ->first();
+
+            if ($bentrok) {
+                $label = $bentrok->ujian?->judul ?? 'ujian lain';
+                $ruang = \App\Models\RuangUjian::find($s['ruang_ujian_id'])?->nama ?? 'ruang';
+
+                return redirect()->back()->with(
+                    'error',
+                    "Ruang {$ruang} bentrok dengan {$bentrok->nama} ({$label}) pada {$s['nama']}. Pilih ruang atau waktu lain."
+                );
+            }
+
+            // Bentrok antar sesi dalam form yang sama.
+            foreach ($sesis as $lain) {
+                if ($lain === $s || empty($lain['ruang_ujian_id'])) {
+                    continue;
+                }
+                if (
+                    $lain['ruang_ujian_id'] == $s['ruang_ujian_id']
+                    && $lain['waktu_mulai'] < $s['waktu_selesai']
+                    && $lain['waktu_selesai'] > $s['waktu_mulai']
+                ) {
+                    $ruang = \App\Models\RuangUjian::find($s['ruang_ujian_id'])?->nama ?? 'ruang';
+
+                    return redirect()->back()->with(
+                        'error',
+                        "Ruang {$ruang} dipakai dua sesi yang waktunya tumpang tindih ({$s['nama']} & {$lain['nama']})."
+                    );
+                }
+            }
+        }
+
         $ujian->sesis()->delete();
 
-        foreach (array_values($data['sesis']) as $i => $s) {
+        foreach ($sesis as $i => $s) {
             $ujian->sesis()->create([
                 'nama' => $s['nama'],
                 'urutan' => $i + 1,
