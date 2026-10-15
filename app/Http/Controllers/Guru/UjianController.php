@@ -484,6 +484,12 @@ class UjianController extends BaseAppController implements HasMiddleware
     {
         $guru = $request->user()->guru;
 
+        // Kategori bisa datang sebagai string atau objek {value, label} dari Select.
+        $kategoriInput = $request->input('kategori');
+        $kategori = is_array($kategoriInput)
+            ? ($kategoriInput['value'] ?? null)
+            : ($kategoriInput ?: null);
+
         $ujians = Ujian::query()
             ->with(['guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name'])
             ->withCount('soals')
@@ -492,7 +498,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             ->where('guru_id', $guru->id)
             ->whereHas('guruKelas', fn ($q) => $q->where('tahun_ajaran_id', $this->tahunAjaran?->id))
             ->when($request->integer('guru_kelas_id'), fn ($q, $id) => $q->where('guru_kelas_id', $id))
-            ->when($request->string('kategori')->toString(), fn ($q, $k) => $q->where('kategori', $k))
+            ->when($kategori, fn ($q, $k) => $q->where('kategori', $k))
             ->when($request->string('q')->toString(), fn ($q, $kw) => $q->where('judul', 'like', "%{$kw}%"))
             ->orderByDesc('created_at')
             ->paginate(10)
@@ -523,7 +529,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             'penugasan' => $this->penugasan($guru),
             'filters' => [
                 'guru_kelas_id' => $request->integer('guru_kelas_id') ?: null,
-                'kategori' => $request->string('kategori')->toString() ?: null,
+                'kategori' => $kategori,
                 'q' => $request->string('q')->toString(),
             ],
         ];
