@@ -18,6 +18,8 @@
         butuh_token: boolean;
         attempt_terpakai: number;
         maks_attempt: number;
+        sisa_attempt: number;
+        berhak_remedial: boolean;
         sedang_dikerjakan: boolean;
         tampilkan_hasil: boolean;
         nilai_total: number | null;
@@ -86,6 +88,9 @@
                             <div class="ujian-meta">
                                 <span><i class="bi bi-clock me-1"></i>{item.durasi_menit} menit</span>
                                 <span><i class="bi bi-patch-question me-1"></i>{item.jumlah_soal} soal</span>
+                                {#if item.sisa_attempt > 0 && item.attempt_terpakai > 0}
+                                    <span class="text-warning"><i class="bi bi-arrow-repeat me-1"></i>Sisa {item.sisa_attempt}x</span>
+                                {/if}
                             </div>
                             <div class="small text-muted mt-2 mb-3">
                                 <i class="bi bi-calendar3 me-1"></i>{item.tanggal_mulai ?? 'Kapan saja'}
@@ -105,9 +110,23 @@
                                     </a>
                                 {:else if item.attempt_terpakai >= item.maks_attempt}
                                     <div class="d-grid gap-2">
-                                        <Button color="secondary" disabled>
-                                            Kesempatan habis
-                                        </Button>
+                                        {#if item.berhak_remedial}
+                                            <div class="alert alert-warning py-2 mb-0 small">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                                Kamu berhak <strong>remedial</strong> 1x (nilai di bawah KKM).
+                                            </div>
+                                            <a
+                                                use:inertia
+                                                href={UjianController.konfirmasi({ ujian: item.id }).url}
+                                                class="btn btn-warning w-100"
+                                            >
+                                                <i class="bi bi-arrow-repeat me-1"></i>Mulai Remedial
+                                            </a>
+                                        {:else}
+                                            <Button color="secondary" disabled>
+                                                Kesempatan habis
+                                            </Button>
+                                        {/if}
                                         {#if item.tampilkan_hasil}
                                             <a
                                                 use:inertia

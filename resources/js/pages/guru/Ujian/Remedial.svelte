@@ -29,7 +29,7 @@
             </div>
             <Button color="primary" type="submit" disabled={kkmForm.processing}>Simpan KKM</Button>
         </form>
-        <p class="text-muted small mt-2 mb-0">Siswa di bawah KKM dapat diberi kesempatan remedial melalui attempt tambahan bertanda remedial.</p>
+        <p class="text-muted small mt-2 mb-0">Siswa di bawah KKM otomatis mendapat tombol <strong>"Mulai Remedial"</strong> di dashboard mereka — tidak perlu aksi manual. Remedial tercatat sebagai attempt tambahan.</p>
     </CardBody>
 </Card>
 

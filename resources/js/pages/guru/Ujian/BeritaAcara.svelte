@@ -22,6 +22,7 @@
     const form = useForm({
         sesi_ujian_id: null as number | null,
         tanggal: new Date().toISOString().slice(0, 10),
+        nomor_surat: '',
         catatan: '',
         nama_pengawas: '',
         nama_kepala_sekolah: '',
@@ -53,6 +54,10 @@
                     <div class="mb-2">
                         <Label>Tanggal</Label>
                         <Input type="date" bind:value={form.tanggal} />
+                    </div>
+                    <div class="mb-2">
+                        <Label>Nomor Surat</Label>
+                        <Input bind:value={form.nomor_surat} placeholder="Contoh: 421/123/SMK-IF/X/2026" />
                     </div>
                     <div class="mb-2">
                         <Label>Nama Pengawas</Label>

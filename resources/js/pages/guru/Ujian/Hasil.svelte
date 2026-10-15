@@ -68,9 +68,18 @@
                 {ujian.kelas} · {ujian.matpel} · {ujian.jumlah_soal} soal
             </div>
         </div>
-        {#if ujian.ada_esai}
-            <Badge color="warning" pill>Ada soal esai — perlu koreksi manual</Badge>
-        {/if}
+        <div class="d-flex gap-2 align-items-center">
+            <a
+                use:inertia
+                href={AkademikController.analisisIndex({ ujian: ujian.id }).url}
+                class="btn btn-sm btn-outline-primary"
+            >
+                <i class="bi bi-graph-up me-1"></i>Analisis Soal
+            </a>
+            {#if ujian.ada_esai}
+                <Badge color="warning" pill>Ada soal esai — perlu koreksi manual</Badge>
+            {/if}
+        </div>
     </div>
 
     <Card class="border rounded-1 shadow-none">

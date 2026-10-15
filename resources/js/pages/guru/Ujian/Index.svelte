@@ -41,6 +41,7 @@
         tanggal_mulai: string | null;
         tanggal_selesai: string | null;
         jumlah_soal: number;
+        jumlah_sesi: number;
         jumlah_selesai: number;
         token: string | null;
         token_released: boolean;
@@ -383,6 +384,16 @@
                                         <div class="text-muted small">
                                             {item.jumlah_selesai} selesai
                                         </div>
+                                        {#if item.status !== 'terbit'}
+                                            <div class="mt-1 d-flex gap-1 small">
+                                                <span class="badge {item.jumlah_soal > 0 ? 'text-bg-success' : 'text-bg-secondary'}" title="Langkah 2: Isi soal">
+                                                    <i class="bi bi-check-circle me-1"></i>Soal
+                                                </span>
+                                                <span class="badge {item.jumlah_sesi > 0 ? 'text-bg-success' : 'text-bg-secondary'}" title="Langkah 3: Atur sesi">
+                                                    <i class="bi bi-check-circle me-1"></i>Sesi
+                                                </span>
+                                            </div>
+                                        {/if}
                                     </td>
                                     <td class="text-nowrap">
                                         {#if item.token_pengelola === 'admin'}
@@ -409,6 +420,15 @@
                                     </td>
                                     <td class="text-end">
                                         <div class="d-inline-flex gap-1 align-items-center">
+                                            {#if item.status === 'terbit'}
+                                                <Button size="sm" color="outline-secondary" onclick={() => terbitkan(item)} title="Tarik kembali ke draft">
+                                                    <i class="bi bi-eye-slash me-1"></i>Tarik
+                                                </Button>
+                                            {:else}
+                                                <Button size="sm" color="success" onclick={() => terbitkan(item)} title="Terbitkan agar bisa dikerjakan siswa">
+                                                    <i class="bi bi-send me-1"></i>Terbitkan
+                                                </Button>
+                                            {/if}
                                             <a
                                                 use:inertia
                                                 href={SoalController.index({ ujian: item.id }).url}
@@ -416,6 +436,20 @@
                                                 title="Kelola soal"
                                             >
                                                 <i class="bi bi-list-check me-1"></i>Soal
+                                                {#if item.jumlah_soal > 0}
+                                                    <span class="badge text-bg-primary ms-1">{item.jumlah_soal}</span>
+                                                {/if}
+                                            </a>
+                                            <a
+                                                use:inertia
+                                                href={UjianController.sesiIndex({ ujian: item.id }).url}
+                                                class="btn btn-sm btn-outline-warning"
+                                                title="Kelola sesi"
+                                            >
+                                                <i class="bi bi-clock-history me-1"></i>Sesi
+                                                {#if item.jumlah_sesi > 0}
+                                                    <span class="badge text-bg-warning ms-1">{item.jumlah_sesi}</span>
+                                                {/if}
                                             </a>
                                             <a
                                                 use:inertia
@@ -456,9 +490,6 @@
                                                     </DropdownItem>
                                                     <DropdownItem onclick={() => duplikat(item)}>
                                                         <i class="bi bi-copy me-2"></i>Duplikat
-                                                    </DropdownItem>
-                                                    <DropdownItem onclick={() => terbitkan(item)}>
-                                                        <i class={`bi ${item.status === 'terbit' ? 'bi-eye-slash' : 'bi-send'} me-2`}></i>{item.status === 'terbit' ? 'Tarik ke Draft' : 'Terbitkan'}
                                                     </DropdownItem>
                                                     <DropdownItem divider />
                                                     <DropdownItem onclick={() => buatToken(item)} disabled={item.token_pengelola === 'admin'}>
