@@ -46,8 +46,6 @@ class UjianController extends BaseAppController
         ]);
     }
 
-    }
-
     /**
      * Monitoring real-time: status pengerjaan per sesi.
      */
