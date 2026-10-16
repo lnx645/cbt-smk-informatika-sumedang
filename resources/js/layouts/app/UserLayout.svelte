@@ -64,9 +64,24 @@
                 section: 'Panitia Ujian',
                 items: [
                     {
-                        href: '/app/panitia/ujian',
-                        label: 'Ujian Resmi',
-                        icon: 'bi-clipboard-check',
+                        href: '/app/panitia/jadwal',
+                        label: 'Jadwal Ujian',
+                        icon: 'bi-calendar-week',
+                    },
+                    {
+                        href: '/app/panitia/group',
+                        label: 'Kelola Group',
+                        icon: 'bi-collection',
+                    },
+                    {
+                        href: '/app/panitia/event',
+                        label: 'Kelola Event',
+                        icon: 'bi-flag',
+                    },
+                    {
+                        href: '/app/panitia/ruang',
+                        label: 'Kelola Ruangan',
+                        icon: 'bi-door-open',
                     },
                 ],
             });
