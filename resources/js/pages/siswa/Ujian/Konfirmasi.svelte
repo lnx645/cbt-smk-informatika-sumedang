@@ -38,8 +38,11 @@
         }
         peringatan = '';
         memulai = true;
+        const urlMulai = window.location.pathname.startsWith('/ujian/')
+            ? `/ujian/mulai/${ujian.id}`
+            : `/app/ujian/${ujian.id}/mulai`;
         router.post(
-            UjianController.mulai({ ujian: ujian.id }).url,
+            urlMulai,
             { setuju_tata_tertib: setuju, token: token || undefined },
             { onFinish: () => (memulai = false) },
         );

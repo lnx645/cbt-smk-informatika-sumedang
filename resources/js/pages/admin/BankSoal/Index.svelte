@@ -327,7 +327,7 @@
                                         <!-- Meta -->
                                         <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                                             <Badge color={TIPE_COLOR[b.tipe]} class="text-white" style="font-size:0.68rem">
-                                                <i class={`bi ${TIPE_SOAL_INFO[b.tipe].icon} me-1`}></i>
+                                                <i class={`bi ${TIPE_SOAL_INFO[b.tipe]?.icon ?? 'bi-question-circle'} me-1`}></i>
                                                 {TIPE_SOAL_INFO[b.tipe].label}
                                             </Badge>
                                             <Badge color={KESULITAN_INFO[b.kesulitan].color} style="font-size:0.63rem">
@@ -356,7 +356,7 @@
                                             </div>
                                         {:else if b.kunci_isian?.length}
                                             <div class="small text-muted">
-                                                <i class="bi bi-key me-1"></i>{b.kunci_isian.join(' | ')}
+                                                <i class="bi bi-key me-1"></i>{Array.isArray(b.kunci_isian) ? b.kunci_isian.join(' | ') : (b.kunci_isian ?? '-')}
                                             </div>
                                         {/if}
                                     </div>

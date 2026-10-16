@@ -9,9 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Table('soals')]
+#[Table('cbt_soals')]
 class Soal extends Model
 {
+    protected $table = 'cbt_soals';
+
     /** @use HasFactory<SoalFactory> */
     use HasFactory;
 
@@ -29,6 +31,7 @@ class Soal extends Model
         'indikator',
         'media_path',
         'media_type',
+        'detail',
     ];
 
     protected $casts = [
@@ -36,6 +39,7 @@ class Soal extends Model
         'urutan' => 'integer',
         'kunci_isian' => 'array',
         'isian_case_sensitive' => 'boolean',
+        'detail' => 'array',
     ];
 
     /**
@@ -43,9 +47,34 @@ class Soal extends Model
      *
      * @var array<int, string>
      */
-    public const TIPE_OBJEKTIF = ['pg', 'multi', 'benar_salah', 'isian'];
+    public const TIPE_OBJEKTIF = [
+        'benar_salah',
+        'pilihan_ganda', 'pilihan_ganda_kompleks', 'pilihan_ganda_citra',
+        'menjodohkan', 'menjodohkan_banyak',
+        'isian_singkat',
+        'mengurutkan',
+        'setuju_tidak',
+        'matrix_text', 'matrix_checkbox',
+        'mengelompokkan',
+        'blank_space',
+        'image_labeling',
+    ];
 
-    public const TIPE = ['pg', 'multi', 'benar_salah', 'isian', 'esai'];
+    public const TIPE_ESAI = ['uraian', 'listening'];
+
+    public const TIPE = [
+        'benar_salah',
+        'pilihan_ganda', 'pilihan_ganda_kompleks', 'pilihan_ganda_citra',
+        'menjodohkan', 'menjodohkan_banyak',
+        'isian_singkat',
+        'mengurutkan',
+        'setuju_tidak',
+        'matrix_text', 'matrix_checkbox',
+        'mengelompokkan',
+        'blank_space',
+        'image_labeling',
+        'uraian', 'listening',
+    ];
 
     public function ujian(): BelongsTo
     {
@@ -67,8 +96,13 @@ class Soal extends Model
         return in_array($this->tipe, self::TIPE_OBJEKTIF, true);
     }
 
+    public function esai(): bool
+    {
+        return in_array($this->tipe, self::TIPE_ESAI, true);
+    }
+
     public function butuhOpsi(): bool
     {
-        return in_array($this->tipe, ['pg', 'multi', 'benar_salah'], true);
+        return in_array($this->tipe, ['benar_salah', 'pilihan_ganda', 'pilihan_ganda_kompleks', 'pilihan_ganda_citra'], true);
     }
 }

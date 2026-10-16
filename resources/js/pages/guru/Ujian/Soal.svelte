@@ -17,9 +17,12 @@
         ModalHeader,
     } from '@sveltestrap/sveltestrap';
     import { confirm } from '@/lib/confirm.svelte';
+    import SoalRenderer from '@/components/soal/render/SoalRenderer.svelte';
+    import Latex from '@/components/Latex.svelte';
     import {
         KESULITAN_INFO,
         TIPE_SOAL_INFO,
+        labelTipeSoal,
         type Kesulitan,
         type TipeSoal,
     } from '@/lib/ujian';
@@ -38,6 +41,7 @@
         topik: string | null;
         kesulitan: Kesulitan;
         jumlah_opsi: number;
+        kelompok_id: number | null;
     };
     type SoalItem = {
         id: number;
@@ -58,7 +62,9 @@
     let {
         ujian,
         soals,
+        pakets = [],
         bank = [],
+        bankKelompok = [],
     }: {
         ujian: {
             id: number;
@@ -70,20 +76,33 @@
             matpel_id: number | null;
             nilai_maks: number;
             total_poin: number;
+            memakai_paket: boolean;
         };
         soals: SoalItem[];
+        pakets: { id: number; kode: string; nama: string; soals: SoalItem[] }[];
         bank: BankItem[];
+        bankKelompok: { id: number; nama: string; jumlah: number }[];
     } = $props();
+
+    // Tab paket aktif (untuk ujian resmi)
+    let paketAktif = $state<number | null>(pakets[0]?.id ?? null);
+
+    const soalTampil = $derived(
+        ujian.memakai_paket && paketAktif
+            ? (pakets.find((p) => p.id === paketAktif)?.soals ?? [])
+            : soals,
+    );
 
     const tipeOptions = (Object.keys(TIPE_SOAL_INFO) as TipeSoal[]).map((t) => ({
         value: t,
-        label: TIPE_SOAL_INFO[t].label,
+        label: labelTipeSoal(t),
     }));
 
     const form = useForm({
         tipe: 'pg' as TipeSoal,
         pertanyaan: '',
         poin: 1,
+        paket_soal_id: null as number | null,
         opsi: [
             { teks: '', benar: true },
             { teks: '', benar: false },
@@ -110,6 +129,10 @@
     function bukaBuat() {
         resetForm();
         editId = null;
+        // Otomatis masuk ke paket yang sedang aktif
+        if (ujian.memakai_paket && paketAktif) {
+            form.paket_soal_id = paketAktif;
+        }
         modalOpen = true;
     }
 
@@ -204,6 +227,16 @@
 
     // ---- Bank soal ----
     let bankModalOpen = $state(false);
+    let bankKelompokAktif = $state<number | null>(null);
+    let poolModalOpen = $state(false);
+    let poolConfig = $state<Record<number, number>>({});
+    let poolAktif = $state(false);
+
+    const bankSoalKelompok = $derived(
+        bankKelompokAktif === null
+            ? []
+            : bank.filter((b) => b.kelompok_id === bankKelompokAktif),
+    );
     let generateModalOpen = $state(false);
     let importModalOpen = $state(false);
     let importFile: FileList | undefined = $state();
@@ -270,6 +303,20 @@
         });
     }
 
+    function simpanPool() {
+        const pool = Object.entries(poolConfig).map(([kelompokId, jumlah]) => ({
+            kelompok_bank_soal_id: Number(kelompokId),
+            jumlah: Number(jumlah),
+        }));
+        router.post(`/app/guru/ujian/${ujian.id}/pool`, { pool }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                poolModalOpen = false;
+                poolAktif = pool.length > 0;
+            },
+        });
+    }
+
     function generate() {
         generateForm
             .transform((d) => ({
@@ -308,11 +355,7 @@
         <a use:inertia href={UjianController.index().url} class="text-decoration-none small">
             <i class="bi bi-arrow-left me-1"></i>Daftar Ujian
         </a>
-        {#if ujian.status === 'draft'}
-            <a use:inertia href="/app/guru/ujian/{ujian.id}/wizard/langkah/3" class="text-decoration-none small fw-semibold">
-                <i class="bi bi-arrow-right-circle me-1"></i>Lanjut ke Wizard (Langkah 3)
-            </a>
-        {/if}
+
     </div>
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -322,46 +365,66 @@
                 {ujian.kelas} · {ujian.matpel} · Total poin: {ujian.total_poin}
             </div>
         </div>
-        <Button color="primary" onclick={bukaBuat}>
-            <i class="bi bi-plus-lg me-1"></i>Tambah Soal
-        </Button>
+        <div class="d-flex gap-2">
+            <Button color="primary" onclick={() => (bankModalOpen = true)}>
+                <i class="bi bi-collection me-1"></i>Ambil dari Bank Soal
+            </Button>
+            <Button color="outline-primary" onclick={() => (poolModalOpen = true)}>
+                <i class="bi bi-shuffle me-1"></i>Paket Otomatis
+            </Button>
+        </div>
     </div>
 
-    <div class="d-flex flex-wrap gap-2 mb-3">
-        <Button color="outline-primary" size="sm" onclick={() => (bankModalOpen = true)}>
-            <i class="bi bi-collection me-1"></i>Ambil dari Bank
-        </Button>
-        <Button color="outline-primary" size="sm" onclick={() => (generateModalOpen = true)}>
-            <i class="bi bi-shuffle me-1"></i>Generate Acak
-        </Button>
-        <a class="btn btn-sm btn-outline-success" href={AkademikController.importTemplate({ ujian: ujian.id }).url}>
-            <i class="bi bi-download me-1"></i>Template Excel
-        </a>
-        <Button color="outline-success" size="sm" onclick={() => (importModalOpen = true)}>
-            <i class="bi bi-upload me-1"></i>Import Excel
-        </Button>
+    {#if ujian.memakai_paket && pakets.length > 0}
+        <div class="mb-3">
+            <div class="btn-group" role="group">
+                {#each pakets as p}
+                    <button
+                        type="button"
+                        class="btn {paketAktif === p.id ? 'btn-primary' : 'btn-outline-primary'}"
+                        onclick={() => (paketAktif = p.id)}
+                    >
+                        <i class="bi bi-folder me-1"></i>{p.kode} — {p.nama}
+                        <span class="badge {paketAktif === p.id ? 'text-bg-light' : 'text-bg-primary'} ms-1">{p.soals.length}</span>
+                    </button>
+                {/each}
+            </div>
+            <div class="form-text mt-1">
+                <i class="bi bi-info-circle me-1"></i>Soal dikelola per paket. Pilih paket di atas, lalu tambah/edit soal untuk paket tersebut.
+            </div>
+        </div>
+    {/if}
+
+    <div class="alert alert-light border small mb-3">
+        <i class="bi bi-info-circle me-1"></i>
+        Soal diambil dari <strong>Bank Soal</strong>. Kelola soal di menu Bank Soal, lalu pilih di sini.
     </div>
 
-    {#if soals.length === 0}
+    {#if soalTampil.length === 0}
         <div class="text-center text-muted py-5">
             <i class="bi bi-card-list display-5 d-block mb-2"></i>
             <div>Belum ada soal. Tambahkan soal untuk ujian ini.</div>
         </div>
     {:else}
-        {#each soals as s, i (s.id)}
-            <Card class="border rounded-1 shadow-none mb-2">
+        {#each soalTampil as s, i (s.id)}
+            <Card class="border mb-3">
                 <CardBody class="p-3">
                     <div class="d-flex justify-content-between align-items-start gap-2">
                         <div class="flex-grow-1">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="fw-semibold">Soal {i + 1}</span>
+                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                <span class="badge bg-primary rounded-pill">{i + 1}</span>
                                 <Badge color="light" class="text-dark border">
-                                    <i class={`bi ${TIPE_SOAL_INFO[s.tipe].icon} me-1`}></i>
-                                    {TIPE_SOAL_INFO[s.tipe].label}
+                                    <i class={`bi ${TIPE_SOAL_INFO[s.tipe]?.icon ?? 'bi-question-circle'} me-1`}></i>
+                                    {labelTipeSoal(s.tipe)}
                                 </Badge>
-                                <span class="text-muted small">{s.poin} poin</span>
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">{s.poin} poin</span>
+                                {#if s.bank_soal_id}
+                                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle" title="Dari Bank Soal">
+                                        <i class="bi bi-collection me-1"></i>Bank
+                                    </span>
+                                {/if}
                             </div>
-                            <div class="rich-deskripsi">{@html s.pertanyaan}</div>
+                            <div class="mb-2 fw-medium"><Latex teks={s.pertanyaan} /></div>
                             {#if s.kode_kd}
                                 <div class="small text-muted mt-1"><i class="bi bi-tag me-1"></i>{s.kode_kd}{s.indikator ? ` — ${s.indikator}` : ''}</div>
                             {/if}
@@ -377,57 +440,27 @@
                                     </div>
                                 </div>
                             {/if}
-                            {#if s.opsi.length}
-                                <div class="mt-2 d-flex flex-column gap-1">
-                                    {#each s.opsi as o, i (o.id)}
-                                        <div
-                                            class={`d-flex align-items-start gap-2 small rounded-1 px-2 py-1 ${
-                                                o.benar
-                                                    ? 'bg-success-subtle text-success-emphasis fw-semibold'
-                                                    : 'text-body'
-                                            }`}
-                                        >
-                                            <span
-                                                class={`badge ${o.benar ? 'bg-success' : 'bg-secondary-subtle text-secondary-emphasis'}`}
-                                                style="min-width: 24px;"
-                                            >
-                                                {String.fromCharCode(65 + i)}
-                                            </span>
-                                            <span class="flex-grow-1">{o.teks}</span>
-                                            {#if o.benar}<i class="bi bi-check-circle-fill"></i>{/if}
-                                        </div>
-                                    {/each}
-                                </div>
-                            {:else if s.kunci_isian?.length}
-                                <div class="small text-muted mt-2">
-                                    Kunci: {s.kunci_isian.join(', ')}
-                                </div>
-                            {/if}
+                            <div class="mt-2">
+                                {#key s.id}
+                                    {@const dd = s.detail ?? (
+                                        s.tipe === 'isian_singkat' && s.kunci_isian?.length ? { kunci: s.kunci_isian } :
+                                        s.opsi?.length ? { opsi: s.opsi } :
+                                        null
+                                    )}
+                                    <SoalRenderer
+                                        tipe={s.tipe}
+                                        detail={dd}
+                                        jawaban={null}
+                                        disabled={true}
+                                        showKunci={true}
+                                    />
+                                {/key}
+                            </div>
                         </div>
                         <div class="d-inline-flex gap-1 align-items-start">
-                            <Button size="sm" color="outline-secondary" onclick={() => bukaEdit(s)}>
-                                <i class="bi bi-pencil me-1"></i>Edit
+                            <Button size="sm" color="outline-danger" onclick={() => hapus(s)} title="Hapus dari ujian">
+                                <i class="bi bi-trash"></i>
                             </Button>
-                            <Dropdown size="sm">
-                                <DropdownToggle color="outline-secondary" caret>
-                                    <i class="bi bi-three-dots"></i>
-                                </DropdownToggle>
-                                <DropdownMenu end>
-                                    <DropdownItem>
-                                        <label class="d-block mb-0" style="cursor:pointer">
-                                            <i class="bi bi-paperclip me-2"></i>Unggah Media
-                                            <input type="file" accept="image/*,audio/*" class="d-none" onchange={(e) => unggahMedia(s, e)} />
-                                        </label>
-                                    </DropdownItem>
-                                    <DropdownItem onclick={() => bukaSimpanBank(s)}>
-                                        <i class="bi bi-bookmark-plus me-2"></i>Simpan ke Bank
-                                    </DropdownItem>
-                                    <DropdownItem divider />
-                                    <DropdownItem onclick={() => hapus(s)} class="text-danger">
-                                        <i class="bi bi-trash me-2"></i>Hapus Soal
-                                    </DropdownItem>
-                                </DropdownMenu>
-                            </Dropdown>
                         </div>
                     </div>
                 </CardBody>
@@ -588,14 +621,14 @@
 
     <!-- Ambil dari Bank -->
     <Modal isOpen={bankModalOpen} toggle={() => (bankModalOpen = !bankModalOpen)} size="lg">
-        <ModalHeader toggle={() => (bankModalOpen = false)}>Ambil Soal dari Bank</ModalHeader>
+        <ModalHeader toggle={() => { bankModalOpen = false; bankKelompokAktif = null; }}>Ambil Soal dari Bank</ModalHeader>
         <ModalBody>
             {#if bank.length === 0}
                 <div class="text-center text-muted py-4">
                     <i class="bi bi-inboxes display-6 d-block mb-2"></i>
                     Belum ada soal bank untuk mata pelajaran ini.
                 </div>
-            {:else}
+            {:else if !(bankKelompok.length)}
                 <div class="small text-muted mb-2">
                     {bankTerpilih.length} soal dipilih. Soal akan disalin (snapshot) ke ujian.
                 </div>
@@ -609,7 +642,51 @@
                         />
                         <div class="flex-grow-1">
                             <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                <Badge color="light" class="text-dark border">{TIPE_SOAL_INFO[b.tipe].label}</Badge>
+                                <Badge color="light" class="text-dark border">{labelTipeSoal(b.tipe)}</Badge>
+                                <Badge color={KESULITAN_INFO[b.kesulitan].color} pill>{KESULITAN_INFO[b.kesulitan].label}</Badge>
+                                <span class="text-muted small">{b.poin} poin</span>
+                                {#if b.topik}<span class="badge bg-secondary-subtle text-secondary-emphasis">{b.topik}</span>{/if}
+                            </div>
+                            <div class="rich-deskripsi small">{@html b.pertanyaan}</div>
+                        </div>
+                    </label>
+                {/each}
+            {:else if bankKelompokAktif === null}
+                <div class="small text-muted mb-3">
+                    Pilih kelompok bank soal:
+                </div>
+                <div class="list-group">
+                    {#each bankKelompok as k}
+                        <button
+                            type="button"
+                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                            onclick={() => (bankKelompokAktif = k.id)}
+                        >
+                            <span><i class="bi bi-folder2 me-2"></i>{k.nama}</span>
+                            <span class="badge bg-primary rounded-pill">{k.jumlah} soal</span>
+                        </button>
+                    {/each}
+                </div>
+            {:else}
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick={() => (bankKelompokAktif = null)}>
+                        <i class="bi bi-arrow-left"></i> Kelompok
+                    </button>
+                    <div class="small text-muted">
+                        {bankTerpilih.length} soal dipilih.
+                    </div>
+                </div>
+                {#each bankSoalKelompok as b (b.id)}
+                    <label class="d-flex align-items-start gap-2 border rounded-1 p-2 mb-2">
+                        <input
+                            type="checkbox"
+                            class="mt-1"
+                            checked={bankTerpilih.includes(b.id)}
+                            onchange={() => toggleBank(b.id)}
+                        />
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                <Badge color="light" class="text-dark border">{labelTipeSoal(b.tipe)}</Badge>
                                 <Badge color={KESULITAN_INFO[b.kesulitan].color} pill>{KESULITAN_INFO[b.kesulitan].label}</Badge>
                                 <span class="text-muted small">{b.poin} poin</span>
                                 {#if b.topik}<span class="badge bg-secondary-subtle text-secondary-emphasis">{b.topik}</span>{/if}
@@ -621,9 +698,65 @@
             {/if}
         </ModalBody>
         <ModalFooter>
-            <Button color="secondary" onclick={() => (bankModalOpen = false)}>Batal</Button>
+            <Button color="secondary" onclick={() => { bankModalOpen = false; bankKelompokAktif = null; }}>Batal</Button>
             <Button color="primary" onclick={ambilDariBank} disabled={ambilForm.processing || bankTerpilih.length === 0}>
                 Salin {bankTerpilih.length} Soal
+            </Button>
+        </ModalFooter>
+    </Modal>
+
+    <!-- Paket Otomatis -->
+    <Modal isOpen={poolModalOpen} toggle={() => (poolModalOpen = !poolModalOpen)} size="lg">
+        <ModalHeader toggle={() => (poolModalOpen = false)}>Paket Soal Otomatis</ModalHeader>
+        <ModalBody>
+            <div class="alert alert-info small">
+                <i class="bi bi-info-circle me-1"></i>
+                Pilih kelompok bank soal dan tentukan jumlah soal yang diambil acak untuk tiap siswa.
+                Tiap siswa akan mendapat kombinasi soal yang berbeda.
+            </div>
+            {#if (bankKelompok.length ?? 0) === 0}
+                <div class="text-center text-muted py-4">Belum ada kelompok bank soal.</div>
+            {:else}
+                {#each bankKelompok as k}
+                    <div class="d-flex align-items-center gap-3 border rounded-2 p-3 mb-2">
+                        <input
+                            type="checkbox"
+                            class="form-check-input"
+                            checked={poolConfig[k.id] !== undefined}
+                            onchange={(e) => {
+                                if (e.currentTarget.checked) {
+                                    poolConfig[k.id] = Math.min(10, k.jumlah);
+                                } else {
+                                    delete poolConfig[k.id];
+                                }
+                            }}
+                        />
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold">{k.nama}</div>
+                            <div class="text-muted small">{k.jumlah} soal tersedia</div>
+                        </div>
+                        {#if poolConfig[k.id] !== undefined}
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="small text-muted mb-0">Ambil</label>
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    style="width: 80px"
+                                    min="1"
+                                    max={k.jumlah}
+                                    bind:value={poolConfig[k.id]}
+                                />
+                                <span class="small text-muted">soal</span>
+                            </div>
+                        {/if}
+                    </div>
+                {/each}
+            {/if}
+        </ModalBody>
+        <ModalFooter>
+            <Button color="secondary" onclick={() => (poolModalOpen = false)}>Batal</Button>
+            <Button color="primary" onclick={simpanPool} disabled={Object.keys(poolConfig).length === 0}>
+                Simpan Paket
             </Button>
         </ModalFooter>
     </Modal>
@@ -642,7 +775,7 @@
                     <select id="g-tipe" class="form-select" bind:value={generateForm.tipe}>
                         <option value="">Semua</option>
                         {#each Object.keys(TIPE_SOAL_INFO) as t (t)}
-                            <option value={t}>{TIPE_SOAL_INFO[t as TipeSoal].label}</option>
+                            <option value={t}>{labelTipeSoal(t)}</option>
                         {/each}
                     </select>
                 </div>

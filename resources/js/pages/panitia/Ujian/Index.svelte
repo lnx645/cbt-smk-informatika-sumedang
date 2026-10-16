@@ -11,16 +11,60 @@
         guru_kelas?: { kelas?: { nama: string } } | null;
     };
 
-    let { ujians }: { ujians: { data: Ujian[] } } = $props();
+    let { ujians, kelasList }: { ujians: { data: Ujian[] }; kelasList: { id: number; nama: string }[] } = $props();
+
+    let pilihKelas = $state<number | null>(null);
+    let showKartuModal = $state(false);
+
+    function cetakKartuSemua() {
+        if (!pilihKelas) return;
+        window.open(`/app/panitia/kartu-peserta-semua?kelas_id=${pilihKelas}`, '_blank');
+        showKartuModal = false;
+    }
 </script>
 
 <PageHeader title="Panitia Ujian" subtitle="Kelola ujian resmi (UTS / UAS / USBK) lintas kelas">
     {#snippet actions()}
+        <a use:inertia href="/app/panitia/ujian/buat" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Buat Ujian Resmi
+        </a>
+        <Button size="sm" color="outline-success" onclick={() => (showKartuModal = true)}>
+            <i class="bi bi-person-badge me-1"></i>Kartu Semua Ujian
+        </Button>
         <a href="/app/panitia/ujian/jadwal-pdf" target="_blank" class="btn btn-sm btn-outline-primary">
             <i class="bi bi-printer me-1"></i>Cetak Jadwal
         </a>
     {/snippet}
 </PageHeader>
+
+{#if showKartuModal}
+    <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Kartu Peserta — Semua Ujian</h5>
+                    <button type="button" class="btn-close" onclick={() => (showKartuModal = false)}></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">Satu kartu per siswa berisi <strong>semua</strong> ujian yang sudah diterbitkan untuk kelas tersebut (seperti kartu UNBK).</p>
+                    <label class="form-label" for="kartu-kelas">Pilih Kelas</label>
+                    <select id="kartu-kelas" class="form-select" bind:value={pilihKelas}>
+                        <option value={null}>-- Pilih kelas --</option>
+                        {#each kelasList as k}
+                            <option value={k.id}>{k.nama}</option>
+                        {/each}
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <Button color="secondary" outline onclick={() => (showKartuModal = false)}>Batal</Button>
+                    <Button color="success" onclick={cetakKartuSemua} disabled={!pilihKelas}>
+                        <i class="bi bi-printer me-1"></i>Cetak Kartu
+                    </Button>
+                </div>
+            </div>
+        </div>
+    </div>
+{/if}
 
 {#if ujians.data.length === 0}
     <EmptyState message="Belum ada ujian resmi" hint="Ujian resmi dibuat oleh guru/panitia dengan kategori UTS, UAS, atau USBK." />

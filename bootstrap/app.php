@@ -17,6 +17,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Percaya proxy (cloudflared tunnel, dsb) agar skema http/https
+        // terdeteksi dari header X-Forwarded-Proto — cegah mixed content.
+        $middleware->trustProxies(at: '*');
+
+        $middleware->alias([
+            'ujian.auth' => \App\Http\Middleware\UjianAuthMiddleware::class,
+        ]);
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,

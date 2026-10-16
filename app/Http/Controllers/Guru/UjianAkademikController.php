@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Guru;
 use App\Http\Controllers\BaseAppController;
 use App\Models\BeritaAcaraUjian;
 use App\Models\PelanggaranLog;
-use App\Models\RuangUjian;
-use App\Models\SesiPengawas;
 use App\Models\SesiUjian;
 use App\Models\Siswa;
 use App\Models\SiswaKelas;
@@ -143,7 +141,7 @@ class UjianAkademikController extends BaseAppController implements HasMiddleware
         $this->milikGuru($request, $ujian);
 
         $data = $request->validate([
-            'sesi_ujian_id' => ['nullable', 'integer', 'exists:sesi_ujians,id'],
+            'sesi_ujian_id' => ['nullable', 'integer', 'exists:cbt_sesi_ujians,id'],
             'tanggal' => ['required', 'date'],
             'nomor_surat' => ['nullable', 'string', 'max:100'],
             'catatan' => ['nullable', 'string', 'max:2000'],
@@ -394,7 +392,7 @@ class UjianAkademikController extends BaseAppController implements HasMiddleware
         abort_unless($sesi->ujian_id === $ujian->id, 404);
 
         $data = $request->validate([
-            'ruang_ujian_id' => ['nullable', 'integer', 'exists:ruang_ujians,id'],
+            'ruang_ujian_id' => ['nullable', 'integer', 'exists:cbt_ruang_ujians,id'],
         ]);
 
         // Cegah bentrok: ruang yang sama tidak boleh dipakai sesi lain

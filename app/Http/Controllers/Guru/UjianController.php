@@ -12,8 +12,10 @@ use App\Models\SesiUjian;
 use App\Models\SesiUjianPeserta;
 use App\Models\SiswaKelas;
 use App\Models\Ujian;
-use App\Services\NotifikasiService;
+use App\Services\BankSoalService;
 use App\Services\KelengkapanUjianService;
+use App\Services\NotifikasiService;
+use App\Services\PoolSoalService;
 use App\Services\UjianService;
 use App\Support\Toast;
 use Illuminate\Database\Eloquent\Collection;
@@ -56,6 +58,13 @@ class UjianController extends BaseAppController implements HasMiddleware
         return Inertia::render('guru/Ujian/Index', $this->indexData($request));
     }
 
+    public function create(Request $request): Response
+    {
+        return Inertia::render('guru/Ujian/Create', [
+            'penugasan' => $this->penugasan($request->user()->guru),
+        ]);
+    }
+
     /**
      * Simpan ujian baru + buat penilaian terkait.
      */
@@ -84,8 +93,9 @@ class UjianController extends BaseAppController implements HasMiddleware
     {
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
 
-        return Inertia::render('guru/Ujian/Index', $this->indexData($request) + [
-            'editUjian' => $this->serializeEdit($ujian),
+        return Inertia::render('guru/Ujian/Edit', [
+            'ujian' => $this->serializeEdit($ujian),
+            'penugasan' => $this->penugasan($request->user()->guru),
         ]);
     }
 
@@ -137,13 +147,40 @@ class UjianController extends BaseAppController implements HasMiddleware
     /**
      * Terbitkan / tarik ujian. Ujian besar wajib punya minimal 1 soal.
      */
+    public function simpanPool(Request $request, Ujian $ujian): RedirectResponse
+    {
+        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+
+        $data = $request->validate([
+            'pool' => ['required', 'array', 'min:1'],
+            'pool.*.kelompok_bank_soal_id' => ['required', 'integer', 'exists:cbt_kelompok_bank_soals,id'],
+            'pool.*.jumlah' => ['required', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $ujian->update(['pool_soal' => $data['pool']]);
+
+        // Langsung generate soal acak dari pool
+        $bankIds = app(PoolSoalService::class)
+            ->pilihAcak($data['pool']);
+
+        if (! empty($bankIds)) {
+            app(BankSoalService::class)
+                ->salinKeUjian($ujian, $bankIds);
+        }
+
+        Toast::success('Paket soal otomatis dibuat: '.count($bankIds).' soal.');
+
+        return Redirect::back();
+    }
+
     public function terbit(Request $request, Ujian $ujian): RedirectResponse
     {
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
 
         if ($ujian->status === 'draft') {
             // CBT v2: validasi kelengkapan sesuai kategori (ketat untuk ujian resmi).
-            $masalah = app(KelengkapanUjianService::class)->cek($ujian);
+            // Guru hanya cek tugasnya sendiri, bukan tugas panitia.
+            $masalah = app(KelengkapanUjianService::class)->cekGuru($ujian);
             if ($masalah !== []) {
                 Toast::error('Belum bisa diterbitkan: '.implode(' ', $masalah));
 
@@ -154,6 +191,13 @@ class UjianController extends BaseAppController implements HasMiddleware
             app(NotifikasiService::class)->jadwalUjian($ujian->fresh());
             Toast::success('Ujian diterbitkan dan notifikasi jadwal dikirim ke siswa.');
         } else {
+            // Jangan tarik ke draft jika ada siswa sedang mengerjakan
+            $sedangMengerjakan = $ujian->pengerjaans()->where('status', 'berlangsung')->exists();
+            if ($sedangMengerjakan) {
+                Toast::error('Tidak bisa ditarik ke draft: ada siswa sedang mengerjakan ujian.');
+
+                return Redirect::back();
+            }
             $ujian->update(['status' => 'draft']);
             Toast::info('Ujian ditarik ke draft.');
         }
@@ -220,6 +264,7 @@ class UjianController extends BaseAppController implements HasMiddleware
     public function sesiStore(Request $request, Ujian $ujian): RedirectResponse
     {
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+        abort_if(in_array($ujian->kategori, ['uts', 'uas', 'usbk']), 403, 'Sesi ujian resmi dikelola panitia.');
 
         $data = $this->validateSesi($request, $ujian);
 
@@ -237,6 +282,7 @@ class UjianController extends BaseAppController implements HasMiddleware
     {
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
         abort_unless($sesi->ujian_id === $ujian->id, 404);
+        abort_if(in_array($ujian->kategori, ['uts', 'uas', 'usbk']), 403, 'Sesi ujian resmi dikelola panitia.');
 
         $data = $this->validateSesi($request, $ujian, $sesi);
 
@@ -265,6 +311,7 @@ class UjianController extends BaseAppController implements HasMiddleware
     {
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
         abort_unless($sesi->ujian_id === $ujian->id, 404);
+        abort_if(in_array($ujian->kategori, ['uts', 'uas', 'usbk']), 403, 'Sesi ujian resmi dikelola panitia.');
 
         if ($sesi->pengerjaans()->exists()) {
             Toast::error('Sesi tidak dapat dihapus karena sudah dipakai pengerjaan siswa.');
@@ -285,6 +332,8 @@ class UjianController extends BaseAppController implements HasMiddleware
     public function sesiIndex(Request $request, Ujian $ujian): Response
     {
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+        // Ujian resmi dikelola panitia, guru tidak boleh atur sesi
+        abort_if(in_array($ujian->kategori, ['uts', 'uas', 'usbk']), 403, 'Sesi ujian resmi dikelola panitia.');
 
         $ujian->load(['guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name']);
 
@@ -367,6 +416,7 @@ class UjianController extends BaseAppController implements HasMiddleware
     public function sesiMode(Request $request, Ujian $ujian): RedirectResponse
     {
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+        abort_if(in_array($ujian->kategori, ['uts', 'uas', 'usbk']), 403, 'Sesi ujian resmi dikelola panitia.');
 
         $data = $request->validate([
             'mode_sesi' => ['required', 'in:bebas,terjadwal'],
@@ -496,6 +546,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             ->withCount('sesis')
             ->withCount(['pengerjaans as jumlah_selesai' => fn ($q) => $q->whereIn('status', ['selesai', 'auto_submit'])])
             ->where('guru_id', $guru->id)
+            ->whereIn('kategori', ['kuis', 'uh'])
             ->whereHas('guruKelas', fn ($q) => $q->where('tahun_ajaran_id', $this->tahunAjaran?->id))
             ->when($request->integer('guru_kelas_id'), fn ($q, $id) => $q->where('guru_kelas_id', $id))
             ->when($kategori, fn ($q, $k) => $q->where('kategori', $k))
@@ -576,6 +627,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             'wajib_fullscreen' => $ujian->wajib_fullscreen,
             'maks_pelanggaran' => $ujian->maks_pelanggaran,
             'nilai_maks' => $ujian->nilai_maks,
+            'kkm' => $ujian->kkm ?? 75,
             'bobot' => $ujian->bobot,
             'token_pengelola' => $ujian->token_pengelola,
         ];
@@ -594,7 +646,7 @@ class UjianController extends BaseAppController implements HasMiddleware
                     ->where('aktif', true)
                     ->where('tahun_ajaran_id', $this->tahunAjaran?->id),
             ],
-            'kategori' => ['required', Rule::in(['kuis', 'uh', 'uts', 'uas', 'usbk'])],
+            'kategori' => ['required', Rule::in(['kuis', 'uh'])],
             'judul' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string', 'max:10000'],
             'tata_tertib' => ['nullable', 'string', 'max:10000'],
@@ -608,6 +660,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             'wajib_fullscreen' => ['boolean'],
             'maks_pelanggaran' => ['required', 'integer', 'min:0', 'max:50'],
             'nilai_maks' => ['required', 'integer', 'min:1', 'max:1000'],
+            'kkm' => ['nullable', 'integer', 'min:0', 'max:100'],
             'bobot' => ['required', 'integer', 'min:1', 'max:100'],
             'token_pengelola' => ['sometimes', Rule::in(['guru', 'admin'])],
         ], [], [
@@ -657,6 +710,7 @@ class UjianController extends BaseAppController implements HasMiddleware
             'deskripsi' => $ujian->deskripsi,
             'tipe' => 'cbt',
             'nilai_maks' => $ujian->nilai_maks,
+            'kkm' => $ujian->kkm ?? 75,
             'bobot' => $ujian->bobot,
             'aktif' => true,
             'sumber' => $ujian->kategori,

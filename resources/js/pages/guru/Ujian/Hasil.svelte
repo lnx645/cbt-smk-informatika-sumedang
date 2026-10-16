@@ -8,6 +8,14 @@
     import AkademikController from '@/actions/App/Http/Controllers/Guru/UjianAkademikController';
     import { confirm } from '@/lib/confirm.svelte';
 
+    let konfirmTarik = $state(false);
+
+    function tarikKeNilai() {
+        router.post(`/app/guru/ujian/${ujian.id}/hasil/tarik-nilai`, {}, {
+            onSuccess: () => (konfirmTarik = false),
+        });
+    }
+
     async function resetPengerjaan(nama: string, pengerjaanId: number) {
         const ok = await confirm.show({
             title: 'Reset Pengerjaan',
@@ -69,15 +77,20 @@
             </div>
         </div>
         <div class="d-flex gap-2 align-items-center">
-            <a
-                use:inertia
-                href={AkademikController.analisisIndex({ ujian: ujian.id }).url}
-                class="btn btn-sm btn-outline-primary"
-            >
-                <i class="bi bi-graph-up me-1"></i>Analisis Soal
-            </a>
+
             {#if ujian.ada_esai}
                 <Badge color="warning" pill>Ada soal esai — perlu koreksi manual</Badge>
+            {/if}
+            {#if !konfirmTarik}
+                <Button size="sm" color="success" onclick={() => (konfirmTarik = true)}>
+                    <i class="bi bi-download me-1"></i>Tarik ke Nilai
+                </Button>
+            {:else}
+                <span class="small text-muted">Tarik nilai ke Penilaian?</span>
+                <Button size="sm" color="success" onclick={tarikKeNilai}>
+                    <i class="bi bi-check-lg me-1"></i>Ya
+                </Button>
+                <Button size="sm" color="outline-secondary" onclick={() => (konfirmTarik = false)}>Batal</Button>
             {/if}
         </div>
     </div>

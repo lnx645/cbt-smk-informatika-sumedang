@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\BaseAppController;
 use App\Models\BankSoal;
+use App\Models\KelompokBankSoal;
 use App\Models\OpsiSoal;
 use App\Models\Soal;
 use App\Models\Ujian;
@@ -56,16 +57,17 @@ class SoalController extends BaseAppController implements HasMiddleware
     {
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
 
-        $data = $this->validateSoal($request);
+        $data = $this->validateSoal($request, $ujian);
 
         DB::transaction(function () use ($ujian, $data): void {
-            $urutan = (int) $ujian->soals()->max('urutan') + 1;
+            $urutan = (int) $ujian->soals()->where('paket_soal_id', $data['paket_soal_id'] ?? null)->max('urutan') + 1;
 
             $soal = $ujian->soals()->create([
                 'tipe' => $data['tipe'],
                 'pertanyaan' => HtmlSanitizer::clean($data['pertanyaan']),
                 'poin' => $data['poin'],
                 'urutan' => $urutan,
+                'paket_soal_id' => $data['paket_soal_id'] ?? null,
                 'kunci_isian' => $this->kunciIsian($data),
                 'isian_case_sensitive' => $data['isian_case_sensitive'] ?? false,
                 'kode_kd' => $data['kode_kd'] ?? null,
@@ -93,7 +95,7 @@ class SoalController extends BaseAppController implements HasMiddleware
             return Redirect::back();
         }
 
-        $data = $this->validateSoal($request);
+        $data = $this->validateSoal($request, $ujian);
 
         DB::transaction(function () use ($soal, $data): void {
             $soal->update([
@@ -144,7 +146,7 @@ class SoalController extends BaseAppController implements HasMiddleware
 
         $data = $request->validate([
             'bank_soal_ids' => ['required', 'array', 'min:1'],
-            'bank_soal_ids.*' => [Rule::exists('bank_soals', 'id')->where('matpel_id', $matpelId)],
+            'bank_soal_ids.*' => [Rule::exists('cbt_bank_soals', 'id')->where('matpel_id', $matpelId)],
         ]);
 
         $jumlah = $this->bankSoalService->salinKeUjian($ujian, $data['bank_soal_ids']);
@@ -217,9 +219,20 @@ class SoalController extends BaseAppController implements HasMiddleware
      */
     private function soalData(Ujian $ujian): array
     {
-        $ujian->load(['guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name', 'soals.opsi']);
+        $ujian->load(['guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name', 'soals.opsi', 'paketSoals']);
 
         $matpelId = $ujian->guruKelas?->matpel_id;
+
+        $bankKelompok = KelompokBankSoal::query()
+            ->where('matpel_id', $matpelId)
+            ->withCount('soals')
+            ->orderBy('nama')
+            ->get()
+            ->map(fn (KelompokBankSoal $k): array => [
+                'id' => $k->id,
+                'nama' => $k->nama,
+                'jumlah' => $k->soals_count,
+            ]);
 
         $bank = BankSoal::query()
             ->with('opsi:id,bank_soal_id,teks,benar')
@@ -234,7 +247,30 @@ class SoalController extends BaseAppController implements HasMiddleware
                 'topik' => $b->topik,
                 'kesulitan' => $b->kesulitan,
                 'jumlah_opsi' => $b->opsi->count(),
+                'kelompok_id' => $b->kelompok_bank_soal_id,
             ]);
+
+        $mapSoal = fn (Soal $s): array => [
+            'id' => $s->id,
+            'tipe' => $s->tipe,
+            'pertanyaan' => $s->pertanyaan,
+            'poin' => $s->poin,
+            'urutan' => $s->urutan,
+            'paket_soal_id' => $s->paket_soal_id,
+            'kunci_isian' => $s->kunci_isian,
+            'isian_case_sensitive' => $s->isian_case_sensitive,
+            'kode_kd' => $s->kode_kd,
+            'indikator' => $s->indikator,
+            'media_path' => $s->media_path,
+            'media_type' => $s->media_type,
+            'media_url' => $s->media_path ? Storage::url($s->media_path) : null,
+            'detail' => $s->detail,
+            'opsi' => $s->opsi->map(fn (OpsiSoal $o): array => [
+                'id' => $o->id,
+                'teks' => $o->teks,
+                'benar' => $o->benar,
+            ])->values(),
+        ];
 
         return [
             'ujian' => [
@@ -247,39 +283,44 @@ class SoalController extends BaseAppController implements HasMiddleware
                 'matpel_id' => $ujian->guruKelas?->matpel_id,
                 'nilai_maks' => $ujian->nilai_maks,
                 'total_poin' => (int) $ujian->soals->sum('poin'),
+                'memakai_paket' => $ujian->memakaiPaketSoal(),
             ],
-            'soals' => $ujian->soals->map(fn (Soal $s): array => [
-                'id' => $s->id,
-                'tipe' => $s->tipe,
-                'pertanyaan' => $s->pertanyaan,
-                'poin' => $s->poin,
-                'urutan' => $s->urutan,
-                'kunci_isian' => $s->kunci_isian,
-                'isian_case_sensitive' => $s->isian_case_sensitive,
-                'kode_kd' => $s->kode_kd,
-                'indikator' => $s->indikator,
-                'media_path' => $s->media_path,
-                'media_type' => $s->media_type,
-                'media_url' => $s->media_path ? Storage::url($s->media_path) : null,
-                'opsi' => $s->opsi->map(fn (OpsiSoal $o): array => [
-                    'id' => $o->id,
-                    'teks' => $o->teks,
-                    'benar' => $o->benar,
-                ])->values(),
+            'pakets' => $ujian->paketSoals->map(fn ($p) => [
+                'id' => $p->id,
+                'kode' => $p->kode,
+                'nama' => $p->nama,
+                'soals' => $ujian->soals->where('paket_soal_id', $p->id)->map($mapSoal)->values(),
             ])->values(),
+            'soals' => $ujian->soals->whereNull('paket_soal_id')->map($mapSoal)->values(),
             'bank' => $bank,
+            'bankKelompok' => $bankKelompok,
         ];
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function validateSoal(Request $request): array
+    private function validateSoal(Request $request, ?Ujian $ujian = null): array
     {
+        // Mapping kode legacy frontend ke tipe modern
+        $legacyMap = [
+            'pg' => 'pilihan_ganda',
+            'multi' => 'pilihan_ganda_kompleks',
+            'isian' => 'isian_singkat',
+            'esai' => 'uraian',
+        ];
+        if (isset($legacyMap[$request->input('tipe')])) {
+            $request->merge(['tipe' => $legacyMap[$request->input('tipe')]]);
+        }
+
         $data = $request->validate([
             'tipe' => ['required', Rule::in(Soal::TIPE)],
             'pertanyaan' => ['required', 'string', 'max:20000'],
             'poin' => ['required', 'integer', 'min:1', 'max:100'],
+            'paket_soal_id' => [
+                'nullable', 'integer',
+                $ujian ? Rule::exists('cbt_paket_soals', 'id')->where('ujian_id', $ujian->id) : 'exists:cbt_paket_soals,id',
+            ],
             'opsi' => ['array'],
             'opsi.*.teks' => ['nullable', 'string', 'max:2000'],
             'opsi.*.benar' => ['boolean'],

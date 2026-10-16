@@ -373,7 +373,7 @@ class UjianController extends Controller
     ): RedirectResponse {
         abort_unless($pengerjaan->ujian_id === $ujian->id, 404);
         abort_unless($jawaban->ujian_pengerjaan_id === $pengerjaan->id, 404);
-        abort_unless($jawaban->soal?->tipe === 'esai', 404);
+        abort_unless($jawaban->soal?->esai(), 404);
 
         $data = $request->validate([
             'skor' => ['required', 'numeric', 'min:0', 'max:'.$jawaban->soal->poin],

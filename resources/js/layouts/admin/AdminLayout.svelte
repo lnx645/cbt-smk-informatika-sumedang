@@ -78,31 +78,6 @@ import BankSoalController from '@/actions/App/Http/Controllers/Admin/BankSoalCon
             ],
         },
 
-        {
-            section: 'Ujian (CBT)',
-            items: [
-                {
-                    href: UjianController.index().url,
-                    label: 'Monitor Ujian',
-                    icon: 'bi-pencil-square',
-                },
-                {
-                    href: PeriodeUjianController.index().url,
-                    label: 'Periode Ujian',
-                    icon: 'bi-calendar-range',
-                },
-                {
-                    href: RuangController.index().url,
-                    label: 'Kelola Ruang',
-                    icon: 'bi-door-open',
-                },
-                {
-                    href: BankSoalController.index().url,
-                    label: 'Bank Soal',
-                    icon: 'bi-collection',
-                },
-            ],
-        },
 
         {
             section: 'Account',

@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\BaseAppController;
 use App\Models\GuruKelas;
+use App\Models\KelompokBankSoal;
 use App\Models\Ujian;
 use App\Services\KelengkapanUjianService;
+use App\Services\NotifikasiService;
 use App\Services\PaketSoalService;
 use App\Services\UjianService;
 use App\Support\Toast;
@@ -73,12 +75,13 @@ class UjianWizardController extends BaseAppController
             ->where('guru_id', $guruId)->where('aktif', true)->firstOrFail();
 
         // Validasi kategori sesuai mode.
+        // Ujian resmi (uts/uas/usbk) HANYA dibuat panitia, guru diblokir total.
         $kategoriBesar = in_array($data['kategori'], Ujian::KATEGORI_BESAR, true);
+        if ($kategoriBesar) {
+            abort(403, 'Ujian resmi (UTS/UAS/USBK) hanya dapat dibuat oleh panitia.');
+        }
         if ($data['mode'] === 'santai' && $kategoriBesar) {
             $data['kategori'] = 'kuis';
-        }
-        if ($data['mode'] === 'resmi' && ! $kategoriBesar) {
-            $data['kategori'] = 'uts';
         }
 
         $defaults = $this->ujianService->defaultKategori($data['kategori']);
@@ -132,14 +135,14 @@ class UjianWizardController extends BaseAppController
             'mode' => $mode,
             'langkah' => $langkah,
             'maksLangkah' => $maksLangkah,
-            'kelengkapan' => $this->kelengkapanService->cek($ujian),
+            'kelengkapan' => $this->kelengkapanService->cekGuru($ujian),
         ];
 
         // Data tambahan per langkah.
         if ($mode === 'resmi' && $langkah === 2) {
             $matpelId = $ujian->guruKelas?->matpel_id;
             $guruId = $request->user()->guru?->id;
-            $props['kelompokBanks'] = \App\Models\KelompokBankSoal::withCount('soals')
+            $props['kelompokBanks'] = KelompokBankSoal::withCount('soals')
                 ->where('matpel_id', $matpelId)
                 ->where('guru_id', $guruId)
                 ->orderBy('nama')
@@ -162,12 +165,12 @@ class UjianWizardController extends BaseAppController
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
 
         $data = $request->validate([
-            'jumlah_paket' => ['required', 'integer', 'min:2', 'max:10'],
+            'jumlah_paket' => ['required', 'integer', 'min:1', 'max:10'],
             'soal_per_paket' => ['required', 'integer', 'min:1', 'max:100'],
-            'kelompok_bank_soal_id' => ['required', 'integer', 'exists:kelompok_bank_soals,id'],
+            'kelompok_bank_soal_id' => ['required', 'integer', 'exists:cbt_kelompok_bank_soals,id'],
         ]);
 
-        $kelompok = \App\Models\KelompokBankSoal::findOrFail($data['kelompok_bank_soal_id']);
+        $kelompok = KelompokBankSoal::findOrFail($data['kelompok_bank_soal_id']);
         abort_unless($kelompok->guru_id === $request->user()->guru?->id, 404);
 
         $bankSoalIds = $kelompok->soals()->pluck('id')->all();
@@ -222,7 +225,12 @@ class UjianWizardController extends BaseAppController
     {
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
 
-        $masalah = $this->kelengkapanService->cek($ujian);
+        // Ujian resmi (UTS/UAS/USBK) hanya bisa diterbitkan panitia, guru hanya serahkan
+        if ($ujian->kategoriBesar()) {
+            abort(403, 'Ujian resmi hanya dapat diterbitkan oleh panitia.');
+        }
+
+        $masalah = $this->kelengkapanService->cekGuru($ujian);
         if ($masalah !== []) {
             Toast::error('Belum bisa diterbitkan: '.implode(' ', $masalah));
 
@@ -230,7 +238,7 @@ class UjianWizardController extends BaseAppController
         }
 
         $ujian->update(['status' => 'terbit']);
-        app(\App\Services\NotifikasiService::class)->jadwalUjian($ujian->fresh());
+        app(NotifikasiService::class)->jadwalUjian($ujian->fresh());
         Toast::success('Ujian diterbitkan!');
 
         return Redirect::route('app.guru.ujian.index');

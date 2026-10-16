@@ -11,9 +11,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
-#[Table('ujians')]
+#[Table('cbt_ujians')]
 class Ujian extends Model
 {
+    protected $table = 'cbt_ujians';
+
     /** @use HasFactory<UjianFactory> */
     use HasFactory;
 
@@ -26,6 +28,7 @@ class Ujian extends Model
         'judul',
         'deskripsi',
         'tata_tertib',
+        'pool_soal',
         'tanggal_mulai',
         'tanggal_selesai',
         'durasi_menit',
@@ -43,8 +46,8 @@ class Ujian extends Model
         'kkm',
         'bobot',
         'status',
-        'catatan_panitia',
-    ];
+        'kartu_diterbitkan',
+        'catatan_panitia', 'event_id', 'kelompok_bank_soal_id'];
 
     protected $casts = [
         'dibuat_oleh_admin' => 'boolean',
@@ -52,6 +55,7 @@ class Ujian extends Model
         'tanggal_selesai' => 'datetime',
         'durasi_menit' => 'integer',
         'maks_attempt' => 'integer',
+        'pool_soal' => 'array',
         'acak_soal' => 'boolean',
         'acak_opsi' => 'boolean',
         'tampilkan_hasil' => 'boolean',

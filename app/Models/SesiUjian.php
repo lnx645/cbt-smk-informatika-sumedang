@@ -9,9 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Table('sesi_ujians')]
+#[Table('cbt_sesi_ujians')]
 class SesiUjian extends Model
 {
+    protected $table = 'cbt_sesi_ujians';
+
     /** @use HasFactory<SesiUjianFactory> */
     use HasFactory;
 
@@ -22,12 +24,16 @@ class SesiUjian extends Model
         'waktu_mulai',
         'waktu_selesai',
         'kapasitas',
+        'terisi',
         'ruang_ujian_id',
+        'token',
+        'token_released_at',
     ];
 
     protected $casts = [
         'urutan' => 'integer',
         'kapasitas' => 'integer',
+        'token_released_at' => 'datetime',
         'waktu_mulai' => 'datetime',
         'waktu_selesai' => 'datetime',
     ];

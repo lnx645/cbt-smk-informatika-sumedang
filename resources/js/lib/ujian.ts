@@ -66,6 +66,34 @@ export const DEFAULT_KATEGORI: Record<
     },
 };
 
+// Label untuk 16 tipe bank soal (baru)
+export const TIPE_BANK_LABEL: Record<string, string> = {
+    pilihan_ganda: 'Pilihan Ganda',
+    pilihan_ganda_kompleks: 'PG Kompleks',
+    pilihan_ganda_citra: 'PG Citra',
+    menjodohkan: 'Menjodohkan',
+    menjodohkan_banyak: 'Menjodohkan Banyak',
+    isian_singkat: 'Isian Singkat',
+    uraian: 'Uraian',
+    mengurutkan: 'Mengurutkan',
+    benar_salah: 'Benar/Salah',
+    setuju_tidak: 'Setuju/Tidak',
+    matrix_text: 'Matriks Teks',
+    matrix_checkbox: 'Matriks Pilihan',
+    mengelompokkan: 'Mengelompokkan',
+    blank_space: 'Blank Space',
+    image_labeling: 'Image Labeling',
+    listening: 'Listening',
+};
+
+// Helper aman: dapatkan label tipe apapun
+export function labelTipeSoal(tipe: string): string {
+    if (TIPE_BANK_LABEL[tipe]) return TIPE_BANK_LABEL[tipe];
+    const info = (TIPE_SOAL_INFO as Record<string, { label: string }>)[tipe];
+    if (info) return info.label;
+    return tipe;
+}
+
 export const TIPE_SOAL_INFO: Record<
     TipeSoal,
     { label: string; icon: string; objektif: boolean; butuhOpsi: boolean }

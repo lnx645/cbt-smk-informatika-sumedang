@@ -16,7 +16,7 @@
 
         /* Header biru navy ala kartu resmi */
         .kepala {
-            background: linear-gradient(135deg, #1a3a5c 0%, #2b567a 100%);
+            background: #1a3a5c;
             color: #fff; padding: 8pt 10pt; text-align: center;
         }
         .kepala h2 { font-size: 12pt; letter-spacing: 1pt; margin-bottom: 2pt; }
@@ -79,15 +79,8 @@
 
                 <div class="login-box">
                     <div class="row"><span class="k">Username</span><span class="v">{{ $siswa->nisn }}</span></div>
-                    <div class="row"><span class="k">Password</span><span class="v">dibagikan wali kelas</span></div>
+                    <div class="row"><span class="k">Password</span><span class="v">{{ $siswa->password_ujian_plain ?? '—' }}</span></div>
                 </div>
-
-                @if ($ujian->token)
-                    <div class="token-box">
-                        <div class="lbl">Token Ujian</div>
-                        <div class="val">{{ $ujian->token }}</div>
-                    </div>
-                @endif
 
                 <div class="ttd">
                     <div>Peserta<div class="nama">{{ Str::limit($siswa->nama_lengkap, 20) }}</div></div>
@@ -95,7 +88,7 @@
                 </div>
             </div>
             <div class="kaki">
-                Kartu ini wajib dibawa saat ujian &bull; Dilarang memfotokopi/menyebarluaskan token
+                Token diumumkan pengawas saat ujian dimulai &bull; Kartu ini wajib dibawa saat ujian
             </div>
         </div>
     @endforeach

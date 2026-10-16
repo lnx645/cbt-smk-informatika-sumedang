@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Table('bank_opsi_soals')]
+#[Table('cbt_bank_opsi_soals')]
 class BankOpsiSoal extends Model
 {
+    protected $table = 'cbt_bank_opsi_soals';
     /** @use HasFactory<BankOpsiSoalFactory> */
     use HasFactory;
 

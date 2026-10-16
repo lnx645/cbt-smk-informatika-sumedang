@@ -27,8 +27,8 @@ class PaketSoalService
      */
     public function generateOtomatis(Ujian $ujian, int $jumlahPaket, int $soalPerPaket, array $bankSoalIds): array
     {
-        if ($jumlahPaket < 2 || $jumlahPaket > 10) {
-            throw new \InvalidArgumentException('Jumlah paket harus antara 2 dan 10.');
+        if ($jumlahPaket < 1 || $jumlahPaket > 10) {
+            throw new \InvalidArgumentException('Jumlah paket harus antara 1 dan 10.');
         }
 
         if ($soalPerPaket < 1) {

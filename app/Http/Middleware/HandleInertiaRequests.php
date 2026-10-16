@@ -37,6 +37,14 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        // Halaman login ujian tidak butuh data auth
+        if ($request->routeIs('ujian.login')) {
+            return [
+                ...parent::share($request),
+                'name' => config('app.name'),
+            ];
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),

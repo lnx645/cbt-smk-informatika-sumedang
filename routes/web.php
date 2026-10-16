@@ -2,9 +2,8 @@
 
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Guru\BankSoalController as GuruBankSoalController;
-use App\Http\Controllers\Guru\KelompokBankSoalController as GuruKelompokBankSoalController;
 use App\Http\Controllers\Guru\HasilUjianController as GuruHasilUjianController;
+use App\Http\Controllers\Guru\KelompokBankSoalController as GuruKelompokBankSoalController;
 use App\Http\Controllers\Guru\MateriController as GuruMateriController;
 use App\Http\Controllers\Guru\PenilaianController as GuruPenilaianController;
 use App\Http\Controllers\Guru\SoalController as GuruSoalController;
@@ -15,19 +14,26 @@ use App\Http\Controllers\Guru\UjianWizardController as GuruUjianWizardController
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LinkExternalController;
 use App\Http\Controllers\MataPelajaranGuruController;
-use App\Http\Controllers\Panitia\UjianController as PanitiaUjianController;
 use App\Http\Controllers\Siswa\MateriController as SiswaMateriController;
 use App\Http\Controllers\Siswa\NotifikasiController as SiswaNotifikasiController;
 use App\Http\Controllers\Siswa\PenilaianController as SiswaPenilaianController;
 use App\Http\Controllers\Siswa\TugasController as SiswaTugasController;
+use App\Http\Controllers\Siswa\UjianController;
 use App\Http\Controllers\Siswa\UjianController as SiswaUjianController;
 use App\Http\Controllers\SocialiteController;
+use App\Http\Controllers\UjianLoginController;
+use App\Http\Controllers\UjianModeController;
+use App\Http\Middleware\UjianAuthMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', 'login');
 Route::get('link/external', [LinkExternalController::class, 'link'])->name('external.link');
 // Logout harus di luar 'app-only' agar admin juga bisa logout.
 Route::middleware('auth')->post('/app/logout', [AuthenticatedSessionController::class, 'destroy'])->name('app.auth.logout');
+
+// Login ujian terpisah — tanpa dashboard, langsung ke ujian.
+// Login ujian terpisah — tanpa dashboard, langsung ke ujian.
+// Halaman /ujian dihapus atas permintaan user.
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('auth.login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('auth.login');
@@ -80,11 +86,13 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
 
     // Guru: Ujian (CBT)
     Route::get('guru/ujian', [GuruUjianController::class, 'index'])->name('guru.ujian.index');
+    Route::get('guru/ujian/create', [GuruUjianController::class, 'create'])->name('guru.ujian.create');
     Route::post('guru/ujian', [GuruUjianController::class, 'store'])->name('guru.ujian.store');
     Route::get('guru/ujian/{ujian}/edit', [GuruUjianController::class, 'edit'])->name('guru.ujian.edit');
     Route::put('guru/ujian/{ujian}', [GuruUjianController::class, 'update'])->name('guru.ujian.update');
     Route::delete('guru/ujian/{ujian}', [GuruUjianController::class, 'destroy'])->name('guru.ujian.destroy');
     Route::post('guru/ujian/{ujian}/terbit', [GuruUjianController::class, 'terbit'])->name('guru.ujian.terbit');
+    Route::post('guru/ujian/{ujian}/pool', [GuruUjianController::class, 'simpanPool'])->name('guru.ujian.pool');
     Route::post('guru/ujian/{ujian}/token', [GuruUjianController::class, 'generateToken'])->name('guru.ujian.token');
     Route::post('guru/ujian/{ujian}/token/toggle', [GuruUjianController::class, 'toggleToken'])->name('guru.ujian.token.toggle');
     Route::get('guru/ujian/{ujian}/sesi', [GuruUjianController::class, 'sesiIndex'])->name('guru.ujian.sesi.index');
@@ -105,7 +113,6 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::delete('guru/ujian/{ujian}/soal/{soal}/media', [GuruSoalController::class, 'hapusMedia'])->name('guru.ujian.soal.media.hapus');
 
     // Guru: Fitur akademik penunjang ujian
-    Route::get('guru/ujian/{ujian}/sesi/{sesi}/kartu-peserta', [GuruUjianAkademikController::class, 'kartuPeserta'])->name('guru.ujian.sesi.kartu');
     Route::get('guru/ujian/{ujian}/sesi/{sesi}/daftar-hadir', [GuruUjianAkademikController::class, 'daftarHadir'])->name('guru.ujian.sesi.hadir');
     Route::put('guru/ujian/{ujian}/sesi/{sesi}/ruang', [GuruUjianAkademikController::class, 'sesiRuang'])->name('guru.ujian.sesi.ruang');
     Route::get('guru/ujian/{ujian}/berita-acara', [GuruUjianAkademikController::class, 'beritaAcaraIndex'])->name('guru.ujian.berita-acara.index');
@@ -120,42 +127,24 @@ Route::middleware(['auth', 'app-only'])->prefix('app')->name('app.')->group(func
     Route::delete('guru/ujian/{ujian}/pengerjaan/{pengerjaan}/reset', [GuruUjianAkademikController::class, 'resetPengerjaan'])->name('guru.ujian.pengerjaan.reset');
     Route::post('guru/ujian/{ujian}/notifikasi-jadwal', [GuruUjianAkademikController::class, 'kirimNotifikasiJadwal'])->name('guru.ujian.notifikasi.jadwal');
 
-    // Panitia Ujian (CBT v2): kelola ujian resmi lintas kelas.
-    Route::middleware('panitia-only')->group(function (): void {
-        Route::get('panitia/ujian/jadwal-pdf', [PanitiaUjianController::class, 'jadwalPdf'])->name('panitia.ujian.jadwal-pdf');
-        Route::get('panitia/ujian', [PanitiaUjianController::class, 'index'])->name('panitia.ujian.index');
-        Route::get('panitia/ujian/{ujian}', [PanitiaUjianController::class, 'show'])->name('panitia.ujian.show');
-        Route::post('panitia/ujian/{ujian}/sesi', [PanitiaUjianController::class, 'storeSesi'])->name('panitia.ujian.sesi');
-        Route::post('panitia/ujian/{ujian}/pengaturan', [PanitiaUjianController::class, 'storePengaturan'])->name('panitia.ujian.pengaturan');
-        Route::post('panitia/ujian/{ujian}/buka-token', [PanitiaUjianController::class, 'bukaToken'])->name('panitia.ujian.buka-token');
-        Route::post('panitia/ujian/{ujian}/tutup-token', [PanitiaUjianController::class, 'tutupToken'])->name('panitia.ujian.tutup-token');
-        Route::post('panitia/ujian/{ujian}/terbit', [PanitiaUjianController::class, 'terbit'])->name('panitia.ujian.terbit');
-        Route::post('panitia/ujian/{ujian}/kembalikan', [PanitiaUjianController::class, 'kembalikan'])->name('panitia.ujian.kembalikan');
-        Route::get('panitia/ujian/{ujian}/sesi/{sesi}/kartu-peserta', [PanitiaUjianController::class, 'kartuPeserta'])->name('panitia.ujian.kartu');
-        Route::get('panitia/ujian/{ujian}/kartu-peserta-kelas', [PanitiaUjianController::class, 'kartuPesertaKelas'])->name('panitia.ujian.kartu-kelas');
-        Route::get('panitia/ujian/{ujian}/berita-acara', [PanitiaUjianController::class, 'beritaAcaraIndex'])->name('panitia.ujian.berita-acara.index');
-        Route::post('panitia/ujian/{ujian}/berita-acara', [PanitiaUjianController::class, 'beritaAcaraStore'])->name('panitia.ujian.berita-acara.store');
-        Route::get('panitia/ujian/{ujian}/berita-acara/{beritaAcara}/pdf', [PanitiaUjianController::class, 'beritaAcaraPdf'])->name('panitia.ujian.berita-acara.pdf');
-        Route::get('panitia/ujian/{ujian}/sesi/{sesi}/daftar-hadir', [PanitiaUjianController::class, 'daftarHadir'])->name('panitia.ujian.hadir');
-        Route::get('panitia/ujian/{ujian}/monitoring', [PanitiaUjianController::class, 'monitoring'])->name('panitia.ujian.monitoring');
-        Route::delete('panitia/ujian/{ujian}/pengerjaan/{pengerjaan}/reset', [PanitiaUjianController::class, 'resetPengerjaan'])->name('panitia.ujian.pengerjaan.reset');
-    });
 
     // Guru: Kelompok Bank Soal (CBT v2) — wadah bernama berisi soal.
     Route::get('guru/bank-soal/kelompok', [GuruKelompokBankSoalController::class, 'index'])->name('guru.bank-soal.kelompok.index');
     Route::post('guru/bank-soal/kelompok', [GuruKelompokBankSoalController::class, 'store'])->name('guru.bank-soal.kelompok.store');
     Route::get('guru/bank-soal/kelompok/{kelompok}', [GuruKelompokBankSoalController::class, 'show'])->name('guru.bank-soal.kelompok.show');
+    Route::put('guru/bank-soal/kelompok/{kelompok}', [GuruKelompokBankSoalController::class, 'update'])->name('guru.bank-soal.kelompok.update');
     Route::post('guru/bank-soal/kelompok/{kelompok}/soal', [GuruKelompokBankSoalController::class, 'storeSoal'])->name('guru.bank-soal.kelompok.soal.store');
+    Route::get('guru/bank-soal/kelompok/{kelompok}/soal/tambah', [GuruKelompokBankSoalController::class, 'createSoal'])->name('guru.bank-soal.kelompok.soal.create');
+    Route::get('guru/bank-soal/kelompok/{kelompok}/preview', [GuruKelompokBankSoalController::class, 'preview'])->name('app.guru.bank-soal.kelompok.preview');
+    Route::get('guru/bank-soal/kelompok/{kelompok}/soal/{soal}/edit', [GuruKelompokBankSoalController::class, 'editSoal'])->name('guru.bank-soal.kelompok.soal.edit');
+    Route::put('guru/bank-soal/kelompok/{kelompok}/soal/{soal}', [GuruKelompokBankSoalController::class, 'updateSoal'])->name('guru.bank-soal.kelompok.soal.update');
+    Route::delete('guru/bank-soal/kelompok/{kelompok}/soal/{soal}', [GuruKelompokBankSoalController::class, 'destroySoal'])->name('guru.bank-soal.kelompok.soal.destroy');
     Route::delete('guru/bank-soal/kelompok/{kelompok}', [GuruKelompokBankSoalController::class, 'destroy'])->name('guru.bank-soal.kelompok.destroy');
 
-    // Guru: Bank Soal
-    Route::get('guru/bank-soal', [GuruBankSoalController::class, 'index'])->name('guru.bank-soal.index');
-    Route::post('guru/bank-soal', [GuruBankSoalController::class, 'store'])->name('guru.bank-soal.store');
-    Route::put('guru/bank-soal/{bankSoal}', [GuruBankSoalController::class, 'update'])->name('guru.bank-soal.update');
-    Route::delete('guru/bank-soal/{bankSoal}', [GuruBankSoalController::class, 'destroy'])->name('guru.bank-soal.destroy');
     Route::get('guru/ujian/{ujian}/hasil', [GuruHasilUjianController::class, 'index'])->name('guru.ujian.hasil.index');
     Route::get('guru/ujian/{ujian}/hasil/{pengerjaan}', [GuruHasilUjianController::class, 'show'])->name('guru.ujian.hasil.show');
     Route::post('guru/ujian/{ujian}/hasil/{pengerjaan}/jawaban/{jawaban}/nilai', [GuruHasilUjianController::class, 'nilaiEsai'])->name('guru.ujian.hasil.nilai');
+    Route::post('guru/ujian/{ujian}/hasil/tarik-nilai', [GuruHasilUjianController::class, 'tarikKeNilai'])->name('guru.ujian.hasil.tarik-nilai');
 
     // Siswa: Ujian (CBT)
     Route::get('ujian', [SiswaUjianController::class, 'index'])->name('siswa.ujian.index');

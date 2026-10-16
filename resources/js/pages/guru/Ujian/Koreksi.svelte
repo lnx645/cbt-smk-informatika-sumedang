@@ -1,4 +1,5 @@
 <script lang="ts">
+    import SoalRenderer from '../../../components/soal/render/SoalRenderer.svelte';
     import 'katex/dist/katex.min.css';
     import { inertia, router } from '@inertiajs/svelte';
     import { Badge, Button, Card, CardBody } from '@sveltestrap/sveltestrap';
@@ -17,6 +18,7 @@
         benar: boolean | null;
         skor: number | null;
         opsi: Opsi[];
+        detail: Record<string, any> | null;
     };
 
     let {
@@ -124,7 +126,7 @@
                 <div class="d-flex align-items-center gap-2 mb-1">
                     <span class="fw-semibold">Soal {i + 1}</span>
                     <Badge color="light" class="text-dark border">
-                        {TIPE_SOAL_INFO[j.tipe].label}
+                        {TIPE_SOAL_INFO[j.tipe]?.label ?? j.tipe}
                     </Badge>
                     <span class="text-muted small">{j.poin} poin</span>
                     {#if !j.dijawab}
@@ -135,32 +137,24 @@
                         <Badge color="danger" pill>Salah</Badge>
                     {/if}
                 </div>
-                <div class="rich-deskripsi mb-2">{@html j.pertanyaan}</div>
+                <div class="fw-semibold mb-2">{@html j.pertanyaan}</div>
+                {@const dd = j.detail && Object.keys(j.detail).length > 0 ? j.detail : (j.opsi?.length ? { opsi: j.opsi } : {})}
+                {@const jw = (() => {
+                    try {
+                        const t = j.jawaban_teks;
+                        if (t && (t.startsWith('{') || t.startsWith('['))) return JSON.parse(t);
+                        return t ?? j.opsi_dipilih ?? null;
+                    } catch { return j.jawaban_teks ?? j.opsi_dipilih ?? null; }
+                })()}
+                <SoalRenderer
+                    tipe={j.tipe}
+                    detail={dd}
+                    jawaban={jw}
+                    disabled={true}
+                    showKunci={true}
+                />
 
-                {#if j.opsi.length}
-                    <ul class="small mb-2">
-                        {#each j.opsi as o (o.id)}
-                            <li
-                                class:text-success={o.benar}
-                                class:fw-semibold={j.opsi_dipilih?.includes(o.id)}
-                            >
-                                {o.teks}
-                                {#if j.opsi_dipilih?.includes(o.id)}
-                                    <i class="bi bi-person-check ms-1"></i>
-                                {/if}
-                                {#if o.benar}
-                                    <i class="bi bi-check-circle ms-1 text-success"></i>
-                                {/if}
-                            </li>
-                        {/each}
-                    </ul>
-                {:else}
-                    <div class="border rounded-1 p-2 bg-body-tertiary mb-2 text-pre-wrap">
-                        {j.jawaban_teks || '(kosong)'}
-                    </div>
-                {/if}
-
-                {#if j.tipe === 'esai'}
+                {#if j.tipe === 'esai' || j.tipe === 'uraian'}
                     <div class="input-group" style="max-width: 320px">
                         <span class="input-group-text">Skor</span>
                         <input

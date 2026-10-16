@@ -7,7 +7,6 @@
     import GuruMateriController from '@/actions/App/Http/Controllers/Guru/MateriController';
     import GuruTugasController from '@/actions/App/Http/Controllers/Guru/TugasController';
     import GuruUjianController from '@/actions/App/Http/Controllers/Guru/UjianController';
-    import GuruBankSoalController from '@/actions/App/Http/Controllers/Guru/BankSoalController';
     import GuruPenilaianController from '@/actions/App/Http/Controllers/Guru/PenilaianController';
     import TugasController from '@/actions/App/Http/Controllers/Siswa/TugasController';
     import SiswaUjianController from '@/actions/App/Http/Controllers/Siswa/UjianController';
@@ -45,6 +44,7 @@
         deskripsi: string;
         ikon: string;
         varian: 'primary' | 'success' | 'warning' | 'info' | 'violet' | 'rose';
+        external?: boolean;
     };
 
     let {
@@ -117,6 +117,14 @@
             ikon: 'bi-award',
             varian: 'success',
         },
+        {
+            href: '/app/ujian/kartu-saya',
+            label: 'Kartu Ujian',
+            deskripsi: 'Download kartu peserta',
+            ikon: 'bi-person-badge',
+            varian: 'info',
+            external: true,
+        },
     ];
 
     // Aksi cepat guru: 6 alur kerja utama.
@@ -129,7 +137,7 @@
             varian: 'violet',
         },
         {
-            href: GuruBankSoalController.index().url,
+            href: '/app/guru/bank-soal/kelompok',
             label: 'Bank Soal',
             deskripsi: 'Koleksi soal siap pakai',
             ikon: 'bi-collection',
@@ -221,19 +229,23 @@
             <div class="row g-3">
                 {#each aksiSiswa as aksi (aksi.label)}
                     <div class="col-6 col-md-3">
-                        <a
-                            use:inertia
-                            href={aksi.href}
-                            class="dash-aksi h-100"
-                        >
-                            <span class="dash-aksi__ikon">
-                                <i class="bi {aksi.ikon}"></i>
-                            </span>
-                            <span>
-                                <span class="dash-aksi__label">{aksi.label}</span>
-                                <span class="dash-aksi__deskripsi">{aksi.deskripsi}</span>
-                            </span>
-                        </a>
+                        {#if aksi.external}
+                            <a href={aksi.href} target="_blank" class="dash-aksi h-100">
+                                <span class="dash-aksi__ikon"><i class="bi {aksi.ikon}"></i></span>
+                                <span>
+                                    <span class="dash-aksi__label">{aksi.label}</span>
+                                    <span class="dash-aksi__deskripsi">{aksi.deskripsi}</span>
+                                </span>
+                            </a>
+                        {:else}
+                            <a use:inertia href={aksi.href} class="dash-aksi h-100">
+                                <span class="dash-aksi__ikon"><i class="bi {aksi.ikon}"></i></span>
+                                <span>
+                                    <span class="dash-aksi__label">{aksi.label}</span>
+                                    <span class="dash-aksi__deskripsi">{aksi.deskripsi}</span>
+                                </span>
+                            </a>
+                        {/if}
                     </div>
                 {/each}
             </div>
@@ -246,7 +258,7 @@
             <h2 class="dash-judul">Ruang Kerja Guru</h2>
             <div class="row g-3">
                 {#each aksiGuru as aksi (aksi.label)}
-                    <div class="col-6 col-md-4 col-lg-2">
+                    <div class="col-12 col-sm-6 col-lg-4">
                         <a
                             use:inertia
                             href={aksi.href}

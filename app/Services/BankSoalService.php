@@ -40,6 +40,7 @@ class BankSoalService
                     'urutan' => $urutan,
                     'kunci_isian' => $bank->kunci_isian,
                     'isian_case_sensitive' => $bank->isian_case_sensitive,
+                    'detail' => $bank->detail,
                 ]);
 
                 foreach ($bank->opsi as $opsi) {

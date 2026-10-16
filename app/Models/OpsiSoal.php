@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Table('opsi_soals')]
+#[Table('cbt_opsi_soals')]
 class OpsiSoal extends Model
 {
+    protected $table = 'cbt_opsi_soals';
     /** @use HasFactory<OpsiSoalFactory> */
     use HasFactory;
 

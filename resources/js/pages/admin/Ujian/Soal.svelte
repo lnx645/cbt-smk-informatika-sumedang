@@ -66,7 +66,7 @@
                     <div class="d-flex align-items-center gap-2 mb-1">
                         <span class="fw-semibold">Soal {i + 1}</span>
                         <Badge color="light" class="text-dark border">
-                            <i class={`bi ${TIPE_SOAL_INFO[s.tipe].icon} me-1`}></i>
+                            <i class={`bi ${TIPE_SOAL_INFO[s.tipe]?.icon ?? 'bi-question-circle'} me-1`}></i>
                             {TIPE_SOAL_INFO[s.tipe].label}
                         </Badge>
                         <span class="text-muted small">{s.poin} poin</span>
@@ -82,7 +82,7 @@
                             {/each}
                         </ul>
                     {:else if s.kunci_isian?.length}
-                        <div class="small text-muted mt-2">Kunci: {s.kunci_isian.join(', ')}</div>
+                        <div class="small text-muted mt-2">Kunci: {Array.isArray(s.kunci_isian) ? s.kunci_isian.join(', ') : (s.kunci_isian ?? '-')}</div>
                     {/if}
                 </CardBody>
             </Card>

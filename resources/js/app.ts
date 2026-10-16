@@ -15,7 +15,12 @@ createInertiaApp({
         if (name.startsWith('ErrorPage')) {
             return ErrorPage;
         }
-        // Halaman ujian siswa: layout independen tanpa sidebar/nav agar fokus.
+        // Halaman ujian terpisah (/ujian/*): tanpa layout sama sekali,
+        // halaman sudah full-page dengan header sendiri.
+        if (name.startsWith('ujian/')) {
+            return undefined;
+        }
+        // Halaman kerjakan siswa: layout independen tanpa sidebar/nav agar fokus.
         if (name === 'siswa/Ujian/Kerjakan') {
             return ExamLayout;
         }

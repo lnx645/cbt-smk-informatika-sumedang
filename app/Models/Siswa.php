@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Database\Factories\SiswaFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -30,8 +30,8 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, SiswaKelas> $siswaKelas
  * @property-read Kelas|null $kelas
  */
-#[Table('siswa')]
 #[Fillable(['nisn', 'nis', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'alamat', 'foto_profil', 'is_aktif', 'status'])]
+#[Table('siswa')]
 class Siswa extends Model
 {
     /** @use HasFactory<SiswaFactory> */
@@ -45,6 +45,10 @@ class Siswa extends Model
 
     protected $casts = [
         'status' => 'string',
+    ];
+
+    protected $hidden = [
+        'password_ujian',
     ];
 
     /** @return HasOne<User, $this> */

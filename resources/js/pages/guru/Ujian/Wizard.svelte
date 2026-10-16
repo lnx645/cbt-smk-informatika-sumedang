@@ -8,7 +8,7 @@
         mode: string;
     } = $props();
 
-    let mode = $state<'santai' | 'resmi'>(modeAwal === 'resmi' ? 'resmi' : 'santai');
+    let mode = $state<'santai'>('santai');
 
     const form = useForm({
         mode: mode,
@@ -21,7 +21,7 @@
 
     $effect(() => {
         form.mode = mode;
-        form.kategori = mode === 'santai' ? 'kuis' : 'uts';
+        form.kategori = mode === 'santai' ? 'kuis' : 'uh';
     });
 
     function submit() {
@@ -42,7 +42,7 @@
     <CardHeader>Pilih Mode Ujian</CardHeader>
     <CardBody>
         <div class="row g-2">
-            <div class="col-6">
+            <div class="col-12">
                 <button
                     type="button"
                     class="btn w-100 p-3 {mode === 'santai' ? 'btn-primary' : 'btn-outline-primary'}"
@@ -53,17 +53,7 @@
                     <div class="small">Kuis / Ulangan Harian<br/>3 langkah, &lt; 5 menit</div>
                 </button>
             </div>
-            <div class="col-6">
-                <button
-                    type="button"
-                    class="btn w-100 p-3 {mode === 'resmi' ? 'btn-primary' : 'btn-outline-primary'}"
-                    onclick={() => (mode = 'resmi')}
-                >
-                    <i class="bi bi-shield-check fs-4 d-block mb-1"></i>
-                    <strong>Resmi</strong>
-                    <div class="small">UTS / UAS / USBK<br/>3 langkah, serahkan ke panitia</div>
-                </button>
-            </div>
+
         </div>
     </CardBody>
 </Card>
@@ -88,11 +78,16 @@
                         <option value="kuis">Kuis</option>
                         <option value="uh">Ulangan Harian</option>
                     {:else}
-                        <option value="uts">UTS</option>
-                        <option value="uas">UAS</option>
-                        <option value="usbk">USBK</option>
+                        <option value="uh">Ulangan Harian</option>
+                        <option value="tugas">Tugas</option>
                     {/if}
                 </select>
+                {#if mode === 'resmi'}
+                    <div class="form-text text-warning">
+                        <i class="bi bi-info-circle me-1"></i>
+                        UTS/UAS/USBK dibuat oleh panitia. Guru hanya mengisi soal.
+                    </div>
+                {/if}
             </div>
             <div class="col-md-6">
                 <label class="form-label" for="w-durasi">Durasi (menit)</label>

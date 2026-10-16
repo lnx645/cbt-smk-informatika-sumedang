@@ -12,7 +12,6 @@ class GuruKelas extends Model
     /** @use HasFactory<GuruKelasFactory> */
     use HasFactory;
 
-    protected $table = 'guru_kelas';
 
     protected $fillable = [
         'guru_id',

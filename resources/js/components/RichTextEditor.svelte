@@ -3,18 +3,13 @@
     import { Editor } from '@tiptap/core';
     import Link from '@tiptap/extension-link';
     import Mathematics from '@tiptap/extension-mathematics';
-    import Youtube from '@tiptap/extension-youtube';
-    import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
+    import Image from '@tiptap/extension-image';
     import { onDestroy, onMount } from 'svelte';
     import {
-        AudioPlayer,
-        DaftarIsi,
         HeadingWithId,
         syncDaftarIsi,
     } from '@/lib/tiptap/custom-extensions';
-    import { lowlight } from '@/lib/tiptap/lowlight-langs';
     import 'katex/dist/katex.min.css';
-    import 'highlight.js/styles/github.css';
 
     const CODE_LANGUAGES: { value: string; label: string }[] = [
         { value: 'markup', label: 'HTML/XML' },
@@ -52,16 +47,17 @@
                     heading: false,
                     codeBlock: false,
                 }),
-                CodeBlockLowlight.configure({
-                    lowlight,
-                    defaultLanguage: 'plaintext',
-                }),
                 Link.configure({
                     openOnClick: false,
                     autolink: true,
                     HTMLAttributes: {
                         rel: 'noopener noreferrer nofollow',
                         target: '_blank',
+                    },
+                }),
+                Image.configure({
+                    HTMLAttributes: {
+                        class: 'img-fluid rounded',
                     },
                 }),
                 Mathematics.configure({
@@ -99,13 +95,6 @@
                     },
                     katexOptions: { throwOnError: false },
                 }),
-                Youtube.configure({
-                    width: 640,
-                    height: 360,
-                    allowFullscreen: true,
-                }),
-                AudioPlayer,
-                DaftarIsi,
             ],
             content: value,
             editorProps: {
@@ -140,20 +129,13 @@
         | 'bold'
         | 'italic'
         | 'underline'
+        | 'subscript'
+        | 'superscript'
         | 'bulletList'
         | 'orderedList'
-        | 'link'
-        | 'unlink'
         | 'math'
         | 'blockMath'
-        | 'youtube'
-        | 'audio'
-        | 'daftarIsi'
-        | 'heading1'
-        | 'heading2'
-        | 'heading3'
-        | 'code'
-        | 'codeBlock';
+        | 'image';
 
     function toggle(command: ToolbarCommand) {
         if (!editor) {
@@ -172,36 +154,19 @@
             case 'underline':
                 chain.toggleUnderline();
                 break;
+            case 'subscript':
+                // @ts-ignore - subscript dari StarterKit
+                chain.toggleSubscript();
+                break;
+            case 'superscript':
+                // @ts-ignore - superscript dari StarterKit
+                chain.toggleSuperscript();
+                break;
             case 'bulletList':
                 chain.toggleBulletList();
                 break;
             case 'orderedList':
                 chain.toggleOrderedList();
-                break;
-            case 'link':
-                {
-                    const current = editor.getAttributes('link')
-                        .href as string | undefined;
-                    const href = window.prompt(
-                        'Tautan URL:',
-                        current ?? 'https://',
-                    );
-
-                    if (href === null) {
-                        return;
-                    }
-
-                    if (href.trim() === '') {
-                        chain.unsetLink();
-                    } else {
-                        chain
-                            .extendMarkRange('link')
-                            .setLink({ href: href.trim() });
-                    }
-                }
-                break;
-            case 'unlink':
-                chain.unsetLink();
                 break;
             case 'math':
                 {
@@ -229,47 +194,16 @@
                     }
                 }
                 break;
-            case 'youtube':
+            case 'image':
                 {
-                    const src = window.prompt(
-                        'Tautan video YouTube:',
-                        'https://www.youtube.com/watch?v=',
-                    );
-                    if (src !== null && src.trim() !== '') {
-                        chain.setYoutubeVideo({ src: src.trim() });
-                    }
-                }
-                break;
-            case 'audio':
-                {
-                    const src = window.prompt(
-                        'Tautan berkas audio (mp3/ogg/wav):',
+                    const url = window.prompt(
+                        'URL gambar:',
                         'https://',
                     );
-                    if (src !== null && src.trim() !== '') {
-                        //@ts-ignore
-                        chain.setAudio(src.trim());
+                    if (url !== null && url.trim() !== '') {
+                        chain.setImage({ src: url.trim() });
                     }
                 }
-                break;
-            case 'daftarIsi':
-                //@ts-ignore
-                chain.insertDaftarIsi();
-                break;
-            case 'code':
-                chain.toggleCode();
-                break;
-            case 'codeBlock':
-                chain.toggleCodeBlock();
-                break;
-            case 'heading1':
-                chain.toggleHeading({ level: 1 });
-                break;
-            case 'heading2':
-                chain.toggleHeading({ level: 2 });
-                break;
-            case 'heading3':
-                chain.toggleHeading({ level: 3 });
                 break;
         }
 
@@ -285,15 +219,12 @@
             underline: editor?.isActive('underline') ?? false,
             bulletList: editor?.isActive('bulletList') ?? false,
             orderedList: editor?.isActive('orderedList') ?? false,
-            link: editor?.isActive('link') ?? false,
             heading1:
                 editor?.isActive('heading', { level: 1 }) ?? false,
             heading2:
                 editor?.isActive('heading', { level: 2 }) ?? false,
             heading3:
                 editor?.isActive('heading', { level: 3 }) ?? false,
-            code: editor?.isActive('code') ?? false,
-            codeBlock: editor?.isActive('codeBlock') ?? false,
         };
     });
 
@@ -302,74 +233,16 @@
         icon: string;
         label: string;
     }[] = [
-        {
-            command: 'heading1',
-            icon: 'bi-type-h1',
-            label: 'Judul (H1)',
-        },
-        {
-            command: 'heading2',
-            icon: 'bi-type-h2',
-            label: 'Sub judul (H2)',
-        },
-        {
-            command: 'heading3',
-            icon: 'bi-type-h3',
-            label: 'Sub sub judul (H3)',
-        },
         { command: 'bold', icon: 'bi-type-bold', label: 'Tebal' },
-        {
-            command: 'italic',
-            icon: 'bi-type-italic',
-            label: 'Miring',
-        },
-        {
-            command: 'underline',
-            icon: 'bi-type-underline',
-            label: 'Garis bawah',
-        },
-        {
-            command: 'bulletList',
-            icon: 'bi-list-ul',
-            label: 'Daftar berpoin',
-        },
-        {
-            command: 'orderedList',
-            icon: 'bi-list-ol',
-            label: 'Daftar bernomor',
-        },
-        { command: 'link', icon: 'bi-link-45deg', label: 'Tautan' },
-        {
-            command: 'math',
-            icon: 'bi-123',
-            label: 'Rumus matematika',
-        },
-        {
-            command: 'blockMath',
-            icon: 'bi-arrow-down-up',
-            label: 'Rumus blok (kiri-tengah-kanan)',
-        },
-        { command: 'code', icon: 'bi-code', label: 'Kode inline' },
-        {
-            command: 'codeBlock',
-            icon: 'bi-code-slash',
-            label: 'Blok kode',
-        },
-        {
-            command: 'youtube',
-            icon: 'bi-youtube',
-            label: 'Video YouTube',
-        },
-        {
-            command: 'audio',
-            icon: 'bi-music-note-beamed',
-            label: 'Audio',
-        },
-        {
-            command: 'daftarIsi',
-            icon: 'bi-list-nested',
-            label: 'Daftar Isi',
-        },
+        { command: 'italic', icon: 'bi-type-italic', label: 'Miring' },
+        { command: 'underline', icon: 'bi-type-underline', label: 'Garis bawah' },
+        { command: 'subscript', icon: 'bi-subscript', label: 'Subskrip (H₂O)' },
+        { command: 'superscript', icon: 'bi-superscript', label: 'Superskrip (x²)' },
+        { command: 'bulletList', icon: 'bi-list-ul', label: 'Daftar berpoin' },
+        { command: 'orderedList', icon: 'bi-list-ol', label: 'Daftar bernomor' },
+        { command: 'math', icon: 'bi-123', label: 'Rumus matematika' },
+        { command: 'blockMath', icon: 'bi-fullscreen', label: 'Rumus blok' },
+        { command: 'image', icon: 'bi-image', label: 'Gambar (URL)' },
     ];
 </script>
 
@@ -389,31 +262,6 @@
                 <i class={`bi ${tool.icon}`}></i>
             </button>
         {/each}
-        {#if activeStates.codeBlock}
-            <select
-                class="rich-editor__lang"
-                value={editor?.getAttributes('codeBlock').language ??
-                    'plaintext'}
-                onchange={(e) => {
-                    const lang = (
-                        e.currentTarget as HTMLSelectElement
-                    ).value;
-                    editor
-                        ?.chain()
-                        .focus()
-                        .updateAttributes('codeBlock', {
-                            language: lang,
-                        })
-                        .run();
-                }}
-                aria-label="Bahasa kode"
-                title="Bahasa kode"
-            >
-                {#each CODE_LANGUAGES as lang (lang.value)}
-                    <option value={lang.value}>{lang.label}</option>
-                {/each}
-            </select>
-        {/if}
     </div>
     <div class="rich-editor__frame" bind:this={element}></div>
 </div>

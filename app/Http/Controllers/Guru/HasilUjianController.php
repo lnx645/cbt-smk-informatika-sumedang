@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\BaseAppController;
+use App\Models\DetailPenilaian;
 use App\Models\JawabanSiswa;
+use App\Models\Penilaian;
 use App\Models\SiswaKelas;
 use App\Models\Ujian;
 use App\Models\UjianPengerjaan;
@@ -13,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -84,6 +87,7 @@ class HasilUjianController extends BaseAppController implements HasMiddleware
                     'teks' => $o->teks,
                     'benar' => $o->benar,
                 ])->values(),
+                'detail' => $soal->detail,
             ];
         })->values();
 
@@ -121,7 +125,7 @@ class HasilUjianController extends BaseAppController implements HasMiddleware
         abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
         abort_unless($pengerjaan->ujian_id === $ujian->id, 404);
         abort_unless($jawaban->ujian_pengerjaan_id === $pengerjaan->id, 404);
-        abort_unless($jawaban->soal?->tipe === 'esai', 404);
+        abort_unless($jawaban->soal?->esai(), 404);
 
         $data = $request->validate([
             'skor' => ['required', 'numeric', 'min:0', 'max:'.$jawaban->soal->poin],
@@ -137,16 +141,95 @@ class HasilUjianController extends BaseAppController implements HasMiddleware
     }
 
     /**
+     * Tarik nilai CBT ke sistem Penilaian formal.
+     * Membuat record Penilaian + DetailPenilaian dari nilai_total tiap siswa.
+     */
+    public function tarikKeNilai(Request $request, Ujian $ujian): RedirectResponse
+    {
+        abort_unless($ujian->guru_id === $request->user()->guru?->id, 404);
+
+        $ujian->load(['guruKelas', 'pengerjaans']);
+        $guruKelas = $ujian->guruKelas;
+        abort_unless($guruKelas, 404, 'Ujian belum terhubung ke kelas.');
+
+        // Ambil pengerjaan terakhir tiap siswa yang sudah submit
+        $pengerjaanByNisn = $ujian->pengerjaans
+            ->where('status', 'selesai')
+            ->sortByDesc('attempt_ke')
+            ->unique('siswa_nisn');
+
+        if ($pengerjaanByNisn->isEmpty()) {
+            Toast::error('Belum ada siswa yang menyelesaikan ujian.');
+
+            return Redirect::back();
+        }
+
+        // Buat atau ambil Penilaian untuk ujian ini
+        // Standar akademik sempurna: terikat langsung via ujian_id (1 ujian = 1 penilaian)
+        // Tidak bergantung pada nama teks, judul diganti pun tetap 1 record
+        $tahunAjaranId = $guruKelas->tahun_ajaran_id;
+        $penilaian = Penilaian::firstOrCreate(
+            ['ujian_id' => $ujian->id],
+            [
+                'nama' => "CBT: {$ujian->judul}",
+                'tahun_ajaran_id' => $tahunAjaranId,
+                'deskripsi' => "Nilai otomatis dari ujian CBT '{$ujian->judul}' ({$ujian->kategori})",
+                'tipe' => 'cbt',
+                'nilai_maks' => 100,
+                'bobot' => 1,
+                'aktif' => true,
+                'semester' => null,
+            ]
+        );
+
+        // Update nama jika judul ujian berubah (tetap 1 record)
+        if ($penilaian->nama !== "CBT: {$ujian->judul}") {
+            $penilaian->update(['nama' => "CBT: {$ujian->judul}"]);
+        }
+
+        // Hubungkan ke kelas
+        $penilaian->kelas()->syncWithoutDetaching([$guruKelas->kelas_id]);
+
+        $jumlah = 0;
+        foreach ($pengerjaanByNisn as $p) {
+            DetailPenilaian::updateOrCreate(
+                [
+                    'penilaian_id' => $penilaian->id,
+                    'siswa_nisn' => $p->siswa_nisn,
+                ],
+                [
+                    'guru_id' => $request->user()->guru->id,
+                    'guru_kelas_id' => $ujian->guru_kelas_id,
+                    'tahun_ajaran_id' => $tahunAjaranId,
+                    'nilai' => $p->nilai_total ?? 0,
+                    'sumber' => 'cbt',
+                    'keterangan' => "Dari ujian '{$ujian->judul}'",
+                ]
+            );
+            $jumlah++;
+        }
+
+        Toast::success("Nilai {$jumlah} siswa ditarik ke Penilaian.");
+
+        return Redirect::back();
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function hasilData(Ujian $ujian): array
     {
-        $ujian->load(['guruKelas', 'pengerjaans']);
+        $ujian->load(['guruKelas']);
         $guruKelas = $ujian->guruKelas;
 
-        $pengerjaanByNisn = $ujian->pengerjaans
-            ->sortByDesc('attempt_ke')
-            ->unique('siswa_nisn')
+        // Optimasi: ambil hanya attempt terbaru per siswa via subquery (bukan filter di PHP)
+        $latestIds = DB::table('cbt_ujian_pengerjaans')
+            ->selectRaw('MAX(id) as id')
+            ->where('ujian_id', $ujian->id)
+            ->groupBy('siswa_nisn');
+        $pengerjaanByNisn = UjianPengerjaan::query()
+            ->whereIn('id', $latestIds)
+            ->get()
             ->keyBy('siswa_nisn');
 
         $siswas = SiswaKelas::query()

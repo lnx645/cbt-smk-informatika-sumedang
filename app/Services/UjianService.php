@@ -8,7 +8,6 @@ use App\Models\Soal;
 use App\Models\Ujian;
 use App\Models\UjianPengerjaan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class UjianService
 {
@@ -29,63 +28,283 @@ class UjianService
 
     /**
      * Nilai satu jawaban objektif. Mengembalikan true jika benar.
+     * Mendukung 16 tipe bank soal + tipe legacy.
      */
     public function nilaiJawabanObjektif(Soal $soal, JawabanSiswa $jawaban): bool
     {
-        return match ($soal->tipe) {
-            'pg', 'benar_salah' => $this->nilaiPilihanTunggal($soal, $jawaban),
-            'multi' => $this->nilaiMultiJawaban($soal, $jawaban),
-            'isian' => $this->nilaiIsian($soal, $jawaban),
+        // Decode jawaban dari jawaban_teks (JSON) atau opsi_dipilih (legacy)
+        $jw = $this->decodeJawaban($jawaban);
+        $detail = $soal->detail ?? [];
+        $tipe = $soal->tipe;
+
+        return match ($tipe) {
+            'benar_salah' => $this->nilaiBenarSalahBaru($jw, $detail, $soal),
+
+            // === 16 tipe baru ===
+            'pilihan_ganda', 'pilihan_ganda_citra' => $this->nilaiPilihanGandaBaru($jw, $detail),
+            'pilihan_ganda_kompleks' => $this->nilaiPilihanGandaKompleksBaru($jw, $detail),
+            'menjodohkan', 'menjodohkan_banyak' => $this->nilaiMenjodohkanBaru($jw, $detail),
+            'isian_singkat' => $this->nilaiIsianSingkatBaru($jw, $detail),
+            'mengurutkan' => $this->nilaiMengurutkanBaru($jw, $detail),
+            'setuju_tidak' => $this->nilaiPernyataanBaru($jw, $detail),
+            'matrix_text', 'matrix_checkbox' => $this->nilaiMatrixBaru($jw, $detail),
+            'mengelompokkan' => $this->nilaiMengelompokkanBaru($jw, $detail),
+            'blank_space' => $this->nilaiBlankSpaceBaru($jw, $detail),
+            'image_labeling' => $this->nilaiImageLabelingBaru($jw, $detail),
+            'listening' => $this->nilaiListeningBaru($jw, $detail),
+            // uraian/esai: manual
             default => false,
         };
     }
 
-    private function nilaiPilihanTunggal(Soal $soal, JawabanSiswa $jawaban): bool
+    /**
+     * Konversi aman ke string (cegah Array to string conversion).
+     */
+    private function str(mixed $v): string
     {
-        $dipilih = collect($jawaban->opsi_dipilih ?? [])->map(fn ($id): int => (int) $id);
+        if (is_array($v)) {
+            $v = $v[0] ?? '';
 
-        if ($dipilih->count() !== 1) {
-            return false;
+            return $this->str($v);
+        }
+        if (is_object($v)) {
+            return '';
         }
 
-        $benarIds = $soal->opsi->where('benar', true)->pluck('id')->map(fn ($id): int => (int) $id);
-
-        return $benarIds->contains($dipilih->first());
+        return trim((string) $v);
     }
 
-    private function nilaiMultiJawaban(Soal $soal, JawabanSiswa $jawaban): bool
+    /**
+     * Decode jawaban dari jawaban_teks (JSON/string) atau opsi_dipilih.
+     */
+    private function decodeJawaban(JawabanSiswa $jawaban): mixed
     {
-        $dipilih = collect($jawaban->opsi_dipilih ?? [])->map(fn ($id): int => (int) $id)->sort()->values();
-        $benarIds = $soal->opsi->where('benar', true)->pluck('id')->map(fn ($id): int => (int) $id)->sort()->values();
+        $t = $jawaban->jawaban_teks;
+        if ($t !== null && $t !== '') {
+            $trimmed = trim($t);
+            if (($trimmed[0] ?? '') === '{' || ($trimmed[0] ?? '') === '[') {
+                $decoded = json_decode($trimmed, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    return $decoded;
+                }
+            }
 
-        if ($dipilih->isEmpty() || $benarIds->isEmpty()) {
-            return false;
+            return $trimmed;
         }
 
-        return $dipilih->all() === $benarIds->all();
+        return $jawaban->opsi_dipilih;
     }
 
-    private function nilaiIsian(Soal $soal, JawabanSiswa $jawaban): bool
+    /** Pilihan ganda: jawaban 'a'/'b'/... cocok dengan kunci. */
+    private function nilaiPilihanGandaBaru(mixed $jw, array $detail): bool
     {
-        $jawab = trim((string) $jawaban->jawaban_teks);
-
-        if ($jawab === '') {
+        $kunci = $detail['kunci'] ?? null;
+        if ($kunci === null || $kunci === '') {
             return false;
         }
+        $j = is_array($jw) ? ($jw[0] ?? '') : (string) $jw;
 
-        foreach ($soal->kunci_isian ?? [] as $kunci) {
-            $kunci = trim((string) $kunci);
+        return strtolower($this->str($j)) === strtolower($this->str($kunci));
+    }
 
-            $cocok = $soal->isian_case_sensitive
-                ? $jawab === $kunci
-                : Str::lower($jawab) === Str::lower($kunci);
+    /** PG Kompleks: set jawaban harus sama persis dengan set kunci. */
+    private function nilaiPilihanGandaKompleksBaru(mixed $jw, array $detail): bool
+    {
+        $kunci = $detail['kunci'] ?? [];
+        if (! is_array($kunci)) {
+            $kunci = [$kunci];
+        }
+        $j = is_array($jw) ? $jw : [$jw];
+        $jk = array_map(fn ($x) => strtolower($this->str($x)), $j);
+        $kk = array_map(fn ($x) => strtolower($this->str($x)), $kunci);
+        sort($jk);
+        sort($kk);
 
-            if ($cocok) {
+        return ! empty($kk) && $jk === $kk;
+    }
+
+    /** Menjodohkan: semua pasangan harus cocok. */
+    private function nilaiMenjodohkanBaru(mixed $jw, array $detail): bool
+    {
+        $pasangan = $detail['pasangan'] ?? [];
+        if (empty($pasangan) || ! is_array($jw)) {
+            return false;
+        }
+        foreach ($pasangan as $i => $p) {
+            $kunciKanan = $p['kanan'] ?? $p['pasangan'] ?? null;
+            $jawabKanan = $jw[$i] ?? $jw[(string) $i] ?? null;
+            if (strtolower($this->str($jawabKanan)) !== strtolower($this->str($kunciKanan))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Isian singkat: cocok dengan salah satu kunci (case-insensitive). */
+    private function nilaiIsianSingkatBaru(mixed $jw, array $detail): bool
+    {
+        $kunci = $detail['kunci'] ?? [];
+        if (! is_array($kunci)) {
+            $kunci = [$kunci];
+        }
+        $j = strtolower($this->str(is_array($jw) ? ($jw[0] ?? '') : $jw));
+        if ($j === '') {
+            return false;
+        }
+        foreach ($kunci as $k) {
+            if ($j === strtolower($this->str($k))) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /** Mengurutkan: urutan harus persis sama. */
+    private function nilaiMengurutkanBaru(mixed $jw, array $detail): bool
+    {
+        $kunci = $detail['kunci'] ?? $detail['urutan_benar'] ?? $detail['urutan'] ?? [];
+        if (! is_array($jw) || empty($kunci)) {
+            return false;
+        }
+
+        return array_values($jw) === array_values($kunci);
+    }
+
+    /** Benar/Salah & Setuju/Tidak: per pernyataan harus cocok. */
+    private function nilaiPernyataanBaru(mixed $jw, array $detail): bool
+    {
+        return $this->nilaiBenarSalahBaru($jw, $detail, null);
+    }
+
+    private function nilaiBenarSalahBaru(mixed $jw, array $detail, ?Soal $soal): bool
+    {
+        $pernyataan = $detail['pernyataan'] ?? [];
+        // Fallback legacy: dari opsi
+        if (empty($pernyataan) && $soal) {
+            $pernyataan = $soal->opsi->map(fn ($o) => [
+                'teks' => $o->teks,
+                'jawaban' => $o->benar ? 'Benar' : 'Salah',
+            ])->toArray();
+        }
+        if (empty($pernyataan) || ! is_array($jw)) {
+            return false;
+        }
+        foreach ($pernyataan as $i => $p) {
+            $kunci = strtolower($this->str($p['jawaban'] ?? ''));
+            $jawab = strtolower($this->str($jw[$i] ?? $jw[(string) $i] ?? ''));
+            // Normalisasi: benar/true/b, salah/false/s
+            $norm = fn ($v) => in_array($v, ['benar', 'true', 'b', 'setuju']) ? 'benar' : (in_array($v, ['salah', 'false', 's', 'tidak']) ? 'salah' : $v);
+            if ($norm($jawab) !== $norm($kunci)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Matrix: semua sel harus cocok. */
+    private function nilaiMatrixBaru(mixed $jw, array $detail): bool
+    {
+        $kunci = $detail['kunci'] ?? $detail['jawaban'] ?? [];
+        if (empty($kunci) || ! is_array($jw)) {
+            return false;
+        }
+        foreach ($kunci as $k => $v) {
+            $jv = $jw[$k] ?? $jw[(string) $k] ?? null;
+            if (is_array($v)) {
+                if (array_values((array) $jv) !== array_values($v)) {
+                    return false;
+                }
+            } elseif (strtolower($this->str($jv)) !== strtolower($this->str($v))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Mengelompokkan: setiap item harus di kelompok yang benar. */
+    private function nilaiMengelompokkanBaru(mixed $jw, array $detail): bool
+    {
+        $kunci = $detail['kunci'] ?? $detail['kelompok'] ?? [];
+        if (empty($kunci) || ! is_array($jw)) {
+            return false;
+        }
+        // Normalisasi: [{nama,items}] -> {nama: items}
+        if (isset($kunci[0]) && is_array($kunci[0]) && isset($kunci[0]['nama'])) {
+            $norm = [];
+            foreach ($kunci as $k) {
+                $norm[$k['nama']] = $k['items'] ?? [];
+            }
+            $kunci = $norm;
+        }
+        foreach ($kunci as $kelompok => $items) {
+            $jItems = $jw[$kelompok] ?? $jw[(string) $kelompok] ?? [];
+            $jk = array_map(fn ($x) => $this->str($x), (array) $jItems);
+            $kk = array_map(fn ($x) => $this->str($x), (array) $items);
+            sort($jk);
+            sort($kk);
+            if ($jk !== $kk) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Blank space: setiap blank harus cocok. */
+    private function nilaiBlankSpaceBaru(mixed $jw, array $detail): bool
+    {
+        $kunci = $detail['kunci'] ?? [];
+        if (! is_array($kunci)) {
+            $kunci = [$kunci];
+        }
+        $j = is_array($jw) ? $jw : [$jw];
+        if (count($j) !== count($kunci)) {
+            return false;
+        }
+        foreach ($kunci as $i => $k) {
+            $kk = is_array($k) ? $k : [$k];
+            $jv = strtolower($this->str($j[$i] ?? ''));
+            $cocok = false;
+            foreach ($kk as $alt) {
+                if ($jv === strtolower($this->str($alt))) {
+                    $cocok = true;
+                    break;
+                }
+            }
+            if (! $cocok) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Image labeling: semua label harus cocok. */
+    private function nilaiImageLabelingBaru(mixed $jw, array $detail): bool
+    {
+        $markers = $detail['markers'] ?? [];
+        if (empty($markers) || ! is_array($jw)) {
+            return false;
+        }
+        foreach ($markers as $i => $m) {
+            $kunci = strtolower($this->str($m['label'] ?? $m['kunci'] ?? ''));
+            $jawab = strtolower($this->str($jw[$i] ?? $jw[(string) $i] ?? ''));
+            if ($jawab !== $kunci) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Listening: seperti pilihan ganda. */
+    private function nilaiListeningBaru(mixed $jw, array $detail): bool
+    {
+        return $this->nilaiPilihanGandaBaru($jw, $detail);
     }
 
     /**
@@ -126,7 +345,7 @@ class UjianService
         $esaiPending = false;
 
         // Soal esai yang ada pada ujian
-        $soalEsaiIds = $ujian->soals->where('tipe', 'esai')->pluck('id');
+        $soalEsaiIds = $ujian->soals->filter(fn ($s) => $s->esai())->pluck('id');
         $jawabanBySoal = $pengerjaan->jawabans->keyBy('soal_id');
 
         foreach ($pengerjaan->jawabans as $jawaban) {
@@ -138,7 +357,7 @@ class UjianService
 
             if ($soal->objektif()) {
                 $poinObjektif += (float) ($jawaban->skor ?? 0);
-            } elseif ($soal->tipe === 'esai') {
+            } elseif ($soal->esai()) {
                 if ($jawaban->skor === null) {
                     $esaiPending = true;
                 } else {

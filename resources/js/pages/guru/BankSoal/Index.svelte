@@ -343,7 +343,7 @@
                                     <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                                         <span class="badge bg-primary-subtle text-primary-emphasis rounded-1">#</span>
                                         <Badge color="light" class="text-dark border">
-                                            <i class={`bi ${TIPE_SOAL_INFO[b.tipe].icon} me-1`}></i>
+                                            <i class={`bi ${TIPE_SOAL_INFO[b.tipe]?.icon ?? 'bi-question-circle'} me-1`}></i>
                                             {TIPE_SOAL_INFO[b.tipe].label}
                                         </Badge>
                                         <Badge color={KESULITAN_INFO[b.kesulitan].color} pill>
@@ -383,7 +383,7 @@
                                     {:else if b.kunci_isian?.length}
                                         <div class="small text-muted mt-2">
                                             <i class="bi bi-key me-1"></i>
-                                            Kunci: {b.kunci_isian.join(', ')}
+                                            Kunci: {Array.isArray(b.kunci_isian) ? b.kunci_isian.join(', ') : (b.kunci_isian ?? '-')}
                                             {#if b.isian_case_sensitive}
                                                 <span class="badge bg-warning-subtle text-warning-emphasis ms-1">Case sensitive</span>
                                             {/if}

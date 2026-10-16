@@ -4,22 +4,27 @@ namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\BaseAppController;
 use App\Models\JawabanSiswa;
+use App\Models\Kelas;
 use App\Models\OpsiSoal;
 use App\Models\PelanggaranLog;
 use App\Models\SesiUjian;
+use App\Models\Siswa;
 use App\Models\SiswaKelas;
 use App\Models\Soal;
 use App\Models\Ujian;
 use App\Models\UjianPengerjaan;
-use App\Services\UjianService;
 use App\Services\PaketSoalService;
+use App\Services\UjianService;
 use App\Support\Toast;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
@@ -40,6 +45,10 @@ class UjianController extends BaseAppController implements HasMiddleware
     {
         return [
             new Middleware(function (Request $request, $next) {
+                // Mode ujian (/ujian/*): auth via session NISN, bukan Auth
+                if ($request->session()->get('mode_ujian') || $request->attributes->get('ujian_nisn')) {
+                    return $next($request);
+                }
                 if ($request->user()?->role !== 'siswa') {
                     abort(403);
                 }
@@ -54,13 +63,15 @@ class UjianController extends BaseAppController implements HasMiddleware
      */
     public function index(Request $request): Response
     {
-        $nisn = $request->user()->siswa->nisn;
+        $nisn = $this->nisnSiswa($request);
         $kelasIds = $this->kelasIds($nisn);
 
         $ujians = Ujian::query()
             ->with(['guruKelas.kelas:id,nama', 'guruKelas.matpel:id,name', 'guru:id,nama_lengkap'])
             ->withCount('soals')
             ->where('status', 'terbit')
+            // Ujian resmi (UTS/UAS/USBK) hanya via /ujian/login, jangan tampil di dashboard harian
+            ->whereNotIn('kategori', Ujian::KATEGORI_BESAR)
             ->whereHas('guruKelas', fn ($q) => $q->whereIn('kelas_id', $kelasIds)->where('tahun_ajaran_id', $this->tahunAjaran?->id))
             ->orderByDesc('created_at')
             ->get();
@@ -125,18 +136,24 @@ class UjianController extends BaseAppController implements HasMiddleware
      */
     public function konfirmasi(Request $request, Ujian $ujian): Response|RedirectResponse
     {
-        $nisn = $request->user()->siswa->nisn;
+        $ujian->loadMissing(['guruKelas.matpel', 'guruKelas.kelas', 'guru']);
+        $nisn = $this->nisnSiswa($request);
         $this->pastikanBolehAkses($ujian, $nisn);
+        $modeUjian = (bool) $request->session()->get('mode_ujian');
 
         if (! $ujian->sedangBerlangsung()) {
             Toast::error('Ujian belum dibuka atau sudah berakhir.');
 
-            return Redirect::route('app.siswa.ujian.index');
+            return $modeUjian
+                ? Redirect::route('ujian.daftar')
+                : Redirect::route('app.siswa.ujian.index');
         }
 
         // Sudah ada sesi berjalan -> langsung lanjutkan.
-        if ($this->sesiBerjalan($ujian, $nisn)) {
-            return Redirect::route('app.siswa.ujian.kerjakan', $ujian);
+        if ($pengerjaan = $this->sesiBerjalan($ujian, $nisn)) {
+            return $modeUjian
+                ? Redirect::route('ujian.kerjakan', $ujian)
+                : Redirect::route('app.siswa.ujian.kerjakan', $ujian);
         }
 
         $ujian->loadCount('soals');
@@ -147,7 +164,10 @@ class UjianController extends BaseAppController implements HasMiddleware
             ->whereNull('nilai_total')
             ->exists();
 
-        return Inertia::render('siswa/Ujian/Konfirmasi', [
+        // Token per sesi: cari sesi yang sedang berlangsung untuk info
+        $sesiAktif = $this->sesiUntukSiswa($ujian, $nisn);
+
+        $data = [
             'ujian' => [
                 'id' => $ujian->id,
                 'judul' => $ujian->judul,
@@ -159,17 +179,30 @@ class UjianController extends BaseAppController implements HasMiddleware
                 'durasi_menit' => $ujian->durasi_menit,
                 'jumlah_soal' => $ujian->soals_count,
                 'nilai_maks' => $ujian->nilai_maks,
-                'butuh_token' => $ujian->token !== null,
+                'butuh_token' => $sesiAktif?->token !== null,
                 'wajib_fullscreen' => $ujian->wajib_fullscreen,
                 'maks_pelanggaran' => $ujian->maks_pelanggaran,
                 'ada_menunggu_koreksi' => $adaMenungguKoreksi,
+                'sesi_nama' => $sesiAktif?->nama,
             ],
-        ]);
+        ];
+
+        if ($modeUjian) {
+            $siswa = Siswa::where('nisn', $nisn)->first();
+            $data['siswa'] = [
+                'nama' => $siswa?->nama_lengkap,
+                'nisn' => $nisn,
+            ];
+
+            return Inertia::render('ujian/Konfirmasi', $data);
+        }
+
+        return Inertia::render('siswa/Ujian/Konfirmasi', $data);
     }
 
     public function mulai(Request $request, Ujian $ujian): RedirectResponse
     {
-        $nisn = $request->user()->siswa->nisn;
+        $nisn = $this->nisnSiswa($request);
         $this->pastikanBolehAkses($ujian, $nisn);
 
         // Wajib menyetujui tata tertib sebelum mulai.
@@ -190,11 +223,29 @@ class UjianController extends BaseAppController implements HasMiddleware
         if ($berjalan) {
             Toast::info('Melanjutkan pengerjaan ujian.');
 
-            return Redirect::route('app.siswa.ujian.kerjakan', $ujian);
+            $isModeUjian = str_starts_with($request->path(), 'ujian/');
+
+            return $isModeUjian
+                ? redirect("/ujian/{$ujian->id}/kerjakan")
+                : Redirect::route('app.siswa.ujian.kerjakan', $ujian);
         }
 
-        if ($ujian->token !== null) {
-            $request->validate(['token' => ['required', 'string']]);
+        // Token per sesi (untuk ujian resmi), per ujian (untuk kuis)
+        $sesi = $this->sesiUntukSiswa($ujian, $nisn);
+        $tokenSesi = $sesi?->token;
+        $tokenDibuka = $sesi?->token_released_at !== null;
+
+        if ($tokenSesi !== null) {
+            $request->validate(['token' => ['required', 'string']], ['token.required' => 'Token wajib diisi. Minta token kepada pengawas.']);
+
+            $inputToken = $request->string('token')->toString();
+            if ($inputToken !== $tokenSesi || ! $tokenDibuka) {
+                Toast::error('Token salah atau belum dibuka pengawas.');
+
+                return Redirect::back();
+            }
+        } elseif ($ujian->token !== null) {
+            $request->validate(['token' => ['required', 'string']], ['token.required' => 'Token wajib diisi. Minta token kepada pengawas.']);
 
             if (! $ujian->tokenValid($request->string('token')->toString())) {
                 Toast::error('Token salah atau belum dirilis pengawas.');
@@ -229,7 +280,23 @@ class UjianController extends BaseAppController implements HasMiddleware
         // terkunci agar kapasitas tidak jebol oleh request bersamaan.
         $pakaiSesi = $ujian->memakaiSesi();
 
-        $pengerjaan = DB::transaction(function () use ($ujian, $nisn, $terpakai, $pakaiSesi, $isRemedial) {
+        $pengerjaan = DB::transaction(function () use ($ujian, $nisn, $pakaiSesi, $isRemedial) {
+            // Cek sesi berjalan di dalam transaction dengan lock (cegah double-click)
+            $berjalan = UjianPengerjaan::where('ujian_id', $ujian->id)
+                ->where('siswa_nisn', $nisn)
+                ->where('status', 'berlangsung')
+                ->lockForUpdate()
+                ->latest('id')
+                ->first();
+            if ($berjalan) {
+                return $berjalan;
+            }
+
+            // Hitung attempt di dalam transaction
+            $terpakai = UjianPengerjaan::where('ujian_id', $ujian->id)
+                ->where('siswa_nisn', $nisn)
+                ->whereIn('status', ['selesai', 'auto_submit', 'diskualifikasi'])
+                ->count();
             $sesiAktif = $pakaiSesi ? $this->sesiUntukSiswa($ujian, $nisn) : null;
 
             if ($pakaiSesi && $sesiAktif === null) {
@@ -274,7 +341,9 @@ class UjianController extends BaseAppController implements HasMiddleware
 
         Toast::success($isRemedial ? 'Remedial dimulai. Kerjakan dengan jujur.' : 'Ujian dimulai. Kerjakan dengan jujur.');
 
-        return Redirect::route('app.siswa.ujian.kerjakan', $ujian);
+        return $request->session()->get('mode_ujian')
+            ? Redirect::route('ujian.kerjakan', $ujian)
+            : Redirect::route('app.siswa.ujian.kerjakan', $ujian);
     }
 
     /**
@@ -283,6 +352,10 @@ class UjianController extends BaseAppController implements HasMiddleware
      */
     private function sesiUntukSiswa(Ujian $ujian, string $nisn): ?SesiUjian
     {
+        // Kuis/ulangan harian tidak pakai sesi - langsung boleh masuk
+        if (! in_array($ujian->kategori, ['uts', 'uas', 'usbk'], true)) {
+            return null;
+        }
         if ($ujian->sesiTerjadwal()) {
             // Ala USBK: siswa hanya boleh masuk sesi yang dijatahkan untuknya.
             $jatah = SesiUjian::jatahUntuk($ujian->id, $nisn);
@@ -335,7 +408,7 @@ class UjianController extends BaseAppController implements HasMiddleware
      */
     public function kerjakan(Request $request, Ujian $ujian): Response|RedirectResponse
     {
-        $nisn = $request->user()->siswa->nisn;
+        $nisn = $this->nisnSiswa($request);
         $this->pastikanBolehAkses($ujian, $nisn);
 
         $pengerjaan = $this->sesiBerjalan($ujian, $nisn);
@@ -353,7 +426,9 @@ class UjianController extends BaseAppController implements HasMiddleware
                 Toast::warning('Waktu ujian habis. Jawaban dikumpulkan otomatis.');
             }
 
-            return Redirect::route('app.siswa.ujian.index');
+            return $request->session()->get('mode_ujian')
+                ? Redirect::route('ujian.daftar')
+                : Redirect::route('app.siswa.ujian.index');
         }
 
         $ujian->load('soals.opsi');
@@ -400,6 +475,7 @@ class UjianController extends BaseAppController implements HasMiddleware
                         'teks' => $o->teks,
                     ])->values()
                     : [],
+                'detail' => $this->stripKunci($s->detail),
                 'jawaban' => [
                     'opsi_dipilih' => $jawabanBySoal->get($s->id)?->opsi_dipilih,
                     'jawaban_teks' => $jawabanBySoal->get($s->id)?->jawaban_teks,
@@ -412,9 +488,9 @@ class UjianController extends BaseAppController implements HasMiddleware
     /**
      * Autosave satu jawaban.
      */
-    public function simpanJawaban(Request $request, Ujian $ujian): RedirectResponse
+    public function simpanJawaban(Request $request, Ujian $ujian): RedirectResponse|JsonResponse
     {
-        $nisn = $request->user()->siswa->nisn;
+        $nisn = $this->nisnSiswa($request);
         $this->pastikanBolehAkses($ujian, $nisn);
 
         $pengerjaan = $this->sesiBerjalan($ujian, $nisn);
@@ -423,7 +499,7 @@ class UjianController extends BaseAppController implements HasMiddleware
         }
 
         $data = $request->validate([
-            'soal_id' => ['required', Rule::exists('soals', 'id')->where('ujian_id', $ujian->id)],
+            'soal_id' => ['required', Rule::exists('cbt_soals', 'id')->where('ujian_id', $ujian->id)],
             'opsi_dipilih' => ['nullable', 'array'],
             'opsi_dipilih.*' => ['integer'],
             'jawaban_teks' => ['nullable', 'string', 'max:20000'],
@@ -446,6 +522,11 @@ class UjianController extends BaseAppController implements HasMiddleware
             ],
         );
 
+        // Jika fetch/AJAX, kembalikan JSON ringan (bukan redirect Inertia)
+        if ($request->wantsJson() || $request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json(['ok' => true]);
+        }
+
         return Redirect::back();
     }
 
@@ -454,21 +535,26 @@ class UjianController extends BaseAppController implements HasMiddleware
      */
     public function submit(Request $request, Ujian $ujian): RedirectResponse
     {
-        $nisn = $request->user()->siswa->nisn;
+        $nisn = $this->nisnSiswa($request);
         $this->pastikanBolehAkses($ujian, $nisn);
+        $modeUjian = (bool) $request->session()->get('mode_ujian');
 
         $pengerjaan = $this->sesiBerjalan($ujian, $nisn);
         if (! $pengerjaan) {
             Toast::error('Sesi ujian tidak ditemukan atau sudah berakhir.');
 
-            return Redirect::route('app.siswa.ujian.index');
+            return $modeUjian
+                ? Redirect::route('ujian.daftar')
+                : Redirect::route('app.siswa.ujian.index');
         }
 
         $this->finalisasi($pengerjaan, 'selesai');
 
         Toast::success('Ujian berhasil dikumpulkan.');
 
-        return Redirect::route('app.siswa.ujian.hasil', $ujian);
+        return $modeUjian
+            ? Redirect::route('ujian.hasil', $ujian)
+            : Redirect::route('app.siswa.ujian.hasil', $ujian);
     }
 
     /**
@@ -476,7 +562,7 @@ class UjianController extends BaseAppController implements HasMiddleware
      */
     public function lapor(Request $request, Ujian $ujian): RedirectResponse
     {
-        $nisn = $request->user()->siswa->nisn;
+        $nisn = $this->nisnSiswa($request);
         $this->pastikanBolehAkses($ujian, $nisn);
 
         $pengerjaan = $this->sesiBerjalan($ujian, $nisn);
@@ -510,8 +596,9 @@ class UjianController extends BaseAppController implements HasMiddleware
      */
     public function hasil(Request $request, Ujian $ujian): Response|RedirectResponse
     {
-        $nisn = $request->user()->siswa->nisn;
+        $nisn = $this->nisnSiswa($request);
         $this->pastikanBolehAkses($ujian, $nisn);
+        $modeUjian = (bool) $request->session()->get('mode_ujian');
 
         $pengerjaan = UjianPengerjaan::where('ujian_id', $ujian->id)
             ->where('siswa_nisn', $nisn)
@@ -522,7 +609,9 @@ class UjianController extends BaseAppController implements HasMiddleware
         if (! $pengerjaan) {
             Toast::info('Kamu belum menyelesaikan ujian ini.');
 
-            return Redirect::route('app.siswa.ujian.index');
+            return $modeUjian
+                ? Redirect::route('ujian.daftar')
+                : Redirect::route('app.siswa.ujian.index');
         }
 
         // Jangan kirim nilai ke browser sama sekali bila guru menonaktifkan
@@ -547,6 +636,16 @@ class UjianController extends BaseAppController implements HasMiddleware
             ],
         ];
 
+        if ($modeUjian) {
+            $siswa = Siswa::where('nisn', $nisn)->first();
+            $data['siswa'] = [
+                'nama' => $siswa?->nama_lengkap,
+                'nisn' => $nisn,
+            ];
+
+            return Inertia::render('ujian/Hasil', $data);
+        }
+
         return Inertia::render('siswa/Ujian/Hasil', $data);
     }
 
@@ -555,13 +654,21 @@ class UjianController extends BaseAppController implements HasMiddleware
      */
     private function finalisasi(UjianPengerjaan $pengerjaan, string $status): void
     {
-        $pengerjaan->update([
-            'status' => $status,
-            'submitted_at' => now(),
-        ]);
+        DB::transaction(function () use ($pengerjaan, $status) {
+            // Lock row untuk cegah double submit
+            $p = UjianPengerjaan::whereKey($pengerjaan->id)->lockForUpdate()->first();
+            if (! $p || $p->status !== 'berlangsung') {
+                return; // Sudah difinalisasi
+            }
 
-        $this->ujianService->gradeObjektif($pengerjaan);
-        $this->ujianService->rekalkulasiNilai($pengerjaan->fresh());
+            $p->update([
+                'status' => $status,
+                'submitted_at' => now(),
+            ]);
+
+            $this->ujianService->gradeObjektif($p);
+            $this->ujianService->rekalkulasiNilai($p->fresh());
+        });
     }
 
     private function sesiBerjalan(Ujian $ujian, string $nisn): ?UjianPengerjaan
@@ -581,9 +688,32 @@ class UjianController extends BaseAppController implements HasMiddleware
         return $pengerjaan;
     }
 
+    /**
+     * Ambil NISN siswa: dari session mode ujian jika ada, else dari user login.
+     */
+    private function nisnSiswa(Request $request): string
+    {
+        return $request->attributes->get('ujian_nisn')
+            ?? $request->session()->get('ujian_nisn')
+            ?? $request->user()->siswa->nisn;
+    }
+
     private function pastikanBolehAkses(Ujian $ujian, string $nisn): void
     {
         abort_unless($ujian->status === 'terbit', 404);
+        abort_unless($ujian->guruKelas !== null, 404);
+
+        // Mode ujian (/ujian/*): verifikasi siswa terdaftar di ujian ini.
+        // Untuk ujian terjadwal: cek jatah sesi. Untuk lainnya: cek kelas.
+        if (request()->session()->get('mode_ujian')) {
+            if ($ujian->sesiTerjadwal()) {
+                abort_unless(SesiUjian::jatahUntuk($ujian->id, $nisn) !== null, 404);
+            } else {
+                abort_unless($this->kelasIds($nisn)->contains($ujian->guruKelas->kelas_id), 404);
+            }
+
+            return;
+        }
         abort_unless($this->kelasIds($nisn)->contains($ujian->guruKelas->kelas_id), 404);
         abort_unless($ujian->guruKelas->tahun_ajaran_id === $this->tahunAjaran?->id, 404);
     }
@@ -605,6 +735,76 @@ class UjianController extends BaseAppController implements HasMiddleware
      *
      * @return Collection<int, Soal>
      */
+    /**
+     * Hapus kunci jawaban dari detail sebelum dikirim ke siswa.
+     * Mencegah siswa melihat kunci via dev tools.
+     */
+    private function stripKunci(?array $detail): ?array
+    {
+        if (empty($detail)) {
+            return $detail;
+        }
+
+        $d = $detail;
+        unset($d['kunci']);
+
+        // Benar/salah: hapus jawaban per pernyataan
+        if (isset($d['pernyataan']) && is_array($d['pernyataan'])) {
+            foreach ($d['pernyataan'] as &$p) {
+                unset($p['jawaban']);
+            }
+            unset($p);
+        }
+
+        // Image labeling: hapus label/kunci, sisakan koordinat
+        if (isset($d['markers']) && is_array($d['markers'])) {
+            foreach ($d['markers'] as &$m) {
+                unset($m['label'], $m['kunci']);
+            }
+            unset($m);
+        }
+
+        // Menjodohkan: kirim kiri & kanan terpisah (frontend acak deterministik)
+        if (isset($d['pasangan']) && is_array($d['pasangan'])) {
+            $kiri = [];
+            $kanan = [];
+            foreach ($d['pasangan'] as $p) {
+                $kiri[] = $p['kiri'] ?? '';
+                $kanan[] = $p['kanan'] ?? '';
+            }
+            // JANGAN shuffle di sini - frontend sudah shuffle deterministik
+            $d['kiri'] = $kiri;
+            $d['kanan'] = $kanan;
+            unset($d['pasangan']);
+        }
+
+        // Mengurutkan: acak urutan di tempat (renderer butuh 'urutan')
+        if (isset($d['urutan']) && is_array($d['urutan'])) {
+            shuffle($d['urutan']);
+        }
+        unset($d['urutan_benar']);
+
+        // Mengelompokkan: kirim nama kelompok + pool item acak
+        if (isset($d['kelompok']) && is_array($d['kelompok'])) {
+            $namaKelompok = [];
+            $pool = [];
+            foreach ($d['kelompok'] as $k) {
+                $namaKelompok[] = $k['nama'] ?? '';
+                foreach ($k['items'] ?? [] as $item) {
+                    $pool[] = $item;
+                }
+            }
+            shuffle($pool);
+            $d['nama_kelompok'] = $namaKelompok;
+            $d['pool'] = $pool;
+            unset($d['kelompok']);
+        }
+
+        unset($d['jawaban']);
+
+        return $d;
+    }
+
     private function urutkanSoal(Ujian $ujian, UjianPengerjaan $pengerjaan): Collection
     {
         $soals = $ujian->soals;
@@ -663,5 +863,54 @@ class UjianController extends BaseAppController implements HasMiddleware
     private function seedOpsi(UjianPengerjaan $pengerjaan, Soal $soal): int
     {
         return (int) (crc32("opsi:{$pengerjaan->id}:{$soal->id}:{$pengerjaan->attempt_ke}") & 0x7FFFFFFF);
+    }
+
+    /**
+     * Download kartu ujian siswa (PDF) — berisi kredensial login ujian.
+     */
+    public function kartuSaya(Request $request): \Illuminate\Http\Response
+    {
+        $siswa = $request->user()->siswa;
+        abort_unless($siswa, 404);
+
+        $kelasId = SiswaKelas::where('siswa_nisn', $siswa->nisn)
+            ->where('active', true)->value('kelas_id');
+        $kelas = $kelasId ? Kelas::find($kelasId) : null;
+
+        // Password universal — cukup cek siswa sudah punya password
+        abort_unless($siswa->password_ujian, 404, 'Kartu belum tersedia. Hubungi panitia untuk membuat password ujian.');
+
+        // Dekripsi password
+        $passwordPlain = null;
+        if ($siswa->password_ujian) {
+            try {
+                $passwordPlain = Crypt::decryptString($siswa->password_ujian);
+            } catch (\Exception $e) {
+                $passwordPlain = null;
+            }
+        }
+        $siswa->password_ujian_plain = $passwordPlain;
+
+        // Ujian resmi yang terbit untuk kelas siswa
+        $kelasId = SiswaKelas::where('siswa_nisn', $siswa->nisn)
+            ->where('active', true)->value('kelas_id');
+        $kelas = $kelasId ? Kelas::find($kelasId) : null;
+
+        $ujians = Ujian::query()
+            ->where('status', 'terbit')
+            ->whereIn('kategori', Ujian::KATEGORI_BESAR)
+            ->whereHas('guruKelas', fn ($q) => $q->where('kelas_id', $kelasId))
+            ->with(['sesis.ruang', 'guruKelas.matpel'])
+            ->orderBy('id')->get();
+
+        Carbon::setLocale('id');
+
+        $pdf = Pdf::loadView('pdf.kartu-peserta-siswa', [
+            'siswa' => $siswa,
+            'kelas' => $kelas,
+            'ujians' => $ujians,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->download("kartu-ujian-{$siswa->nisn}.pdf");
     }
 }
