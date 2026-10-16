@@ -19,8 +19,10 @@ use App\Models\SiswaKelas;
 use App\Models\TahunAjaran;
 use App\Models\Ujian;
 use App\Models\UjianPengerjaan;
+use App\Services\JadwalPublishService;
 use App\Services\KelengkapanUjianService;
 use App\Services\NotifikasiService;
+use App\Services\SesiAssignService;
 use App\Services\UjianService;
 use App\Support\Toast;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -155,7 +157,7 @@ class UjianController extends BaseAppController
         $ruangSesi = $data['ruang_sesi'] ?? [];
         $ruangId = $data['mode'] === 'luring' ? ($ruangSesi[0] ?? null) : null;
 
-        app(\App\Services\SesiAssignService::class)->bagiSiswaKeSesi(
+        app(SesiAssignService::class)->bagiSiswaKeSesi(
             $jadwal->id,
             $kelasIds,
             $jamAwal,
@@ -202,11 +204,11 @@ class UjianController extends BaseAppController
     /**
      * Detail jadwal: lihat sesi-sesi.
      */
-    public function showJadwal(\App\Models\Jadwal $jadwal): \Inertia\Response
+    public function showJadwal(Jadwal $jadwal): Response
     {
         $jadwal->load(['event', 'banksoal.matpel', 'sesi.ruang', 'kelas']);
 
-        return \Inertia\Inertia::render('panitia/Ujian/DetailJadwal', [
+        return Inertia::render('panitia/Ujian/DetailJadwal', [
             'jadwal' => [
                 'id' => $jadwal->id,
                 'nama' => $jadwal->nama,
@@ -231,10 +233,11 @@ class UjianController extends BaseAppController
         ]);
     }
 
-    public function editJadwal(\App\Models\Jadwal $jadwal): \Inertia\Response
+    public function editJadwal(Jadwal $jadwal): Response
     {
         $jadwal->load(['kelas']);
-        return \Inertia\Inertia::render('panitia/Ujian/EditJadwal', [
+
+        return Inertia::render('panitia/Ujian/EditJadwal', [
             'jadwal' => [
                 'id' => $jadwal->id,
                 'nama' => $jadwal->nama,
@@ -245,13 +248,13 @@ class UjianController extends BaseAppController
                 'mode' => $jadwal->mode,
                 'kelas_ids' => $jadwal->kelas->pluck('id')->all(),
             ],
-            'events' => \App\Models\Event::orderByDesc('created_at')->get(['id', 'nama']),
-            'kelasList' => \App\Models\Kelas::orderBy('nama')->get(['id', 'nama']),
-            'banksoalList' => \App\Models\KelompokBankSoal::orderBy('nama')->get()->map(fn ($b) => ['id' => $b->id, 'nama' => $b->nama]),
+            'events' => Event::orderByDesc('created_at')->get(['id', 'nama']),
+            'kelasList' => Kelas::orderBy('nama')->get(['id', 'nama']),
+            'banksoalList' => KelompokBankSoal::orderBy('nama')->get()->map(fn ($b) => ['id' => $b->id, 'nama' => $b->nama]),
         ]);
     }
 
-    public function updateJadwal(\Illuminate\Http\Request $request, \App\Models\Jadwal $jadwal): \Illuminate\Http\RedirectResponse
+    public function updateJadwal(Request $request, Jadwal $jadwal): RedirectResponse
     {
         $data = $request->validate([
             'nama' => ['required', 'string', 'max:255'],
@@ -265,12 +268,14 @@ class UjianController extends BaseAppController
         ]);
         $jadwal->update($data);
         $jadwal->kelas()->sync($data['kelas_ids'] ?? []);
+
         return redirect()->route('app.panitia.jadwal.show', $jadwal)->with('success', 'Jadwal diperbarui.');
     }
 
-    public function destroyJadwal(\App\Models\Jadwal $jadwal): \Illuminate\Http\RedirectResponse
+    public function destroyJadwal(Jadwal $jadwal): RedirectResponse
     {
         $jadwal->delete();
+
         return redirect()->route('app.panitia.jadwal.index')->with('success', 'Jadwal dihapus.');
     }
 
@@ -1033,18 +1038,20 @@ class UjianController extends BaseAppController
     /**
      * Daftar siswa peserta sesi.
      */
-    public function terbitkanJadwal(\App\Models\Jadwal $jadwal): \Illuminate\Http\RedirectResponse
+    public function terbitkanJadwal(Jadwal $jadwal): RedirectResponse
     {
-        $jadwal->update(['status' => 'published']);
-        return back()->with('success', 'Jadwal diterbitkan.');
+        $hasil = app(JadwalPublishService::class)->terbitkan($jadwal);
+
+        return back()->with('success', 'Jadwal diterbitkan. '.count($hasil['ujian_ids']).' ujian dibuat, '.$hasil['jumlah_soal'].' soal disalin, '.$hasil['jumlah_sesi'].' sesi dibuat.');
     }
 
-    public function buatTokenJadwalSesi(\App\Models\JadwalSesi $sesi): \Illuminate\Http\RedirectResponse
+    public function buatTokenJadwalSesi(JadwalSesi $sesi): RedirectResponse
     {
         $sesi->update([
             'token' => strtoupper(\Illuminate\Support\Str::random(6)),
             'token_released_at' => now(),
         ]);
+
         return back()->with('success', 'Token dibuat: '.$sesi->token);
     }
 
